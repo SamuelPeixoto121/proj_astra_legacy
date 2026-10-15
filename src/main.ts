@@ -6,15 +6,20 @@ const WORLD_HEIGHT = 1200;
 const TILE_SIZE = 64;
 
 type Language = "pt" | "en";
-type QuestStage = "talk" | "hunt" | "complete";
+type QuestStage = "talk" | "hunt" | "boss" | "complete";
 
 class ForestScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Container;
   private playerBody!: Phaser.GameObjects.Rectangle;
+
   private enemy!: Phaser.GameObjects.Container;
   private enemyBody!: Phaser.GameObjects.Rectangle;
+
   private elder!: Phaser.GameObjects.Container;
   private elderBody!: Phaser.GameObjects.Rectangle;
+
+  private boss!: Phaser.GameObjects.Container;
+  private bossBody!: Phaser.GameObjects.Rectangle;
 
   private treeColliders: Phaser.GameObjects.Rectangle[] = [];
 
@@ -28,34 +33,52 @@ class ForestScene extends Phaser.Scene {
   private statusText!: Phaser.GameObjects.Text;
   private hudGraphics!: Phaser.GameObjects.Graphics;
   private enemyHealthGraphics!: Phaser.GameObjects.Graphics;
+  private bossHealthGraphics!: Phaser.GameObjects.Graphics;
+  private bossNameText!: Phaser.GameObjects.Text;
   private questText!: Phaser.GameObjects.Text;
   private interactionHint!: Phaser.GameObjects.Text;
+
   private dialoguePanel!: Phaser.GameObjects.Rectangle;
   private dialogueName!: Phaser.GameObjects.Text;
   private dialogueText!: Phaser.GameObjects.Text;
   private dialogueHint!: Phaser.GameObjects.Text;
+
   private gameOverOverlay?: Phaser.GameObjects.Rectangle;
   private gameOverText?: Phaser.GameObjects.Text;
 
   private playerHealth = 100;
   private enemyHealth = 60;
+  private bossHealth = 250;
 
   private readonly maxPlayerHealth = 100;
   private readonly maxEnemyHealth = 60;
+  private readonly maxBossHealth = 250;
+
   private readonly playerSpeed = 220;
   private readonly enemySpeed = 85;
+  private readonly bossSpeed = 105;
+
   private readonly attackDamage = 25;
   private readonly enemyDamage = 12;
+  private readonly bossDamage = 20;
 
   private facingX = 0;
   private facingY = 1;
+
   private lastAttackAt = -10000;
   private lastDamageAt = -10000;
+  private lastBossAttackAt = -10000;
+
   private gameOver = false;
+  private victory = false;
+
   private enemyDefeated = false;
+  private bossUnlocked = false;
+  private bossDefeated = false;
 
   private language: Language = "pt";
   private questStage: QuestStage = "talk";
+
   private elderTalked = false;
   private dialogueOpen = false;
   private dialogueLines: string[] = [];
@@ -67,16 +90,28 @@ class ForestScene extends Phaser.Scene {
 
   create(): void {
     this.treeColliders = [];
+
     this.playerHealth = this.maxPlayerHealth;
     this.enemyHealth = this.maxEnemyHealth;
+    this.bossHealth = this.maxBossHealth;
+
     this.facingX = 0;
     this.facingY = 1;
+
     this.lastAttackAt = -10000;
     this.lastDamageAt = -10000;
+    this.lastBossAttackAt = -10000;
+
     this.gameOver = false;
+    this.victory = false;
+
     this.enemyDefeated = false;
+    this.bossUnlocked = false;
+    this.bossDefeated = false;
+
     this.language = "pt";
     this.questStage = "talk";
+
     this.elderTalked = false;
     this.dialogueOpen = false;
     this.dialogueLines = [];
@@ -86,9 +121,12 @@ class ForestScene extends Phaser.Scene {
     this.drawPath();
     this.createForest();
     this.createLandmarks();
+
     this.createPlayer();
     this.createElder();
     this.createEnemy();
+    this.createBoss();
+
     this.createInterface();
     this.createInput();
 
@@ -107,6 +145,7 @@ class ForestScene extends Phaser.Scene {
     for (const obstacle of this.treeColliders) {
       this.physics.add.collider(this.playerBody, obstacle);
       this.physics.add.collider(this.enemyBody, obstacle);
+      this.physics.add.collider(this.bossBody, obstacle);
     }
 
     this.physics.add.collider(
@@ -117,7 +156,21 @@ class ForestScene extends Phaser.Scene {
     this.physics.add.overlap(
       this.playerBody,
       this.enemyBody,
-      () => this.damagePlayer(),
+      () => {
+        if (!this.enemyDefeated) {
+          this.damagePlayer(this.enemyDamage);
+        }
+      },
+    );
+
+    this.physics.add.overlap(
+      this.playerBody,
+      this.bossBody,
+      () => {
+        if (this.bossUnlocked && !this.bossDefeated) {
+          this.damagePlayer(this.bossDamage);
+        }
+      },
     );
 
     this.cameras.main.setBounds(
@@ -136,51 +189,54 @@ class ForestScene extends Phaser.Scene {
 
     this.cameras.main.setZoom(1);
 
-    this.scale.on("resize", (gameSize: Phaser.Structs.Size) => {
-      this.cameras.main.setSize(
-        gameSize.width,
-        gameSize.height,
-      );
-
-      this.dialoguePanel.setPosition(
-        20,
-        gameSize.height - 155,
-      );
-
-      this.dialoguePanel.setSize(
-        gameSize.width - 40,
-        135,
-      );
-
-      this.dialogueName.setPosition(
-        40,
-        gameSize.height - 140,
-      );
-
-      this.dialogueText.setPosition(
-        40,
-        gameSize.height - 108,
-      );
-
-      this.dialogueHint.setPosition(
-        gameSize.width - 245,
-        gameSize.height - 43,
-      );
-
-      if (this.gameOverOverlay) {
-        this.gameOverOverlay.setSize(
+    this.scale.on(
+      "resize",
+      (gameSize: Phaser.Structs.Size) => {
+        this.cameras.main.setSize(
           gameSize.width,
           gameSize.height,
         );
-      }
 
-      if (this.gameOverText) {
-        this.gameOverText.setPosition(
-          gameSize.width / 2,
-          gameSize.height / 2,
+        this.dialoguePanel.setPosition(
+          20,
+          gameSize.height - 155,
         );
-      }
-    });
+
+        this.dialoguePanel.setSize(
+          gameSize.width - 40,
+          135,
+        );
+
+        this.dialogueName.setPosition(
+          40,
+          gameSize.height - 140,
+        );
+
+        this.dialogueText.setPosition(
+          40,
+          gameSize.height - 108,
+        );
+
+        this.dialogueHint.setPosition(
+          gameSize.width - 245,
+          gameSize.height - 43,
+        );
+
+        if (this.gameOverOverlay) {
+          this.gameOverOverlay.setSize(
+            gameSize.width,
+            gameSize.height,
+          );
+        }
+
+        if (this.gameOverText) {
+          this.gameOverText.setPosition(
+            gameSize.width / 2,
+            gameSize.height / 2,
+          );
+        }
+      },
+    );
 
     this.updateQuestDisplay();
   }
@@ -291,6 +347,10 @@ class ForestScene extends Phaser.Scene {
         continue;
       }
 
+      if (Phaser.Math.Distance.Between(x, y, 850, 380) < 115) {
+        continue;
+      }
+
       this.createTree(x, y, 0.75 + random(0.6));
     }
   }
@@ -336,11 +396,19 @@ class ForestScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(2000);
 
     this.add.circle(
-      850, 380, 55, 0x789b66, 0.12,
+      850,
+      380,
+      75,
+      0x789b66,
+      0.12,
     );
 
     this.add.circle(
-      850, 380, 36, 0x9ebd7c, 0.08,
+      850,
+      380,
+      48,
+      0x9ebd7c,
+      0.08,
     );
 
     this.add.text(850, 300, "FLORESTA SUSSURRANTE", {
@@ -354,7 +422,11 @@ class ForestScene extends Phaser.Scene {
 
   private createPlayer(): void {
     this.playerBody = this.add.rectangle(
-      790, 960, 22, 18, 0xffffff,
+      790,
+      960,
+      22,
+      18,
+      0xffffff,
     );
 
     this.playerBody.setVisible(false);
@@ -365,7 +437,15 @@ class ForestScene extends Phaser.Scene {
     this.player.add([
       this.add.ellipse(0, 13, 35, 16, 0x101810, 0.6),
       this.add.triangle(
-        0, 3, -12, -12, 12, -12, 0, 15, 0x762e36,
+        0,
+        3,
+        -12,
+        -12,
+        12,
+        -12,
+        0,
+        15,
+        0x762e36,
       ),
       this.add.rectangle(0, -1, 19, 23, 0xb6a47b),
       this.add.circle(0, -15, 8, 0xe2bd91),
@@ -381,7 +461,11 @@ class ForestScene extends Phaser.Scene {
 
   private createElder(): void {
     this.elderBody = this.add.rectangle(
-      650, 960, 24, 20, 0xffffff,
+      650,
+      960,
+      24,
+      20,
+      0xffffff,
     );
 
     this.elderBody.setVisible(false);
@@ -392,7 +476,15 @@ class ForestScene extends Phaser.Scene {
     this.elder.add([
       this.add.ellipse(0, 13, 35, 15, 0x101810, 0.6),
       this.add.triangle(
-        0, 5, -15, -10, 15, -10, 0, 19, 0x4b526a,
+        0,
+        5,
+        -15,
+        -10,
+        15,
+        -10,
+        0,
+        19,
+        0x4b526a,
       ),
       this.add.circle(0, -9, 11, 0xb8b3a1),
       this.add.circle(0, -12, 12, 0xddd5bd),
@@ -402,18 +494,27 @@ class ForestScene extends Phaser.Scene {
 
     this.elder.setDepth(1020);
 
-    this.add.text(650, 925, this.language === "pt" ? "Ancião" : "Elder", {
-      fontFamily: "Georgia, serif",
-      fontSize: "13px",
-      color: "#f0dfac",
-      stroke: "#17251b",
-      strokeThickness: 4,
-    }).setOrigin(0.5).setDepth(2500);
+    this.add.text(
+      650,
+      925,
+      this.language === "pt" ? "Ancião" : "Elder",
+      {
+        fontFamily: "Georgia, serif",
+        fontSize: "13px",
+        color: "#f0dfac",
+        stroke: "#17251b",
+        strokeThickness: 4,
+      },
+    ).setOrigin(0.5).setDepth(2500);
   }
 
   private createEnemy(): void {
     this.enemyBody = this.add.rectangle(
-      850, 790, 30, 24, 0xffffff,
+      850,
+      790,
+      30,
+      24,
+      0xffffff,
     );
 
     this.enemyBody.setVisible(false);
@@ -432,10 +533,26 @@ class ForestScene extends Phaser.Scene {
       this.add.ellipse(0, -2, 30, 23, 0x6c565b),
       this.add.circle(15, -7, 12, 0x80636a),
       this.add.triangle(
-        8, -17, -5, 6, 5, 6, 0, -10, 0x59434a,
+        8,
+        -17,
+        -5,
+        6,
+        5,
+        6,
+        0,
+        -10,
+        0x59434a,
       ),
       this.add.triangle(
-        20, -17, -5, 6, 5, 6, 0, -10, 0x59434a,
+        20,
+        -17,
+        -5,
+        6,
+        5,
+        6,
+        0,
+        -10,
+        0x59434a,
       ),
       this.add.circle(19, -8, 2.5, 0xff453f),
       this.add.circle(11, -8, 2.5, 0xff453f),
@@ -448,9 +565,165 @@ class ForestScene extends Phaser.Scene {
     this.enemyHealthGraphics.setDepth(3000);
   }
 
+  private createBoss(): void {
+    this.bossBody = this.add.rectangle(
+      850,
+      380,
+      38,
+      32,
+      0xffffff,
+    );
+
+    this.bossBody.setVisible(false);
+    this.physics.add.existing(this.bossBody);
+
+    const body =
+      this.bossBody.body as Phaser.Physics.Arcade.Body;
+
+    body.setCollideWorldBounds(true);
+    body.enable = false;
+
+    this.boss = this.add.container(850, 380);
+
+    this.boss.add([
+      this.add.ellipse(0, 19, 64, 25, 0x080a10, 0.75),
+
+      this.add.ellipse(
+        0,
+        2,
+        50,
+        58,
+        0x291c32,
+      ),
+
+      this.add.ellipse(
+        0,
+        -3,
+        40,
+        50,
+        0x49304e,
+      ),
+
+      this.add.triangle(
+        -16,
+        -31,
+        -12,
+        17,
+        0,
+        -21,
+        5,
+        13,
+        0x17121f,
+      ),
+
+      this.add.triangle(
+        16,
+        -31,
+        -5,
+        13,
+        0,
+        -21,
+        12,
+        17,
+        0x17121f,
+      ),
+
+      this.add.circle(
+        0,
+        -17,
+        18,
+        0x17121f,
+      ),
+
+      this.add.circle(
+        -7,
+        -18,
+        3.5,
+        0xff354d,
+      ),
+
+      this.add.circle(
+        7,
+        -18,
+        3.5,
+        0xff354d,
+      ),
+
+      this.add.triangle(
+        0,
+        0,
+        -9,
+        -5,
+        9,
+        -5,
+        0,
+        12,
+        0x17121f,
+      ),
+
+      this.add.rectangle(
+        -24,
+        7,
+        10,
+        35,
+        0x291c32,
+      ).setAngle(-25),
+
+      this.add.rectangle(
+        24,
+        7,
+        10,
+        35,
+        0x291c32,
+      ).setAngle(25),
+
+      this.add.circle(
+        0,
+        3,
+        8,
+        0x8d264e,
+      ),
+
+      this.add.circle(
+        0,
+        3,
+        4,
+        0xff5267,
+      ),
+    ]);
+
+    this.boss.setDepth(900);
+    this.boss.setVisible(false);
+
+    this.bossHealthGraphics = this.add.graphics();
+    this.bossHealthGraphics.setDepth(3000);
+    this.bossHealthGraphics.setVisible(false);
+
+    this.bossNameText = this.add.text(
+      850,
+      325,
+      "KAEL",
+      {
+        fontFamily: "Georgia, serif",
+        fontSize: "18px",
+        fontStyle: "bold",
+        color: "#ff8293",
+        stroke: "#160d1c",
+        strokeThickness: 5,
+      },
+    );
+
+    this.bossNameText.setOrigin(0.5);
+    this.bossNameText.setDepth(3000);
+    this.bossNameText.setVisible(false);
+  }
+
   private createInterface(): void {
     this.statusText = this.add.text(
-      20, 18, "", {
+      20,
+      18,
+      "",
+      {
         fontFamily: "Georgia, serif",
         fontSize: "14px",
         color: "#e9dfbf",
@@ -463,27 +736,40 @@ class ForestScene extends Phaser.Scene {
     this.hudGraphics.setScrollFactor(0);
     this.hudGraphics.setDepth(3000);
 
-    this.questText = this.add.text(20, 112, "", {
-      fontFamily: "Georgia, serif",
-      fontSize: "14px",
-      color: "#f0dfac",
-      backgroundColor: "#15231bd9",
-      padding: { x: 12, y: 9 },
-      wordWrap: { width: 360 },
-    }).setScrollFactor(0).setDepth(3000);
+    this.questText = this.add.text(
+      20,
+      112,
+      "",
+      {
+        fontFamily: "Georgia, serif",
+        fontSize: "14px",
+        color: "#f0dfac",
+        backgroundColor: "#15231bd9",
+        padding: { x: 12, y: 9 },
+        wordWrap: { width: 360 },
+      },
+    ).setScrollFactor(0).setDepth(3000);
 
-    this.interactionHint = this.add.text(0, 0, "", {
-      fontFamily: "Georgia, serif",
-      fontSize: "14px",
-      color: "#f0dfac",
-      backgroundColor: "#15231be8",
-      padding: { x: 8, y: 6 },
-    }).setOrigin(0.5).setDepth(3500);
+    this.interactionHint = this.add.text(
+      0,
+      0,
+      "",
+      {
+        fontFamily: "Georgia, serif",
+        fontSize: "14px",
+        color: "#f0dfac",
+        backgroundColor: "#15231be8",
+        padding: { x: 8, y: 6 },
+      },
+    ).setOrigin(0.5).setDepth(3500);
 
     this.dialoguePanel = this.add.rectangle(
-      20, this.scale.height - 155,
-      this.scale.width - 40, 135,
-      0x111710, 0.96,
+      20,
+      this.scale.height - 155,
+      this.scale.width - 40,
+      135,
+      0x111710,
+      0.96,
     );
 
     this.dialoguePanel
@@ -494,7 +780,10 @@ class ForestScene extends Phaser.Scene {
       .setVisible(false);
 
     this.dialogueName = this.add.text(
-      40, this.scale.height - 140, "", {
+      40,
+      this.scale.height - 140,
+      "",
+      {
         fontFamily: "Georgia, serif",
         fontSize: "17px",
         color: "#f0dfac",
@@ -503,11 +792,16 @@ class ForestScene extends Phaser.Scene {
     ).setScrollFactor(0).setDepth(6001).setVisible(false);
 
     this.dialogueText = this.add.text(
-      40, this.scale.height - 108, "", {
+      40,
+      this.scale.height - 108,
+      "",
+      {
         fontFamily: "Georgia, serif",
         fontSize: "16px",
         color: "#e9dfbf",
-        wordWrap: { width: Math.max(300, this.scale.width - 100) },
+        wordWrap: {
+          width: Math.max(300, this.scale.width - 100),
+        },
         lineSpacing: 5,
       },
     ).setScrollFactor(0).setDepth(6001).setVisible(false);
@@ -542,30 +836,45 @@ class ForestScene extends Phaser.Scene {
 
     if (healthWidth > 0) {
       this.hudGraphics.fillStyle(0xb83e48, 1);
-      this.hudGraphics.fillRect(24, 58, healthWidth, 16);
+      this.hudGraphics.fillRect(
+        24,
+        58,
+        healthWidth,
+        16,
+      );
     }
   }
 
   private updateQuestDisplay(): void {
-    const text = this.language === "pt"
-      ? this.getPortugueseQuest()
-      : this.getEnglishQuest();
+    this.questText.setText(
+      this.language === "pt"
+        ? this.getPortugueseQuest()
+        : this.getEnglishQuest(),
+    );
 
-    this.questText.setText(text);
+    if (this.victory) {
+      this.statusText.setText(
+        this.language === "pt"
+          ? "KAEL DERROTADO • VITÓRIA"
+          : "KAEL DEFEATED • VICTORY",
+      );
+      return;
+    }
 
     if (this.questStage === "complete") {
       this.statusText.setText(
         this.language === "pt"
-          ? "MISSÃO CONCLUÍDA"
-          : "QUEST COMPLETE",
+          ? "PRÓLOGO CONCLUÍDO"
+          : "PROLOGUE COMPLETE",
       );
-    } else {
-      this.statusText.setText(
-        this.language === "pt"
-          ? "ASTRA LEGACY  •  PRÓLOGO"
-          : "ASTRA LEGACY  •  PROLOGUE",
-      );
+      return;
     }
+
+    this.statusText.setText(
+      this.language === "pt"
+        ? "ASTRA LEGACY  •  PRÓLOGO"
+        : "ASTRA LEGACY  •  PROLOGUE",
+    );
   }
 
   private getPortugueseQuest(): string {
@@ -576,8 +885,11 @@ class ForestScene extends Phaser.Scene {
       case "hunt":
         return "MISSÃO: A FLORESTA SUSSURRANTE\nDerrote o Lobo Corrompido.";
 
+      case "boss":
+        return "NOVO OBJETIVO: O SENHOR DA CORRUPÇÃO\nEncontre e derrote Kael na floresta.";
+
       case "complete":
-        return "MISSÃO CONCLUÍDA!\nA trilha está mais segura. Continue explorando.";
+        return "PRÓLOGO CONCLUÍDO!\nVocê derrotou Kael e sobreviveu à corrupção.";
     }
   }
 
@@ -589,8 +901,11 @@ class ForestScene extends Phaser.Scene {
       case "hunt":
         return "QUEST: THE WHISPERING FOREST\nDefeat the Corrupted Wolf.";
 
+      case "boss":
+        return "NEW OBJECTIVE: LORD OF CORRUPTION\nFind and defeat Kael in the forest.";
+
       case "complete":
-        return "QUEST COMPLETE!\nThe path is safer. Keep exploring.";
+        return "PROLOGUE COMPLETE!\nYou defeated Kael and survived the corruption.";
     }
   }
 
@@ -625,27 +940,37 @@ class ForestScene extends Phaser.Scene {
           ];
 
       this.openDialogue(
-        this.language === "pt" ? "Ancião de Alvorada" : "Elder of Dawnvale",
+        this.language === "pt"
+          ? "Ancião de Alvorada"
+          : "Elder of Dawnvale",
       );
 
       return;
     }
 
-    if (this.questStage === "complete") {
+    if (this.bossDefeated) {
       this.dialogueLines = this.language === "pt"
         ? [
-            "Você fez um grande serviço a Alvorada. Mas sinto que a corrupção ainda não desapareceu por completo.",
+            "Você derrotou Kael! A corrupção perdeu sua força, e Alvorada terá uma chance de reconstruir seu futuro.",
           ]
         : [
-            "You have done a great service to Dawnvale. But I fear the corruption has not vanished completely.",
+            "You defeated Kael! The corruption has lost its power, and Dawnvale may finally rebuild its future.",
+          ];
+    } else if (this.bossUnlocked) {
+      this.dialogueLines = this.language === "pt"
+        ? [
+            "Sinto a presença de Kael no coração da floresta. Prepare-se, viajante. Ele é muito mais perigoso que o lobo.",
+          ]
+        : [
+            "I sense Kael's presence deep in the forest. Prepare yourself, traveler. He is far more dangerous than the wolf.",
           ];
     } else if (this.enemyDefeated) {
       this.dialogueLines = this.language === "pt"
         ? [
-            "Você conseguiu! A trilha está mais segura graças à sua coragem. Astra ainda não nos abandonou.",
+            "Você conseguiu! Mas a morte do lobo revelou uma presença ainda mais sombria. Siga até o coração da floresta e prepare-se para enfrentar Kael.",
           ]
         : [
-            "You did it! The trail is safer thanks to your courage. Astra has not abandoned us yet.",
+            "You did it! But the wolf's death revealed an even darker presence. Head into the heart of the forest and prepare to face Kael.",
           ];
     } else {
       this.dialogueLines = this.language === "pt"
@@ -658,7 +983,9 @@ class ForestScene extends Phaser.Scene {
     }
 
     this.openDialogue(
-      this.language === "pt" ? "Ancião de Alvorada" : "Elder of Dawnvale",
+      this.language === "pt"
+        ? "Ancião de Alvorada"
+        : "Elder of Dawnvale",
     );
   }
 
@@ -708,11 +1035,45 @@ class ForestScene extends Phaser.Scene {
     if (!this.elderTalked) {
       this.elderTalked = true;
       this.questStage = this.enemyDefeated
-        ? "complete"
+        ? "boss"
         : "hunt";
     }
 
+    this.unlockBossIfReady();
     this.updateQuestDisplay();
+  }
+
+  private unlockBossIfReady(): void {
+    if (
+      !this.elderTalked ||
+      !this.enemyDefeated ||
+      this.bossUnlocked
+    ) {
+      return;
+    }
+
+    this.bossUnlocked = true;
+    this.questStage = "boss";
+
+    const body =
+      this.bossBody.body as Phaser.Physics.Arcade.Body;
+
+    body.enable = true;
+    body.setVelocity(0, 0);
+
+    this.bossBody.setActive(true);
+    this.boss.setVisible(true);
+    this.bossHealthGraphics.setVisible(true);
+    this.bossNameText.setVisible(true);
+
+    this.statusText.setText(
+      this.language === "pt"
+        ? "UMA PRESENÇA SOMBRIA SURGIU..."
+        : "A DARK PRESENCE HAS AWAKENED...",
+    );
+
+    this.updateQuestDisplay();
+    this.drawBossHealthBar();
   }
 
   private attack(): void {
@@ -736,21 +1097,27 @@ class ForestScene extends Phaser.Scene {
 
     this.time.delayedCall(110, () => slash.destroy());
 
-    if (this.enemyDefeated) {
+    if (!this.enemyDefeated) {
+      this.attackWolf();
       return;
     }
 
-    const dx = this.enemyBody.x - this.playerBody.x;
-    const dy = this.enemyBody.y - this.playerBody.y;
+    if (this.bossUnlocked && !this.bossDefeated) {
+      this.attackBoss();
+    }
+  }
+
+  private isTargetInFront(
+    targetX: number,
+    targetY: number,
+    range: number,
+  ): boolean {
+    const dx = targetX - this.playerBody.x;
+    const dy = targetY - this.playerBody.y;
     const distance = Math.hypot(dx, dy);
 
-    if (distance > 85 || distance === 0) {
-      this.statusText.setText(
-        this.language === "pt"
-          ? "O GOLPE NÃO ALCANÇOU O INIMIGO"
-          : "YOUR ATTACK MISSED",
-      );
-      return;
+    if (distance > range || distance === 0) {
+      return false;
     }
 
     const directionX = dx / distance;
@@ -760,11 +1127,21 @@ class ForestScene extends Phaser.Scene {
       directionX * this.facingX +
       directionY * this.facingY;
 
-    if (facingDot < 0.2) {
+    return facingDot >= 0.2;
+  }
+
+  private attackWolf(): void {
+    if (
+      !this.isTargetInFront(
+        this.enemyBody.x,
+        this.enemyBody.y,
+        85,
+      )
+    ) {
       this.statusText.setText(
         this.language === "pt"
-          ? "VIRE-SE PARA ACERTAR O LOBO"
-          : "TURN TOWARD THE WOLF",
+          ? "O GOLPE NÃO ALCANÇOU O LOBO"
+          : "YOUR ATTACK MISSED THE WOLF",
       );
       return;
     }
@@ -776,14 +1153,56 @@ class ForestScene extends Phaser.Scene {
 
     this.statusText.setText(
       this.language === "pt"
-        ? `GOLPE ACERTOU! DANO: ${this.attackDamage}`
-        : `HIT! DAMAGE: ${this.attackDamage}`,
+        ? `LOBO ATINGIDO! DANO: ${this.attackDamage}`
+        : `WOLF HIT! DAMAGE: ${this.attackDamage}`,
     );
 
     this.drawEnemyHealthBar();
 
     if (this.enemyHealth <= 0) {
       this.defeatEnemy();
+    }
+  }
+
+  private attackBoss(): void {
+    if (
+      !this.isTargetInFront(
+        this.bossBody.x,
+        this.bossBody.y,
+        105,
+      )
+    ) {
+      this.statusText.setText(
+        this.language === "pt"
+          ? "VOCÊ PRECISA SE APROXIMAR E VIRAR PARA KAEL"
+          : "GET CLOSER AND FACE KAEL",
+      );
+      return;
+    }
+
+    this.bossHealth = Math.max(
+      0,
+      this.bossHealth - this.attackDamage,
+    );
+
+    this.statusText.setText(
+      this.language === "pt"
+        ? `KAEL ATINGIDO! DANO: ${this.attackDamage}`
+        : `KAEL HIT! DAMAGE: ${this.attackDamage}`,
+    );
+
+    this.boss.setAlpha(0.45);
+
+    this.time.delayedCall(100, () => {
+      if (this.boss.active && !this.bossDefeated) {
+        this.boss.setAlpha(1);
+      }
+    });
+
+    this.drawBossHealthBar();
+
+    if (this.bossHealth <= 0) {
+      this.defeatBoss();
     }
   }
 
@@ -806,15 +1225,62 @@ class ForestScene extends Phaser.Scene {
     if (healthWidth > 0) {
       this.enemyHealthGraphics.fillStyle(0xc44449, 1);
       this.enemyHealthGraphics.fillRect(
-        x + 1, y + 1, healthWidth - 1, 5,
+        x + 1,
+        y + 1,
+        Math.max(0, healthWidth - 1),
+        5,
       );
     }
   }
 
-  private damagePlayer(): void {
+  private drawBossHealthBar(): void {
+    if (
+      !this.bossHealthGraphics ||
+      !this.bossUnlocked ||
+      this.bossDefeated
+    ) {
+      return;
+    }
+
+    const width = 100;
+    const x = this.bossBody.x - width / 2;
+    const y = this.bossBody.y - 53;
+
+    this.bossHealthGraphics.clear();
+
+    this.bossHealthGraphics.fillStyle(0x100c16, 0.95);
+    this.bossHealthGraphics.fillRect(x, y, width, 10);
+
+    this.bossHealthGraphics.fillStyle(0x562038, 1);
+    this.bossHealthGraphics.fillRect(
+      x + 1,
+      y + 1,
+      width - 2,
+      8,
+    );
+
+    const healthWidth =
+      (width - 2) * (this.bossHealth / this.maxBossHealth);
+
+    if (healthWidth > 0) {
+      this.bossHealthGraphics.fillStyle(0xe43e62, 1);
+      this.bossHealthGraphics.fillRect(
+        x + 1,
+        y + 1,
+        healthWidth,
+        8,
+      );
+    }
+
+    this.bossNameText.setPosition(
+      this.bossBody.x,
+      this.bossBody.y - 76,
+    );
+  }
+
+  private damagePlayer(amount: number): void {
     if (
       this.gameOver ||
-      this.enemyDefeated ||
       this.time.now - this.lastDamageAt < 850
     ) {
       return;
@@ -824,15 +1290,15 @@ class ForestScene extends Phaser.Scene {
 
     this.playerHealth = Math.max(
       0,
-      this.playerHealth - this.enemyDamage,
+      this.playerHealth - amount,
     );
 
     this.drawHud();
 
     this.statusText.setText(
       this.language === "pt"
-        ? `VOCÊ RECEBEU ${this.enemyDamage} DE DANO`
-        : `YOU TOOK ${this.enemyDamage} DAMAGE`,
+        ? `VOCÊ RECEBEU ${amount} DE DANO`
+        : `YOU TOOK ${amount} DAMAGE`,
     );
 
     this.player.setAlpha(0.4);
@@ -856,7 +1322,7 @@ class ForestScene extends Phaser.Scene {
     });
 
     if (this.playerHealth <= 0) {
-      this.showGameOver();
+      this.showGameOver(false);
     }
   }
 
@@ -871,23 +1337,49 @@ class ForestScene extends Phaser.Scene {
 
     this.enemyBody.setActive(false);
     this.enemyBody.setVisible(false);
+
     this.enemy.destroy();
     this.enemyHealthGraphics.destroy();
 
-    if (this.elderTalked && this.questStage === "hunt") {
-      this.questStage = "complete";
-      this.updateQuestDisplay();
-    } else {
+    this.unlockBossIfReady();
+
+    if (!this.bossUnlocked) {
       this.statusText.setText(
         this.language === "pt"
-          ? "LOBO DERROTADO!"
-          : "WOLF DEFEATED!",
+          ? "LOBO DERROTADO! VOLTE AO ANCIÃO."
+          : "WOLF DEFEATED! RETURN TO THE ELDER.",
       );
     }
   }
 
-  private showGameOver(): void {
+  private defeatBoss(): void {
+    this.bossDefeated = true;
+    this.victory = true;
     this.gameOver = true;
+
+    const body =
+      this.bossBody.body as Phaser.Physics.Arcade.Body;
+
+    body.setVelocity(0, 0);
+    body.enable = false;
+
+    this.bossBody.setActive(false);
+    this.bossBody.setVisible(false);
+
+    this.boss.destroy();
+    this.bossHealthGraphics.destroy();
+    this.bossNameText.destroy();
+
+    this.questStage = "complete";
+    this.updateQuestDisplay();
+
+    this.showGameOver(true);
+  }
+
+  private showGameOver(isVictory: boolean): void {
+    this.gameOver = true;
+    this.victory = isVictory;
+
     this.physics.world.pause();
 
     this.gameOverOverlay = this.add.rectangle(
@@ -895,8 +1387,8 @@ class ForestScene extends Phaser.Scene {
       0,
       this.scale.width,
       this.scale.height,
-      0x080d0a,
-      0.88,
+      isVictory ? 0x11120a : 0x080d0a,
+      0.9,
     );
 
     this.gameOverOverlay
@@ -904,19 +1396,26 @@ class ForestScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(5000);
 
+    const message = isVictory
+      ? this.language === "pt"
+        ? "KAEL FOI DERROTADO!\n\nA luz de Astra voltou a brilhar.\n\nPressione R para jogar novamente"
+        : "KAEL HAS BEEN DEFEATED!\n\nAstra's light shines once more.\n\nPress R to play again"
+      : this.language === "pt"
+        ? "VOCÊ FOI DERROTADO\n\nPressione R para tentar novamente"
+        : "YOU WERE DEFEATED\n\nPress R to try again";
+
     this.gameOverText = this.add.text(
       this.scale.width / 2,
       this.scale.height / 2,
-      this.language === "pt"
-        ? "VOCÊ FOI DERROTADO\n\nPressione R para tentar novamente"
-        : "YOU WERE DEFEATED\n\nPress R to try again",
+      message,
       {
         fontFamily: "Georgia, serif",
         fontSize: "24px",
-        color: "#e9dfbf",
+        color: isVictory ? "#f0dfac" : "#e9dfbf",
         align: "center",
         stroke: "#15231b",
         strokeThickness: 3,
+        wordWrap: { width: this.scale.width - 60 },
       },
     );
 
@@ -938,32 +1437,38 @@ class ForestScene extends Phaser.Scene {
           : "Elder of Dawnvale",
       );
 
-      this.dialogueLines = this.language === "pt"
-        ? [
-            "Viajante, a Floresta Sussurrante está sendo consumida por uma corrupção antiga.",
-            "Um lobo corrompido ronda a trilha. Precisamos recuperar esse caminho antes que a escuridão alcance Alvorada.",
-            "Encontre o lobo e derrote-o. Que a luz de Astra guie sua espada.",
-          ]
-        : [
-            "Traveler, the Whispering Forest is being consumed by an ancient corruption.",
-            "A corrupted wolf stalks the trail. We must reclaim this path before darkness reaches Dawnvale.",
-            "Find the wolf and defeat it. May Astra's light guide your sword.",
-          ];
+      if (!this.elderTalked) {
+        this.dialogueLines = this.language === "pt"
+          ? [
+              "Viajante, você chegou em uma hora sombria. A Floresta Sussurrante está sendo consumida por uma corrupção antiga.",
+              "Um lobo corrompido ronda a trilha e ataca quem se aproxima. Precisamos recuperar esse caminho antes que a escuridão alcance Alvorada.",
+              "Encontre o lobo e derrote-o. Que a luz de Astra guie sua espada.",
+            ]
+          : [
+              "Traveler, you have arrived in a dark hour. The Whispering Forest is being consumed by an ancient corruption.",
+              "A corrupted wolf stalks the trail and attacks anyone who approaches. We must reclaim this path before darkness reaches Dawnvale.",
+              "Find the wolf and defeat it. May Astra's light guide your sword.",
+            ];
 
-      this.dialogueIndex = Math.min(
-        this.dialogueIndex,
-        this.dialogueLines.length - 1,
-      );
+        this.dialogueIndex = Math.min(
+          this.dialogueIndex,
+          this.dialogueLines.length - 1,
+        );
 
-      this.showCurrentDialogue();
+        this.showCurrentDialogue();
+      }
     }
 
     if (this.gameOverText) {
-      this.gameOverText.setText(
-        this.language === "pt"
+      const message = this.victory
+        ? this.language === "pt"
+          ? "KAEL FOI DERROTADO!\n\nA luz de Astra voltou a brilhar.\n\nPressione R para jogar novamente"
+          : "KAEL HAS BEEN DEFEATED!\n\nAstra's light shines once more.\n\nPress R to play again"
+        : this.language === "pt"
           ? "VOCÊ FOI DERROTADO\n\nPressione R para tentar novamente"
-          : "YOU WERE DEFEATED\n\nPress R to try again",
-      );
+          : "YOU WERE DEFEATED\n\nPress R to try again";
+
+      this.gameOverText.setText(message);
     }
   }
 
@@ -1067,6 +1572,11 @@ class ForestScene extends Phaser.Scene {
       this.drawEnemyHealthBar();
     }
 
+    if (this.bossUnlocked && !this.bossDefeated) {
+      this.updateBoss();
+      this.drawBossHealthBar();
+    }
+
     this.drawHud();
   }
 
@@ -1093,6 +1603,39 @@ class ForestScene extends Phaser.Scene {
     );
 
     this.enemy.setDepth(this.enemyBody.y + 10);
+  }
+
+  private updateBoss(): void {
+    const dx = this.playerBody.x - this.bossBody.x;
+    const dy = this.playerBody.y - this.bossBody.y;
+    const distance = Math.hypot(dx, dy);
+
+    const bossBody =
+      this.bossBody.body as Phaser.Physics.Arcade.Body;
+
+    if (distance > 48 && distance < 650) {
+      bossBody.setVelocity(
+        (dx / distance) * this.bossSpeed,
+        (dy / distance) * this.bossSpeed,
+      );
+    } else {
+      bossBody.setVelocity(0, 0);
+    }
+
+    this.boss.setPosition(
+      this.bossBody.x,
+      this.bossBody.y,
+    );
+
+    this.boss.setDepth(this.bossBody.y + 20);
+
+    if (
+      distance <= 65 &&
+      this.time.now - this.lastBossAttackAt >= 1000
+    ) {
+      this.lastBossAttackAt = this.time.now;
+      this.damagePlayer(this.bossDamage);
+    }
   }
 }
 
