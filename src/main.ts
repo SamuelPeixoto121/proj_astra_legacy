@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+﻿import Phaser from "phaser";
 import "./style.css";
 
 const WORLD_WIDTH = 1600;
@@ -189,7 +189,7 @@ class ForestScene extends Phaser.Scene {
 
   private createInput(): void {
     if (!this.input.keyboard) {
-      throw new Error("O teclado não está disponível.");
+      throw new Error("O teclado nÃ£o estÃ¡ disponÃ­vel.");
     }
 
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -382,7 +382,7 @@ class ForestScene extends Phaser.Scene {
     this.elder.setDepth(1020);
 
     this.add
-      .text(650, 925, this.language === "pt" ? "Ancião" : "Elder", {
+      .text(650, 925, this.language === "pt" ? "AnciÃ£o" : "Elder", {
         fontFamily: "Georgia, serif",
         fontSize: "13px",
         color: "#f0dfac",
@@ -606,39 +606,39 @@ class ForestScene extends Phaser.Scene {
     if (this.victory) {
       this.statusText.setText(
         this.language === "pt"
-          ? "KAEL DERROTADO • VITÓRIA"
-          : "KAEL DEFEATED • VICTORY",
+          ? "KAEL DERROTADO â€¢ VITÃ“RIA"
+          : "KAEL DEFEATED â€¢ VICTORY",
       );
       return;
     }
 
     if (this.questStage === "complete") {
       this.statusText.setText(
-        this.language === "pt" ? "PRÓLOGO CONCLUÍDO" : "PROLOGUE COMPLETE",
+        this.language === "pt" ? "PRÃ“LOGO CONCLUÃDO" : "PROLOGUE COMPLETE",
       );
       return;
     }
 
     this.statusText.setText(
       this.language === "pt"
-        ? "ASTRA LEGACY  •  PRÓLOGO"
-        : "ASTRA LEGACY  •  PROLOGUE",
+        ? "ASTRA LEGACY  â€¢  PRÃ“LOGO"
+        : "ASTRA LEGACY  â€¢  PROLOGUE",
     );
   }
 
   private getPortugueseQuest(): string {
     switch (this.questStage) {
       case "talk":
-        return "MISSÃO: A FLORESTA SUSSURRANTE\nFale com o Ancião de Alvorada.";
+        return "MISSÃƒO: A FLORESTA SUSSURRANTE\nFale com o AnciÃ£o de Alvorada.";
 
       case "hunt":
-        return "MISSÃO: A FLORESTA SUSSURRANTE\nDerrote o Lobo Corrompido.";
+        return "MISSÃƒO: A FLORESTA SUSSURRANTE\nDerrote o Lobo Corrompido.";
 
       case "boss":
-        return "NOVO OBJETIVO: O SENHOR DA CORRUPÇÃO\nEncontre e derrote Kael na floresta.";
+        return "NOVO OBJETIVO: O SENHOR DA CORRUPÃ‡ÃƒO\nEncontre e derrote Kael na floresta.";
 
       case "complete":
-        return "PRÓLOGO CONCLUÍDO!\nVocê derrotou Kael e sobreviveu à corrupção.";
+        return "PRÃ“LOGO CONCLUÃDO!\nVocÃª derrotou Kael e sobreviveu Ã  corrupÃ§Ã£o.";
     }
   }
 
@@ -679,8 +679,8 @@ class ForestScene extends Phaser.Scene {
       this.dialogueLines =
         this.language === "pt"
           ? [
-              "Viajante, você chegou em uma hora sombria. A Floresta Sussurrante está sendo consumida por uma corrupção antiga.",
-              "Um lobo corrompido ronda a trilha e ataca quem se aproxima. Precisamos recuperar esse caminho antes que a escuridão alcance Alvorada.",
+              "Viajante, vocÃª chegou em uma hora sombria. A Floresta Sussurrante estÃ¡ sendo consumida por uma corrupÃ§Ã£o antiga.",
+              "Um lobo corrompido ronda a trilha e ataca quem se aproxima. Precisamos recuperar esse caminho antes que a escuridÃ£o alcance Alvorada.",
               "Encontre o lobo e derrote-o. Que a luz de Astra guie sua espada.",
             ]
           : [
@@ -690,7 +690,7 @@ class ForestScene extends Phaser.Scene {
             ];
 
       this.openDialogue(
-        this.language === "pt" ? "Ancião de Alvorada" : "Elder of Dawnvale",
+        this.language === "pt" ? "AnciÃ£o de Alvorada" : "Elder of Dawnvale",
       );
 
       return;
@@ -700,7 +700,7 @@ class ForestScene extends Phaser.Scene {
       this.dialogueLines =
         this.language === "pt"
           ? [
-              "Você derrotou Kael! A corrupção perdeu sua força, e Alvorada terá uma chance de reconstruir seu futuro.",
+              "VocÃª derrotou Kael! A corrupÃ§Ã£o perdeu sua forÃ§a, e Alvorada terÃ¡ uma chance de reconstruir seu futuro.",
             ]
           : [
               "You defeated Kael! The corruption has lost its power, and Dawnvale may finally rebuild its future.",
@@ -709,7 +709,7 @@ class ForestScene extends Phaser.Scene {
       this.dialogueLines =
         this.language === "pt"
           ? [
-              "Sinto a presença de Kael no coração da floresta. Prepare-se, viajante. Ele é muito mais perigoso que o lobo.",
+              "Sinto a presenÃ§a de Kael no coraÃ§Ã£o da floresta. Prepare-se, viajante. Ele Ã© muito mais perigoso que o lobo.",
             ]
           : [
               "I sense Kael's presence deep in the forest. Prepare yourself, traveler. He is far more dangerous than the wolf.",
@@ -718,7 +718,7 @@ class ForestScene extends Phaser.Scene {
       this.dialogueLines =
         this.language === "pt"
           ? [
-              "Você conseguiu! Mas a morte do lobo revelou uma presença ainda mais sombria. Siga até o coração da floresta e prepare-se para enfrentar Kael.",
+              "VocÃª conseguiu! Mas a morte do lobo revelou uma presenÃ§a ainda mais sombria. Siga atÃ© o coraÃ§Ã£o da floresta e prepare-se para enfrentar Kael.",
             ]
           : [
               "You did it! But the wolf's death revealed an even darker presence. Head into the heart of the forest and prepare to face Kael.",
@@ -727,7 +727,7 @@ class ForestScene extends Phaser.Scene {
       this.dialogueLines =
         this.language === "pt"
           ? [
-              "A trilha fica adiante. Cuidado com o Lobo Corrompido e não deixe que ele cerque você.",
+              "A trilha fica adiante. Cuidado com o Lobo Corrompido e nÃ£o deixe que ele cerque vocÃª.",
             ]
           : [
               "The trail lies ahead. Beware of the Corrupted Wolf and do not let it corner you.",
@@ -735,7 +735,7 @@ class ForestScene extends Phaser.Scene {
     }
 
     this.openDialogue(
-      this.language === "pt" ? "Ancião de Alvorada" : "Elder of Dawnvale",
+      this.language === "pt" ? "AnciÃ£o de Alvorada" : "Elder of Dawnvale",
     );
   }
 
@@ -755,7 +755,7 @@ class ForestScene extends Phaser.Scene {
     this.dialogueText.setText(this.dialogueLines[this.dialogueIndex] ?? "");
 
     this.dialogueHint.setText(
-      this.language === "pt" ? "E  •  Continuar" : "E  •  Continue",
+      this.language === "pt" ? "E  â€¢  Continuar" : "E  â€¢  Continue",
     );
   }
 
@@ -807,7 +807,7 @@ class ForestScene extends Phaser.Scene {
 
     this.statusText.setText(
       this.language === "pt"
-        ? "UMA PRESENÇA SOMBRIA SURGIU..."
+        ? "UMA PRESENÃ‡A SOMBRIA SURGIU..."
         : "A DARK PRESENCE HAS AWAKENED...",
     );
 
@@ -861,7 +861,7 @@ class ForestScene extends Phaser.Scene {
     if (!this.isTargetInFront(this.enemyBody.x, this.enemyBody.y, 85)) {
       this.statusText.setText(
         this.language === "pt"
-          ? "O GOLPE NÃO ALCANÇOU O LOBO"
+          ? "O GOLPE NÃƒO ALCANÃ‡OU O LOBO"
           : "YOUR ATTACK MISSED THE WOLF",
       );
       return;
@@ -894,7 +894,7 @@ class ForestScene extends Phaser.Scene {
     if (!this.isTargetInFront(this.bossBody.x, this.bossBody.y, 105)) {
       this.statusText.setText(
         this.language === "pt"
-          ? "VOCÊ PRECISA SE APROXIMAR E VIRAR PARA KAEL"
+          ? "VOCÃŠ PRECISA SE APROXIMAR E VIRAR PARA KAEL"
           : "GET CLOSER AND FACE KAEL",
       );
       return;
@@ -1129,10 +1129,10 @@ class ForestScene extends Phaser.Scene {
 
     this.lastDamageAt = this.time.now;
 
-    // Efeito de impacto vermelho sobre o herói.
+    // Efeito de impacto vermelho sobre o herÃ³i.
     this.createImpactEffect(this.player.x, this.player.y - 10, 0xff5267, 9, 30);
 
-    // Número do dano flutuando acima do herói.
+    // NÃºmero do dano flutuando acima do herÃ³i.
     this.showDamageNumber(this.player.x, this.player.y - 15, amount, "#ff5267");
 
     // Atualiza a vida do jogador.
@@ -1142,7 +1142,7 @@ class ForestScene extends Phaser.Scene {
 
     this.statusText.setText(
       this.language === "pt"
-        ? `VOCÊ RECEBEU ${amount} DE DANO`
+        ? `VOCÃŠ RECEBEU ${amount} DE DANO`
         : `YOU TOOK ${amount} DAMAGE`,
     );
 
@@ -1194,7 +1194,7 @@ class ForestScene extends Phaser.Scene {
     if (!this.bossUnlocked) {
       this.statusText.setText(
         this.language === "pt"
-          ? "LOBO DERROTADO! VOLTE AO ANCIÃO."
+          ? "LOBO DERROTADO! VOLTE AO ANCIÃƒO."
           : "WOLF DEFEATED! RETURN TO THE ELDER.",
       );
     }
@@ -1247,7 +1247,7 @@ class ForestScene extends Phaser.Scene {
         ? "KAEL FOI DERROTADO!\n\nA luz de Astra voltou a brilhar.\n\nPressione R para jogar novamente"
         : "KAEL HAS BEEN DEFEATED!\n\nAstra's light shines once more.\n\nPress R to play again"
       : this.language === "pt"
-        ? "VOCÊ FOI DERROTADO\n\nPressione R para tentar novamente"
+        ? "VOCÃŠ FOI DERROTADO\n\nPressione R para tentar novamente"
         : "YOU WERE DEFEATED\n\nPress R to try again";
 
     this.gameOverText = this.add.text(
@@ -1275,15 +1275,15 @@ class ForestScene extends Phaser.Scene {
 
     if (this.dialogueOpen) {
       this.dialogueName.setText(
-        this.language === "pt" ? "Ancião de Alvorada" : "Elder of Dawnvale",
+        this.language === "pt" ? "AnciÃ£o de Alvorada" : "Elder of Dawnvale",
       );
 
       if (!this.elderTalked) {
         this.dialogueLines =
           this.language === "pt"
             ? [
-                "Viajante, você chegou em uma hora sombria. A Floresta Sussurrante está sendo consumida por uma corrupção antiga.",
-                "Um lobo corrompido ronda a trilha e ataca quem se aproxima. Precisamos recuperar esse caminho antes que a escuridão alcance Alvorada.",
+                "Viajante, vocÃª chegou em uma hora sombria. A Floresta Sussurrante estÃ¡ sendo consumida por uma corrupÃ§Ã£o antiga.",
+                "Um lobo corrompido ronda a trilha e ataca quem se aproxima. Precisamos recuperar esse caminho antes que a escuridÃ£o alcance Alvorada.",
                 "Encontre o lobo e derrote-o. Que a luz de Astra guie sua espada.",
               ]
             : [
@@ -1307,7 +1307,7 @@ class ForestScene extends Phaser.Scene {
           ? "KAEL FOI DERROTADO!\n\nA luz de Astra voltou a brilhar.\n\nPressione R para jogar novamente"
           : "KAEL HAS BEEN DEFEATED!\n\nAstra's light shines once more.\n\nPress R to play again"
         : this.language === "pt"
-          ? "VOCÊ FOI DERROTADO\n\nPressione R para tentar novamente"
+          ? "VOCÃŠ FOI DERROTADO\n\nPressione R para tentar novamente"
           : "YOU WERE DEFEATED\n\nPress R to try again";
 
       this.gameOverText.setText(message);
@@ -1370,6 +1370,14 @@ class ForestScene extends Phaser.Scene {
 
     this.player.setDepth(this.playerBody.y + 50);
 
+    // Animação procedural de caminhada.
+    const moving = x !== 0 || y !== 0;
+    const walkingBounce = moving
+      ? 1 + Math.sin(this.time.now / 75) * 0.035
+      : 1;
+
+    this.player.setScale(1, walkingBounce);
+
     if (Phaser.Input.Keyboard.JustDown(this.attackKey)) {
       this.attack();
     }
@@ -1383,7 +1391,7 @@ class ForestScene extends Phaser.Scene {
 
     if (elderDistance <= 85) {
       this.interactionHint
-        .setText(this.language === "pt" ? "E  •  Conversar" : "E  •  Talk")
+        .setText(this.language === "pt" ? "E  â€¢  Conversar" : "E  â€¢  Talk")
         .setPosition(this.elder.x, this.elder.y - 42)
         .setVisible(true);
 
@@ -1479,3 +1487,4 @@ const game = new Phaser.Game({
 if (import.meta.hot) {
   import.meta.hot.dispose(() => game.destroy(true));
 }
+
