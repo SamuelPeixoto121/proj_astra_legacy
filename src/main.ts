@@ -349,16 +349,36 @@ class ForestScene extends Phaser.Scene {
 
     this.player = this.add.container(790, 960);
 
+    const shadow = this.add.ellipse(0, 13, 35, 16, 0x101810, 0.6);
+    const cloak = this.add.triangle(
+      0, 3, -12, -12, 12, -12, 0, 15, 0x762e36
+    );
+    const body = this.add.rectangle(0, -1, 19, 23, 0xb6a47b);
+    const head = this.add.circle(0, -15, 8, 0xe2bd91);
+    const hair = this.add.ellipse(0, -21, 17, 8, 0x302b2a);
+    const leftLeg = this.add.rectangle(-5, 10, 6, 10, 0x60412b);
+    const rightLeg = this.add.rectangle(5, 10, 6, 10, 0x60412b);
+    const sword = this.add.rectangle(13, 1, 4, 23, 0xd7d8c9)
+      .setAngle(-25);
+    const swordHandle = this.add.rectangle(8, 9, 5, 8, 0x60412b)
+      .setAngle(-25);
+
     this.player.add([
-      this.add.ellipse(0, 13, 35, 16, 0x101810, 0.6),
-      this.add.triangle(0, 3, -12, -12, 12, -12, 0, 15, 0x762e36),
-      this.add.rectangle(0, -1, 19, 23, 0xb6a47b),
-      this.add.circle(0, -15, 8, 0xe2bd91),
-      this.add.ellipse(0, -21, 17, 8, 0x302b2a),
-      this.add.rectangle(13, 1, 4, 23, 0xd7d8c9).setAngle(-25),
-      this.add.rectangle(8, 9, 5, 8, 0x60412b).setAngle(-25),
+      shadow,
+      leftLeg,
+      rightLeg,
+      cloak,
+      body,
+      head,
+      hair,
+      sword,
+      swordHandle,
     ]);
 
+    this.player.setData("leftLeg", leftLeg);
+    this.player.setData("rightLeg", rightLeg);
+    this.player.setData("sword", sword);
+    this.player.setData("swordHandle", swordHandle);
     this.player.setDepth(1010);
   }
 
@@ -823,6 +843,25 @@ class ForestScene extends Phaser.Scene {
     }
 
     this.lastAttackAt = now;
+
+    const sword = this.player.getData(
+      "sword"
+    ) as Phaser.GameObjects.Rectangle;
+    const swordHandle = this.player.getData(
+      "swordHandle"
+    ) as Phaser.GameObjects.Rectangle;
+
+    this.tweens.killTweensOf([sword, swordHandle]);
+    sword.setAngle(-25);
+    swordHandle.setAngle(-25);
+
+    this.tweens.add({
+      targets: [sword, swordHandle],
+      angle: { from: -25, to: 65 },
+      duration: 110,
+      yoyo: true,
+      ease: "Cubic.Out",
+    });
 
     this.createSlashEffect();
 
@@ -1372,9 +1411,20 @@ class ForestScene extends Phaser.Scene {
 
     // Animação procedural de caminhada.
     const moving = x !== 0 || y !== 0;
+    const walkCycle = moving ? Math.sin(this.time.now / 75) : 0;
     const walkingBounce = moving
-      ? 1 + Math.sin(this.time.now / 75) * 0.035
+      ? 1 + Math.abs(walkCycle) * 0.025
       : 1;
+
+    const leftLeg = this.player.getData(
+      "leftLeg"
+    ) as Phaser.GameObjects.Rectangle;
+    const rightLeg = this.player.getData(
+      "rightLeg"
+    ) as Phaser.GameObjects.Rectangle;
+
+    leftLeg.setAngle(moving ? walkCycle * 22 : 0);
+    rightLeg.setAngle(moving ? -walkCycle * 22 : 0);
 
     this.player.setScale(1, walkingBounce);
 
@@ -1487,4 +1537,5 @@ const game = new Phaser.Game({
 if (import.meta.hot) {
   import.meta.hot.dispose(() => game.destroy(true));
 }
+
 
