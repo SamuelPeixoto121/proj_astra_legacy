@@ -1,0 +1,120 @@
+﻿:root {
+  font-family: "Trebuchet MS", Arial, sans-serif;
+  color: #eee6d0;
+  background: #0c120e;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
+  font-weight: 400;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(ellipse at 50% 0%, #293b2c 0%, transparent 55%),
+    #0c120e;
+}
+
+.game-shell {
+  width: min(1120px, 100%);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 34px 24px 26px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.game-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.eyebrow {
+  margin: 0 0 9px;
+  color: #b1bd8b;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+}
+
+h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.5rem, 7vw, 4.7rem);
+  letter-spacing: 0.09em;
+  line-height: 1.05;
+  color: #e8d9a9;
+  text-shadow: 0 3px 0 #58442c, 0 8px 24px #0008;
+}
+
+h1 span {
+  color: #a9bd89;
+}
+
+.subtitle {
+  margin: 12px 0 0;
+  color: #b6bba6;
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+}
+
+.game-frame {
+  overflow: hidden;
+  width: 100%;
+  border: 1px solid #687957;
+  border-radius: 5px;
+  background: #17251b;
+  box-shadow: 0 20px 65px #0008, 0 0 0 5px #171f17;
+}
+
+#game {
+  width: 100%;
+  line-height: 0;
+}
+
+#game canvas {
+  display: block;
+  max-width: 100%;
+}
+
+.game-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 20px;
+  margin-top: 18px;
+  color: #9da894;
+  font-size: 0.85rem;
+}
+
+.game-footer p {
+  margin: 0;
+}
+
+.game-footer strong {
+  color: #e4d6a8;
+}
+
+@media (max-width: 600px) {
+  .game-shell {
+    padding: 24px 12px;
+  }
+
+  .game-header {
+    margin-bottom: 18px;
+  }
+
+  .game-footer {
+    flex-direction: column;
+    text-align: center;
+  }
+}
