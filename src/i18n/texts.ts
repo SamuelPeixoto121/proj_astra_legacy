@@ -40,6 +40,41 @@ export const TEXTS = {
     },
   } satisfies Record<QuestStage, Localized>,
 
+  places: {
+    trail: { pt: "TRILHA DA ALVORADA", en: "DAWNVALE TRAIL" },
+    forest: { pt: "FLORESTA SUSSURRANTE", en: "WHISPERING FOREST" },
+  },
+
+  page: {
+    title: {
+      pt: "Astra Legacy — A Floresta Sussurrante",
+      en: "Astra Legacy — The Whispering Forest",
+    },
+    eyebrow: { pt: "UM RPG DE FANTASIA SOMBRIA", en: "A DARK FANTASY RPG" },
+    subtitle: {
+      pt: "Prólogo: A Floresta Sussurrante",
+      en: "Prologue: The Whispering Forest",
+    },
+    controls: {
+      pt: [
+        ["WASD / setas", "mover"],
+        ["J", "atacar"],
+        ["E", "interagir"],
+        ["L", "idioma"],
+      ],
+      en: [
+        ["WASD / arrows", "move"],
+        ["J", "attack"],
+        ["E", "interact"],
+        ["L", "language"],
+      ],
+    } satisfies Localized<[string, string][]>,
+    tagline: {
+      pt: "Explore a floresta. Sua jornada está apenas começando.",
+      en: "Explore the forest. Your journey is only beginning.",
+    },
+  },
+
   elder: {
     label: { pt: "Ancião", en: "Elder" },
     name: { pt: "Ancião da Alvorada", en: "Elder of Dawnvale" },

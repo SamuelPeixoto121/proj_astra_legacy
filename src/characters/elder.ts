@@ -3,12 +3,16 @@
 import type Phaser from "phaser";
 import type { CharacterSprite } from "./types";
 
+export interface ElderSprite extends CharacterSprite {
+  /** Nome acima da cabeça; a cena preenche o texto conforme o idioma. */
+  label: Phaser.GameObjects.Text;
+}
+
 export function createElder(
   scene: Phaser.Scene,
   x: number,
   y: number,
-  label: string,
-): CharacterSprite {
+): ElderSprite {
   const body = scene.add.rectangle(x, y, 24, 20, 0xffffff);
 
   body.setVisible(false);
@@ -27,8 +31,8 @@ export function createElder(
 
   container.setDepth(1020);
 
-  scene.add
-    .text(x, y - 35, label, {
+  const label = scene.add
+    .text(x, y - 35, "", {
       fontFamily: "Georgia, serif",
       fontSize: "13px",
       color: "#f0dfac",
@@ -38,5 +42,5 @@ export function createElder(
     .setOrigin(0.5)
     .setDepth(2500);
 
-  return { container, body };
+  return { container, body, label };
 }

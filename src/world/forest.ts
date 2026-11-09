@@ -3,19 +3,23 @@
 import Phaser from "phaser";
 import { TILE_SIZE, WORLD_HEIGHT, WORLD_WIDTH } from "../config";
 
-/**
- * Desenha o cenário completo e devolve os obstáculos das árvores,
- * que a cena usa para criar as colisões.
- */
-export function createForestWorld(
-  scene: Phaser.Scene,
-): Phaser.GameObjects.Rectangle[] {
+export interface ForestWorld {
+  /** Obstáculos das árvores, usados pela cena para criar as colisões. */
+  treeColliders: Phaser.GameObjects.Rectangle[];
+  /** Placas do mapa; a cena preenche o texto conforme o idioma. */
+  signs: {
+    trail: Phaser.GameObjects.Text;
+    forest: Phaser.GameObjects.Text;
+  };
+}
+
+export function createForestWorld(scene: Phaser.Scene): ForestWorld {
   drawGround(scene);
   drawPath(scene);
   const treeColliders = createTrees(scene);
-  createLandmarks(scene);
+  const signs = createLandmarks(scene);
 
-  return treeColliders;
+  return { treeColliders, signs };
 }
 
 function drawGround(scene: Phaser.Scene): void {
@@ -127,9 +131,9 @@ function createTree(
   return obstacle;
 }
 
-function createLandmarks(scene: Phaser.Scene): void {
-  scene.add
-    .text(790, 1080, "TRILHA DA ALVORADA", {
+function createLandmarks(scene: Phaser.Scene): ForestWorld["signs"] {
+  const trail = scene.add
+    .text(790, 1080, "", {
       fontFamily: "Georgia, serif",
       fontSize: "15px",
       color: "#e4d6a8",
@@ -142,8 +146,8 @@ function createLandmarks(scene: Phaser.Scene): void {
   scene.add.circle(850, 380, 75, 0x789b66, 0.12);
   scene.add.circle(850, 380, 48, 0x9ebd7c, 0.08);
 
-  scene.add
-    .text(850, 300, "FLORESTA SUSSURRANTE", {
+  const forest = scene.add
+    .text(850, 300, "", {
       fontFamily: "Georgia, serif",
       fontSize: "18px",
       color: "#c8d6b0",
@@ -152,4 +156,6 @@ function createLandmarks(scene: Phaser.Scene): void {
     })
     .setOrigin(0.5)
     .setDepth(2000);
+
+  return { trail, forest };
 }

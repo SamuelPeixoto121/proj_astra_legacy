@@ -3,6 +3,7 @@
 import Phaser from "phaser";
 import "./style.css";
 import { ForestScene } from "./scenes/ForestScene";
+import { LANGUAGE_CHANGED_EVENT, updatePageLanguage } from "./i18n/page";
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -24,6 +25,9 @@ const game = new Phaser.Game({
   },
   scene: [ForestScene],
 });
+
+// A cena avisa quando o idioma muda; aqui traduzimos a página ao redor do jogo.
+game.events.on(LANGUAGE_CHANGED_EVENT, updatePageLanguage);
 
 if (import.meta.hot) {
   import.meta.hot.dispose(() => game.destroy(true));

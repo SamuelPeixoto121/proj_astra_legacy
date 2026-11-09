@@ -16,7 +16,8 @@ import {
 } from "../config";
 import type { Language, QuestStage } from "../types";
 import { TEXTS, type Localized } from "../i18n/texts";
-import { createForestWorld } from "../world/forest";
+import { LANGUAGE_CHANGED_EVENT } from "../i18n/page";
+import { createForestWorld, type ForestWorld } from "../world/forest";
 import {
   activateShrine,
   createCheckpointShrine,
@@ -29,7 +30,7 @@ import {
   createPlayer,
   type PlayerSprite,
 } from "../characters/player";
-import { createElder } from "../characters/elder";
+import { createElder, type ElderSprite } from "../characters/elder";
 import { createWolf } from "../characters/wolf";
 import { createKael } from "../characters/kael";
 import type { CharacterSprite } from "../characters/types";
@@ -42,7 +43,8 @@ import {
 
 export class ForestScene extends Phaser.Scene {
   private player!: PlayerSprite;
-  private elder!: CharacterSprite;
+  private elder!: ElderSprite;
+  private signs!: ForestWorld["signs"];
   private wolf!: CharacterSprite;
   private kael!: CharacterSprite;
   private shrine!: CheckpointShrine;
@@ -112,7 +114,9 @@ export class ForestScene extends Phaser.Scene {
 
     const progressLoaded = this.loadProgress();
 
-    const treeColliders = createForestWorld(this);
+    const { treeColliders, signs } = createForestWorld(this);
+
+    this.signs = signs;
 
     this.shrine = createCheckpointShrine(
       this,
@@ -123,7 +127,7 @@ export class ForestScene extends Phaser.Scene {
     const spawn = CHECKPOINTS[this.checkpointId];
 
     this.player = createPlayer(this, spawn.x, spawn.y);
-    this.elder = createElder(this, 650, 960, this.t(TEXTS.elder.label));
+    this.elder = createElder(this, 650, 960);
     this.createWolf();
     this.createKael();
 
@@ -133,7 +137,7 @@ export class ForestScene extends Phaser.Scene {
     this.setupCamera();
 
     this.restoreWorldState();
-    this.updateQuestDisplay();
+    this.applyLanguage();
 
     if (progressLoaded) {
       this.statusText.setText(this.t(TEXTS.save.progressLoaded));
@@ -607,10 +611,21 @@ export class ForestScene extends Phaser.Scene {
     this.drawKaelHealthBar();
   }
 
+  /** Atualiza os textos fixos do mapa, o HUD e a página no idioma atual. */
+  private applyLanguage(): void {
+    this.signs.trail.setText(this.t(TEXTS.places.trail));
+    this.signs.forest.setText(this.t(TEXTS.places.forest));
+    this.elder.label.setText(this.t(TEXTS.elder.label));
+
+    this.updateQuestDisplay();
+
+    this.game.events.emit(LANGUAGE_CHANGED_EVENT, this.language);
+  }
+
   private toggleLanguage(): void {
     this.language = this.language === "pt" ? "en" : "pt";
 
-    this.updateQuestDisplay();
+    this.applyLanguage();
 
     if (this.dialogueOpen) {
       this.dialogueName.setText(this.t(TEXTS.elder.name));
