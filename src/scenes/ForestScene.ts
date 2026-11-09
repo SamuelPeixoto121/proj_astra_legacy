@@ -3,16 +3,26 @@
 
 import Phaser from "phaser";
 import {
+  CHECKPOINTS,
   ELDER_TALK_RANGE,
   KAEL_STATS,
   PLAYER_STATS,
+  SHRINE_ACTIVATION_RANGE,
+  SHRINE_POSITION,
   WOLF_STATS,
   WORLD_HEIGHT,
   WORLD_WIDTH,
+  type CheckpointId,
 } from "../config";
 import type { Language, QuestStage } from "../types";
 import { TEXTS, type Localized } from "../i18n/texts";
 import { createForestWorld } from "../world/forest";
+import {
+  activateShrine,
+  createCheckpointShrine,
+  type CheckpointShrine,
+} from "../world/checkpointShrine";
+import { clearSave, loadGame, saveGame } from "../systems/saveGame";
 import {
   animatePlayerWalk,
   animateSwordSwing,
@@ -35,6 +45,7 @@ export class ForestScene extends Phaser.Scene {
   private elder!: CharacterSprite;
   private wolf!: CharacterSprite;
   private kael!: CharacterSprite;
+  private shrine!: CheckpointShrine;
 
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd!: Record<"W" | "A" | "S" | "D", Phaser.Input.Keyboard.Key>;
@@ -42,6 +53,7 @@ export class ForestScene extends Phaser.Scene {
   private interactKey!: Phaser.Input.Keyboard.Key;
   private languageKey!: Phaser.Input.Keyboard.Key;
   private restartKey!: Phaser.Input.Keyboard.Key;
+  private newGameKey!: Phaser.Input.Keyboard.Key;
 
   private statusText!: Phaser.GameObjects.Text;
   private hudGraphics!: Phaser.GameObjects.Graphics;
@@ -85,6 +97,8 @@ export class ForestScene extends Phaser.Scene {
   private dialogueLines: string[] = [];
   private dialogueIndex = 0;
 
+  private checkpointId: CheckpointId = "village";
+
   constructor() {
     super("ForestScene");
   }
@@ -96,9 +110,19 @@ export class ForestScene extends Phaser.Scene {
   create(): void {
     this.resetState();
 
+    const progressLoaded = this.loadProgress();
+
     const treeColliders = createForestWorld(this);
 
-    this.player = createPlayer(this, 790, 960);
+    this.shrine = createCheckpointShrine(
+      this,
+      SHRINE_POSITION.x,
+      SHRINE_POSITION.y,
+    );
+
+    const spawn = CHECKPOINTS[this.checkpointId];
+
+    this.player = createPlayer(this, spawn.x, spawn.y);
     this.elder = createElder(this, 650, 960, this.t(TEXTS.elder.label));
     this.createWolf();
     this.createKael();
@@ -108,7 +132,12 @@ export class ForestScene extends Phaser.Scene {
     this.setupPhysics(treeColliders);
     this.setupCamera();
 
+    this.restoreWorldState();
     this.updateQuestDisplay();
+
+    if (progressLoaded) {
+      this.statusText.setText(this.t(TEXTS.save.progressLoaded));
+    }
   }
 
   /** Volta tudo ao estado inicial (usado também ao reiniciar com R). */
@@ -140,7 +169,89 @@ export class ForestScene extends Phaser.Scene {
     this.dialogueOpen = false;
     this.dialogueLines = [];
     this.dialogueIndex = 0;
+
+    this.checkpointId = "village";
   }
+
+  // ---------------------------------------------------------------------------
+  // Salvamento e checkpoints
+  // ---------------------------------------------------------------------------
+
+  /** Carrega o save, se existir. Devolve true quando havia progresso salvo. */
+  private loadProgress(): boolean {
+    const save = loadGame();
+
+    if (!save) {
+      return false;
+    }
+
+    this.language = save.language;
+    this.questStage = save.questStage;
+    this.elderTalked = save.elderTalked;
+    this.wolfDefeated = save.wolfDefeated;
+    this.kaelUnlocked = save.kaelUnlocked;
+    this.checkpointId = save.checkpointId;
+
+    return true;
+  }
+
+  private saveProgress(): void {
+    saveGame({
+      language: this.language,
+      questStage: this.questStage,
+      elderTalked: this.elderTalked,
+      wolfDefeated: this.wolfDefeated,
+      kaelUnlocked: this.kaelUnlocked,
+      checkpointId: this.checkpointId,
+    });
+  }
+
+  /** Deixa o mundo igual ao progresso carregado (sem efeitos e mensagens). */
+  private restoreWorldState(): void {
+    if (this.checkpointId === "shrine") {
+      activateShrine(this, this.shrine, false);
+    }
+
+    if (this.wolfDefeated) {
+      this.removeWolf();
+    }
+
+    if (this.kaelUnlocked) {
+      this.revealKael();
+    }
+  }
+
+  private updateCheckpoint(): void {
+    if (this.shrine.active) {
+      return;
+    }
+
+    const distance = Phaser.Math.Distance.Between(
+      this.player.body.x,
+      this.player.body.y,
+      SHRINE_POSITION.x,
+      SHRINE_POSITION.y,
+    );
+
+    if (distance > SHRINE_ACTIVATION_RANGE) {
+      return;
+    }
+
+    activateShrine(this, this.shrine, true);
+    this.checkpointId = "shrine";
+    this.saveProgress();
+
+    this.statusText.setText(this.t(TEXTS.save.checkpointSaved));
+  }
+
+  private startNewGame(): void {
+    clearSave();
+    this.scene.restart();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Personagens
+  // ---------------------------------------------------------------------------
 
   private createWolf(): void {
     this.wolf = createWolf(this, 850, 790);
@@ -191,6 +302,7 @@ export class ForestScene extends Phaser.Scene {
     this.interactKey = keyboard.addKey(KeyCodes.E);
     this.languageKey = keyboard.addKey(KeyCodes.L);
     this.restartKey = keyboard.addKey(KeyCodes.R);
+    this.newGameKey = keyboard.addKey(KeyCodes.N);
   }
 
   private setupPhysics(treeColliders: Phaser.GameObjects.Rectangle[]): void {
@@ -461,6 +573,7 @@ export class ForestScene extends Phaser.Scene {
 
     this.unlockKaelIfReady();
     this.updateQuestDisplay();
+    this.saveProgress();
   }
 
   /** Kael aparece só depois de falar com o Ancião E derrotar o lobo. */
@@ -472,6 +585,15 @@ export class ForestScene extends Phaser.Scene {
     this.kaelUnlocked = true;
     this.questStage = "boss";
 
+    this.revealKael();
+
+    this.statusText.setText(this.t(TEXTS.combat.bossAppeared));
+
+    this.updateQuestDisplay();
+  }
+
+  /** Mostra Kael e liga a física dele. */
+  private revealKael(): void {
     const body = this.getPhysicsBody(this.kael);
 
     body.enable = true;
@@ -482,9 +604,6 @@ export class ForestScene extends Phaser.Scene {
     this.kaelHealthGraphics.setVisible(true);
     this.kaelNameText.setVisible(true);
 
-    this.statusText.setText(this.t(TEXTS.combat.bossAppeared));
-
-    this.updateQuestDisplay();
     this.drawKaelHealthBar();
   }
 
@@ -504,6 +623,11 @@ export class ForestScene extends Phaser.Scene {
     }
 
     this.gameOverText?.setText(this.getEndScreenMessage());
+
+    // Na tela final o save já foi tratado (apagado na vitória).
+    if (!this.gameOver) {
+      this.saveProgress();
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -655,17 +779,23 @@ export class ForestScene extends Phaser.Scene {
   private defeatWolf(): void {
     this.wolfDefeated = true;
 
-    this.disableCharacter(this.wolf);
     createDeathBurst(this, this.wolf.body.x, this.wolf.body.y, 0xc44449);
-
-    this.wolf.container.destroy();
-    this.wolfHealthGraphics.destroy();
+    this.removeWolf();
 
     this.unlockKaelIfReady();
 
     if (!this.kaelUnlocked) {
       this.statusText.setText(this.t(TEXTS.combat.wolfDefeated));
     }
+
+    this.saveProgress();
+  }
+
+  /** Tira o lobo do mapa (ao derrotá-lo ou ao carregar um save). */
+  private removeWolf(): void {
+    this.disableCharacter(this.wolf);
+    this.wolf.container.destroy();
+    this.wolfHealthGraphics.destroy();
   }
 
   private defeatKael(): void {
@@ -682,6 +812,9 @@ export class ForestScene extends Phaser.Scene {
 
     this.questStage = "complete";
     this.updateQuestDisplay();
+
+    // Prólogo concluído: a próxima partida começa do zero.
+    clearSave();
 
     this.showGameOver(true);
   }
@@ -804,7 +937,11 @@ export class ForestScene extends Phaser.Scene {
     }
 
     if (this.gameOver) {
-      if (Phaser.Input.Keyboard.JustDown(this.restartKey)) {
+      // R: recarrega o último save (na vitória o save já foi apagado).
+      // N: apaga o save e começa do zero.
+      if (Phaser.Input.Keyboard.JustDown(this.newGameKey)) {
+        this.startNewGame();
+      } else if (Phaser.Input.Keyboard.JustDown(this.restartKey)) {
         this.scene.restart();
       }
       return;
@@ -825,6 +962,7 @@ export class ForestScene extends Phaser.Scene {
     }
 
     this.updatePlayerMovement();
+    this.updateCheckpoint();
 
     if (Phaser.Input.Keyboard.JustDown(this.attackKey)) {
       this.attack();

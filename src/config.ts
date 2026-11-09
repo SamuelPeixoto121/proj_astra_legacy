@@ -29,3 +29,15 @@ export const KAEL_STATS = {
 } as const;
 
 export const ELDER_TALK_RANGE = 85;
+
+// Pedra Astral: checkpoint no meio da trilha.
+export const SHRINE_POSITION = { x: 740, y: 700 } as const;
+export const SHRINE_ACTIVATION_RANGE = 60;
+
+// Onde o herói reaparece em cada checkpoint.
+export const CHECKPOINTS = {
+  village: { x: 790, y: 960 },
+  shrine: { x: 790, y: 715 },
+} as const;
+
+export type CheckpointId = keyof typeof CHECKPOINTS;

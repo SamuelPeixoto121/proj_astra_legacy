@@ -128,14 +128,25 @@ export const TEXTS = {
     },
   },
 
+  save: {
+    checkpointSaved: {
+      pt: "PEDRA ASTRAL ATIVADA • CHECKPOINT SALVO",
+      en: "ASTRAL STONE ACTIVATED • CHECKPOINT SAVED",
+    },
+    progressLoaded: {
+      pt: "PROGRESSO CARREGADO",
+      en: "PROGRESS LOADED",
+    },
+  },
+
   endScreen: {
     victory: {
       pt: "KAEL FOI DERROTADO!\n\nA luz de Astra voltou a brilhar.\n\nPressione R para jogar novamente",
       en: "KAEL HAS BEEN DEFEATED!\n\nAstra's light shines once more.\n\nPress R to play again",
     },
     defeat: {
-      pt: "VOCÊ FOI DERROTADO\n\nPressione R para tentar novamente",
-      en: "YOU WERE DEFEATED\n\nPress R to try again",
+      pt: "VOCÊ FOI DERROTADO\n\nR  •  Voltar ao último checkpoint\nN  •  Começar um novo jogo",
+      en: "YOU WERE DEFEATED\n\nR  •  Return to the last checkpoint\nN  •  Start a new game",
     },
   },
 };
