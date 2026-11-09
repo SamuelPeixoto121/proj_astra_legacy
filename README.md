@@ -2,6 +2,8 @@
 
 **RPG de ação 2D de fantasia sombria**, com visão de cima, feito com Phaser 4 e TypeScript.
 
+### [▶ Jogue agora no navegador](https://samuelpeixoto121.github.io/proj_astra_legacy/)
+
 ![Captura de tela do Astra Legacy](docs/screenshot.png)
 
 > O mundo foi devastado por Ignis, o Dragão das Sombras, que destruiu o Fragmento
@@ -55,6 +57,9 @@ Depois abra **http://localhost:5173** no navegador.
 | `npm run build` | Verifica os tipos e gera a versão de produção em `dist/` |
 | `npm run preview` | Abre a versão de produção localmente |
 
+A cada push na branch `main`, o GitHub Actions gera o build e publica o jogo
+automaticamente no GitHub Pages (`.github/workflows/deploy.yml`).
+
 ## Tecnologias
 
 - **[Phaser 4](https://phaser.io/)**: engine de jogos 2D (renderização, física Arcade, tweens)
@@ -101,7 +106,6 @@ Algumas decisões do projeto:
 - [ ] Novos inimigos e áreas
 - [ ] Continuação da história: os Fragmentos Astrais e Ignis
 - [ ] Sistema de equipamentos
-- [ ] Versão publicada para jogar no navegador
 
 ## Autor
 
@@ -117,5 +121,6 @@ movement, directional melee combat with visual effects, enemy AI, a boss fight,
 a staged quest system, dialogue, **autosave with checkpoints**, and full
 **Portuguese/English** localization. All graphics are drawn procedurally in code.
 
-Run it with `npm install` and `npm run dev`, then open http://localhost:5173.
+**[Play it in your browser](https://samuelpeixoto121.github.io/proj_astra_legacy/)**,
+or run it locally with `npm install` and `npm run dev`, then open http://localhost:5173.
 Controls: WASD/arrows to move, J to attack, E to interact, L to switch language.
