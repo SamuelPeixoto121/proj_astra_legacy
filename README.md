@@ -18,12 +18,15 @@ da Alvorada, derrote o Lobo Corrompido e enfrente Kael, o Senhor da Corrupção.
 - **Movimentação em 8 direções** com colisão no cenário e câmera que acompanha o herói
 - **Combate corpo a corpo** com alcance e direção do golpe, efeitos de corte,
   impacto, números de dano e barras de vida
-- **Inimigos com perseguição** e um **chefe** que só aparece depois de cumprir a missão
+- **Inimigos com perseguição**: o Lobo Corrompido da missão e Aranhas Corrompidas
+  espalhadas pela floresta, além de um **chefe** que só aparece depois de cumprir a missão
 - **Sistema de missões** em etapas e **diálogos** que mudam conforme o progresso
 - **Salvamento automático** e **checkpoint** (Pedra Astral): ao ser derrotado,
   o jogador volta ao último checkpoint sem perder o progresso
 - **Português e inglês**: todo o jogo e a página trocam de idioma na hora
 - **Animações procedurais**: caminhada, golpe de espada e efeitos de dano
+- **Herói com poses por direção**: frente, costas e perfil, montadas a partir
+  de uma tabela de dados (a esquerda é o perfil espelhado)
 - Todos os gráficos são **desenhados por código**, sem imagens externas
 
 ## Controles
@@ -78,10 +81,11 @@ src/
 │   └── page.ts                Tradução da página HTML ao redor do jogo
 ├── scenes/
 │   └── ForestScene.ts         Regras do jogo: missões, combate, diálogo, HUD
-├── characters/                Aparência e animações do herói, Ancião, Lobo e Kael
+├── characters/                Aparência e animações do herói, Ancião, Lobo, Aranha e Kael
 ├── world/                     Cenário da floresta e checkpoint
 ├── effects/                   Efeitos visuais de combate
 └── systems/
+    ├── enemies.ts             Tipos de inimigos descritos por dados
     └── saveGame.ts            Salvamento no navegador
 ```
 
@@ -98,11 +102,15 @@ Algumas decisões do projeto:
   ao carregar: um save corrompido ou antigo é ignorado em vez de travar o jogo.
 - **Personagem = corpo físico + desenho.** Cada personagem tem um retângulo
   invisível com física e um desenho que o acompanha. A perseguição dos inimigos
-  é uma função só, reaproveitada pelo lobo e pelo chefe.
+  é uma função só, reaproveitada por todos eles e pelo chefe.
+- **Inimigos orientados a dados.** Cada tipo de inimigo é um registro com
+  atributos, cores, barra de vida e função de desenho (`systems/enemies.ts`).
+  A cena trata todos da mesma forma: adicionar um inimigo novo não exige
+  mudar a lógica de combate.
 
 ## Próximos passos
 
-- [ ] Animações do herói por direção
+- [x] Animações do herói por direção
 - [ ] Novos inimigos e áreas
 - [ ] Continuação da história: os Fragmentos Astrais e Ignis
 - [ ] Sistema de equipamentos

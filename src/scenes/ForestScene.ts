@@ -9,7 +9,7 @@ import {
   PLAYER_STATS,
   SHRINE_ACTIVATION_RANGE,
   SHRINE_POSITION,
-  WOLF_STATS,
+  SPIDER_SPAWNS,
   WORLD_HEIGHT,
   WORLD_WIDTH,
   type CheckpointId,
@@ -25,6 +25,11 @@ import {
 } from "../world/checkpointShrine";
 import { clearSave, loadGame, saveGame } from "../systems/saveGame";
 import {
+  drawEnemyHealthBar,
+  spawnEnemy,
+  type Enemy,
+} from "../systems/enemies";
+import {
   animatePlayerWalk,
   animateSwordSwing,
   createPlayer,
@@ -32,7 +37,6 @@ import {
   type PlayerSprite,
 } from "../characters/player";
 import { createElder, type ElderSprite } from "../characters/elder";
-import { createWolf } from "../characters/wolf";
 import { createKael } from "../characters/kael";
 import type { CharacterSprite } from "../characters/types";
 import {
@@ -46,7 +50,10 @@ export class ForestScene extends Phaser.Scene {
   private player!: PlayerSprite;
   private elder!: ElderSprite;
   private signs!: ForestWorld["signs"];
-  private wolf!: CharacterSprite;
+  /** Todos os inimigos comuns (lobo e aranhas). */
+  private enemies: Enemy[] = [];
+  /** O lobo da missão: derrotá-lo avança a história. */
+  private wolf!: Enemy;
   private kael!: CharacterSprite;
   private shrine!: CheckpointShrine;
 
@@ -60,7 +67,6 @@ export class ForestScene extends Phaser.Scene {
 
   private statusText!: Phaser.GameObjects.Text;
   private hudGraphics!: Phaser.GameObjects.Graphics;
-  private wolfHealthGraphics!: Phaser.GameObjects.Graphics;
   private kaelHealthGraphics!: Phaser.GameObjects.Graphics;
   private kaelNameText!: Phaser.GameObjects.Text;
   private questText!: Phaser.GameObjects.Text;
@@ -75,7 +81,6 @@ export class ForestScene extends Phaser.Scene {
   private gameOverText?: Phaser.GameObjects.Text;
 
   private playerHealth: number = PLAYER_STATS.maxHealth;
-  private wolfHealth: number = WOLF_STATS.maxHealth;
   private kaelHealth: number = KAEL_STATS.maxHealth;
 
   private facingX = 0;
@@ -129,7 +134,7 @@ export class ForestScene extends Phaser.Scene {
 
     this.player = createPlayer(this, spawn.x, spawn.y);
     this.elder = createElder(this, 650, 960);
-    this.createWolf();
+    this.createEnemies();
     this.createKael();
 
     this.createInterface();
@@ -148,7 +153,6 @@ export class ForestScene extends Phaser.Scene {
   /** Volta tudo ao estado inicial (usado também ao reiniciar com R). */
   private resetState(): void {
     this.playerHealth = PLAYER_STATS.maxHealth;
-    this.wolfHealth = WOLF_STATS.maxHealth;
     this.kaelHealth = KAEL_STATS.maxHealth;
 
     this.facingX = 0;
@@ -217,8 +221,9 @@ export class ForestScene extends Phaser.Scene {
       activateShrine(this, this.shrine, false);
     }
 
+    // As aranhas sempre reaparecem; só o lobo da missão fica derrotado.
     if (this.wolfDefeated) {
-      this.removeWolf();
+      this.removeEnemy(this.wolf);
     }
 
     if (this.kaelUnlocked) {
@@ -258,11 +263,14 @@ export class ForestScene extends Phaser.Scene {
   // Personagens
   // ---------------------------------------------------------------------------
 
-  private createWolf(): void {
-    this.wolf = createWolf(this, 850, 790);
+  private createEnemies(): void {
+    this.wolf = spawnEnemy(this, "wolf", 850, 790);
 
-    this.wolfHealthGraphics = this.add.graphics();
-    this.wolfHealthGraphics.setDepth(3000);
+    const spiders = SPIDER_SPAWNS.map(({ x, y }) =>
+      spawnEnemy(this, "spider", x, y),
+    );
+
+    this.enemies = [this.wolf, ...spiders];
   }
 
   private createKael(): void {
@@ -315,19 +323,19 @@ export class ForestScene extends Phaser.Scene {
 
     this.getPhysicsBody(this.player).setCollideWorldBounds(true);
 
-    for (const obstacle of treeColliders) {
-      this.physics.add.collider(this.player.body, obstacle);
-      this.physics.add.collider(this.wolf.body, obstacle);
-      this.physics.add.collider(this.kael.body, obstacle);
-    }
+    const enemyBodies = this.enemies.map((enemy) => enemy.sprite.body);
+
+    this.physics.add.collider(
+      [this.player.body, this.kael.body, ...enemyBodies],
+      treeColliders,
+    );
+
+    // Inimigos não se sobrepõem uns aos outros.
+    this.physics.add.collider(enemyBodies, enemyBodies);
 
     this.physics.add.collider(this.player.body, this.elder.body);
 
-    this.physics.add.overlap(this.player.body, this.wolf.body, () => {
-      if (!this.wolfDefeated) {
-        this.damagePlayer(WOLF_STATS.damage);
-      }
-    });
+    // O dano dos inimigos comuns vem do ataque deles (ver updateEnemy).
 
     this.physics.add.overlap(this.player.body, this.kael.body, () => {
       if (this.kaelUnlocked && !this.kaelDefeated) {
@@ -668,14 +676,49 @@ export class ForestScene extends Phaser.Scene {
       this.facingY,
     );
 
-    if (!this.wolfDefeated) {
-      this.attackWolf();
+    const target = this.findEnemyInFront();
+
+    if (target) {
+      this.hitEnemy(target);
       return;
     }
 
     if (this.kaelUnlocked && !this.kaelDefeated) {
       this.attackKael();
+      return;
     }
+
+    this.statusText.setText(this.t(TEXTS.combat.missed));
+  }
+
+  /** O inimigo comum mais próximo que a espada consegue acertar. */
+  private findEnemyInFront(): Enemy | undefined {
+    let closest: Enemy | undefined;
+    let closestDistance = Infinity;
+
+    for (const enemy of this.enemies) {
+      if (enemy.defeated) continue;
+
+      const { x, y } = enemy.sprite.body;
+
+      if (!this.isTargetInFront(x, y, enemy.definition.stats.hitRange)) {
+        continue;
+      }
+
+      const distance = Phaser.Math.Distance.Between(
+        this.player.body.x,
+        this.player.body.y,
+        x,
+        y,
+      );
+
+      if (distance < closestDistance) {
+        closest = enemy;
+        closestDistance = distance;
+      }
+    }
+
+    return closest;
   }
 
   /** O alvo precisa estar perto e na frente do herói. */
@@ -698,26 +741,22 @@ export class ForestScene extends Phaser.Scene {
     return facingDot >= 0.2;
   }
 
-  private attackWolf(): void {
-    const { x, y } = this.wolf.body;
+  private hitEnemy(enemy: Enemy): void {
+    const { x, y } = enemy.sprite.body;
+    const { colors } = enemy.definition;
     const damage = PLAYER_STATS.attackDamage;
 
-    if (!this.isTargetInFront(x, y, WOLF_STATS.attackRange)) {
-      this.statusText.setText(this.t(TEXTS.combat.wolfMissed));
-      return;
-    }
+    enemy.health = Math.max(0, enemy.health - damage);
 
-    this.wolfHealth = Math.max(0, this.wolfHealth - damage);
+    createImpactEffect(this, x, y, colors.impact);
+    showDamageNumber(this, x, y, damage, colors.damageText);
 
-    createImpactEffect(this, x, y, 0xffb56b);
-    showDamageNumber(this, x, y, damage, "#fff0c2");
+    this.statusText.setText(this.t(TEXTS.enemies[enemy.kind].hit(damage)));
 
-    this.statusText.setText(this.t(TEXTS.combat.wolfHit(damage)));
+    drawEnemyHealthBar(enemy);
 
-    this.drawWolfHealthBar();
-
-    if (this.wolfHealth <= 0) {
-      this.defeatWolf();
+    if (enemy.health <= 0) {
+      this.defeatEnemy(enemy);
     }
   }
 
@@ -725,7 +764,7 @@ export class ForestScene extends Phaser.Scene {
     const { x, y } = this.kael.body;
     const damage = PLAYER_STATS.attackDamage;
 
-    if (!this.isTargetInFront(x, y, KAEL_STATS.attackRange)) {
+    if (!this.isTargetInFront(x, y, KAEL_STATS.hitRange)) {
       this.statusText.setText(this.t(TEXTS.combat.kaelMissed));
       return;
     }
@@ -792,26 +831,36 @@ export class ForestScene extends Phaser.Scene {
     }
   }
 
-  private defeatWolf(): void {
-    this.wolfDefeated = true;
+  private defeatEnemy(enemy: Enemy): void {
+    const { x, y } = enemy.sprite.body;
 
-    createDeathBurst(this, this.wolf.body.x, this.wolf.body.y, 0xc44449);
-    this.removeWolf();
+    createDeathBurst(this, x, y, enemy.definition.colors.death);
+    this.removeEnemy(enemy);
+
+    if (enemy !== this.wolf) {
+      this.statusText.setText(this.t(TEXTS.enemies[enemy.kind].defeated));
+      return;
+    }
+
+    // O lobo é o alvo da missão: derrotá-lo avança a história.
+    this.wolfDefeated = true;
 
     this.unlockKaelIfReady();
 
     if (!this.kaelUnlocked) {
-      this.statusText.setText(this.t(TEXTS.combat.wolfDefeated));
+      this.statusText.setText(this.t(TEXTS.enemies.wolf.defeated));
     }
 
     this.saveProgress();
   }
 
-  /** Tira o lobo do mapa (ao derrotá-lo ou ao carregar um save). */
-  private removeWolf(): void {
-    this.disableCharacter(this.wolf);
-    this.wolf.container.destroy();
-    this.wolfHealthGraphics.destroy();
+  /** Tira um inimigo do mapa (ao derrotá-lo ou ao carregar um save). */
+  private removeEnemy(enemy: Enemy): void {
+    enemy.defeated = true;
+
+    this.disableCharacter(enemy.sprite);
+    enemy.sprite.container.destroy();
+    enemy.healthBar.destroy();
   }
 
   private defeatKael(): void {
@@ -844,32 +893,6 @@ export class ForestScene extends Phaser.Scene {
 
     character.body.setActive(false);
     character.body.setVisible(false);
-  }
-
-  private drawWolfHealthBar(): void {
-    if (this.wolfDefeated) {
-      return;
-    }
-
-    const width = 48;
-    const x = this.wolf.body.x - 24;
-    const y = this.wolf.body.y - 36;
-
-    this.wolfHealthGraphics.clear();
-    this.wolfHealthGraphics.fillStyle(0x111710, 0.95);
-    this.wolfHealthGraphics.fillRect(x, y, width, 7);
-
-    const healthWidth = width * (this.wolfHealth / WOLF_STATS.maxHealth);
-
-    if (healthWidth > 0) {
-      this.wolfHealthGraphics.fillStyle(0xc44449, 1);
-      this.wolfHealthGraphics.fillRect(
-        x + 1,
-        y + 1,
-        Math.max(0, healthWidth - 1),
-        5,
-      );
-    }
   }
 
   private drawKaelHealthBar(): void {
@@ -986,9 +1009,11 @@ export class ForestScene extends Phaser.Scene {
 
     this.updateElderInteraction();
 
-    if (!this.wolfDefeated) {
-      this.chasePlayer(this.wolf, WOLF_STATS.speed, 36, 420, 10);
-      this.drawWolfHealthBar();
+    for (const enemy of this.enemies) {
+      if (enemy.defeated) continue;
+
+      this.updateEnemy(enemy);
+      drawEnemyHealthBar(enemy);
     }
 
     if (this.kaelUnlocked && !this.kaelDefeated) {
@@ -1047,6 +1072,39 @@ export class ForestScene extends Phaser.Scene {
     if (Phaser.Input.Keyboard.JustDown(this.interactKey)) {
       this.interactWithElder();
     }
+  }
+
+  /** Persegue o herói e ataca quando ele está ao alcance. */
+  private updateEnemy(enemy: Enemy): void {
+    const { stats } = enemy.definition;
+
+    const distance = this.chasePlayer(
+      enemy.sprite,
+      stats.speed,
+      stats.stopDistance,
+      stats.sightRange,
+      10,
+    );
+
+    if (
+      distance > stats.attackReach ||
+      this.time.now - enemy.lastAttackAt < stats.attackCooldown
+    ) {
+      return;
+    }
+
+    enemy.lastAttackAt = this.time.now;
+
+    // Pequeno "pulo" para o jogador ver o ataque.
+    this.tweens.add({
+      targets: enemy.sprite.container,
+      scale: 1.18,
+      duration: 90,
+      yoyo: true,
+      ease: "Quad.Out",
+    });
+
+    this.damagePlayer(stats.damage);
   }
 
   private updateKael(): void {

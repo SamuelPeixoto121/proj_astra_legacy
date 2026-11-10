@@ -1,7 +1,7 @@
 // Todos os textos do jogo em português (pt) e inglês (en).
 // Para corrigir ou traduzir um texto, altere apenas este arquivo.
 
-import type { Language, QuestStage } from "../types";
+import type { EnemyKind, Language, QuestStage } from "../types";
 
 export type Localized<T = string> = Record<Language, T>;
 
@@ -132,19 +132,43 @@ export const TEXTS = {
     continue: { pt: "E  •  Continuar", en: "E  •  Continue" },
   },
 
+  // Textos de cada inimigo comum (separados para respeitar o gênero:
+  // "lobo atingido", "aranha atingida").
+  enemies: {
+    wolf: {
+      hit: (damage: number): Localized => ({
+        pt: `LOBO ATINGIDO! DANO: ${damage}`,
+        en: `WOLF HIT! DAMAGE: ${damage}`,
+      }),
+      defeated: {
+        pt: "LOBO DERROTADO! VOLTE AO ANCIÃO.",
+        en: "WOLF DEFEATED! RETURN TO THE ELDER.",
+      },
+    },
+    spider: {
+      hit: (damage: number): Localized => ({
+        pt: `ARANHA ATINGIDA! DANO: ${damage}`,
+        en: `SPIDER HIT! DAMAGE: ${damage}`,
+      }),
+      defeated: {
+        pt: "ARANHA CORROMPIDA DERROTADA!",
+        en: "CORRUPTED SPIDER DEFEATED!",
+      },
+    },
+  } satisfies Record<
+    EnemyKind,
+    { hit: (damage: number) => Localized; defeated: Localized }
+  >,
+
   combat: {
-    wolfMissed: {
-      pt: "O GOLPE NÃO ALCANÇOU O LOBO",
-      en: "YOUR ATTACK MISSED THE WOLF",
+    missed: {
+      pt: "O GOLPE NÃO ALCANÇOU NENHUM INIMIGO",
+      en: "YOUR ATTACK DIDN'T REACH ANY ENEMY",
     },
     kaelMissed: {
       pt: "VOCÊ PRECISA SE APROXIMAR E VIRAR PARA KAEL",
       en: "GET CLOSER AND FACE KAEL",
     },
-    wolfHit: (damage: number): Localized => ({
-      pt: `LOBO ATINGIDO! DANO: ${damage}`,
-      en: `WOLF HIT! DAMAGE: ${damage}`,
-    }),
     kaelHit: (damage: number): Localized => ({
       pt: `KAEL ATINGIDO! DANO: ${damage}`,
       en: `KAEL HIT! DAMAGE: ${damage}`,
@@ -153,10 +177,6 @@ export const TEXTS = {
       pt: `VOCÊ RECEBEU ${damage} DE DANO`,
       en: `YOU TOOK ${damage} DAMAGE`,
     }),
-    wolfDefeated: {
-      pt: "LOBO DERROTADO! VOLTE AO ANCIÃO.",
-      en: "WOLF DEFEATED! RETURN TO THE ELDER.",
-    },
     bossAppeared: {
       pt: "UMA PRESENÇA SOMBRIA SURGIU...",
       en: "A DARK PRESENCE HAS AWAKENED...",
