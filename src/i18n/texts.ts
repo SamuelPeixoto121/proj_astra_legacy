@@ -15,13 +15,13 @@ export const TEXTS = {
       pt: "ASTRA LEGACY  •  CAPÍTULO 1",
       en: "ASTRA LEGACY  •  CHAPTER 1",
     },
-    prologueComplete: {
-      pt: "PRÓLOGO CONCLUÍDO",
-      en: "PROLOGUE COMPLETE",
+    chapterComplete: {
+      pt: "CAPÍTULO 1 CONCLUÍDO",
+      en: "CHAPTER 1 COMPLETE",
     },
     victory: {
-      pt: "KAEL DERROTADO • VITÓRIA",
-      en: "KAEL DEFEATED • VICTORY",
+      pt: "FRAGMENTO RECUPERADO • VITÓRIA",
+      en: "FRAGMENT RECOVERED • VICTORY",
     },
   },
 
@@ -46,9 +46,13 @@ export const TEXTS = {
       pt: "MISSÃO: O PRIMEIRO FRAGMENTO\nEncontre o guardião que protege o Fragmento Astral.",
       en: "QUEST: THE FIRST FRAGMENT\nFind the guardian protecting the Astral Fragment.",
     },
+    fragment: {
+      pt: "MISSÃO: O PRIMEIRO FRAGMENTO\nPegue o Fragmento Astral no altar.",
+      en: "QUEST: THE FIRST FRAGMENT\nTake the Astral Fragment from the altar.",
+    },
     complete: {
-      pt: "PRÓLOGO CONCLUÍDO!\nVocê derrotou Kael e sobreviveu à corrupção.",
-      en: "PROLOGUE COMPLETE!\nYou defeated Kael and survived the corruption.",
+      pt: "CAPÍTULO 1 CONCLUÍDO!\nVocê recuperou o primeiro Fragmento Astral.",
+      en: "CHAPTER 1 COMPLETE!\nYou recovered the first Astral Fragment.",
     },
   } satisfies Record<QuestStage, Localized>,
 
@@ -180,25 +184,51 @@ export const TEXTS = {
       pt: "O GOLPE NÃO ALCANÇOU NENHUM INIMIGO",
       en: "YOUR ATTACK DIDN'T REACH ANY ENEMY",
     },
-    kaelMissed: {
-      pt: "VOCÊ PRECISA SE APROXIMAR E VIRAR PARA KAEL",
-      en: "GET CLOSER AND FACE KAEL",
-    },
-    kaelHit: (damage: number): Localized => ({
-      pt: `KAEL ATINGIDO! DANO: ${damage}`,
-      en: `KAEL HIT! DAMAGE: ${damage}`,
-    }),
     playerHurt: (damage: number): Localized => ({
       pt: `VOCÊ RECEBEU ${damage} DE DANO`,
       en: `YOU TOOK ${damage} DAMAGE`,
     }),
-    bossAppeared: {
-      pt: "UMA PRESENÇA SOMBRIA SURGIU...",
-      en: "A DARK PRESENCE HAS AWAKENED...",
+  },
+
+  // Textos de cada chefe.
+  bosses: {
+    kael: {
+      name: { pt: "KAEL", en: "KAEL" },
+      appeared: {
+        pt: "UMA PRESENÇA SOMBRIA SURGIU...",
+        en: "A DARK PRESENCE HAS AWAKENED...",
+      },
+      missed: {
+        pt: "VOCÊ PRECISA SE APROXIMAR E VIRAR PARA KAEL",
+        en: "GET CLOSER AND FACE KAEL",
+      },
+      hit: (damage: number): Localized => ({
+        pt: `KAEL ATINGIDO! DANO: ${damage}`,
+        en: `KAEL HIT! DAMAGE: ${damage}`,
+      }),
+      defeated: {
+        pt: "KAEL DERROTADO! A BARREIRA AO NORTE SE DESFEZ.",
+        en: "KAEL DEFEATED! THE BARRIER TO THE NORTH HAS FADED.",
+      },
     },
-    kaelDefeated: {
-      pt: "KAEL DERROTADO! A BARREIRA AO NORTE SE DESFEZ.",
-      en: "KAEL DEFEATED! THE BARRIER TO THE NORTH HAS FADED.",
+    sentinel: {
+      name: { pt: "SENTINELA DE PEDRA", en: "STONE SENTINEL" },
+      appeared: {
+        pt: "A SENTINELA DE PEDRA DESPERTOU!",
+        en: "THE STONE SENTINEL HAS AWAKENED!",
+      },
+      missed: {
+        pt: "APROXIME-SE E VIRE PARA A SENTINELA",
+        en: "GET CLOSER AND FACE THE SENTINEL",
+      },
+      hit: (damage: number): Localized => ({
+        pt: `SENTINELA ATINGIDA! DANO: ${damage}`,
+        en: `SENTINEL HIT! DAMAGE: ${damage}`,
+      }),
+      defeated: {
+        pt: "SENTINELA DERROTADA! O FRAGMENTO FOI LIBERTADO.",
+        en: "SENTINEL DEFEATED! THE FRAGMENT HAS BEEN RELEASED.",
+      },
     },
   },
 
@@ -219,8 +249,8 @@ export const TEXTS = {
 
   endScreen: {
     victory: {
-      pt: "KAEL FOI DERROTADO!\n\nA luz de Astra voltou a brilhar.\n\nPressione R para jogar novamente",
-      en: "KAEL HAS BEEN DEFEATED!\n\nAstra's light shines once more.\n\nPress R to play again",
+      pt: "CAPÍTULO 1 CONCLUÍDO!\n\nVocê recuperou o primeiro Fragmento Astral.\nA luz de Astra volta a brilhar.\n\nPressione R para jogar novamente",
+      en: "CHAPTER 1 COMPLETE!\n\nYou recovered the first Astral Fragment.\nAstra's light shines once more.\n\nPress R to play again",
     },
     defeat: {
       pt: "VOCÊ FOI DERROTADO\n\nR  •  Voltar ao último checkpoint\nN  •  Começar um novo jogo",

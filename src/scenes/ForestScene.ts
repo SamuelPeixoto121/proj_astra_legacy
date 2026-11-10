@@ -9,7 +9,6 @@ import {
   ELDER_TALK_RANGE,
   KAEL_STATS,
   NORTH_BARRIER,
-  PLAYER_STATS,
   SHRINE_POSITION,
   SPIDER_SPAWNS,
   WORLD_HEIGHT,
@@ -18,6 +17,13 @@ import {
 import { TEXTS } from "../i18n/texts";
 import { progress, saveProgress } from "../systems/progress";
 import { spawnEnemy, type Enemy } from "../systems/enemies";
+import {
+  createBoss,
+  destroyBoss,
+  drawBossHealthBar,
+  showBossUi,
+  type Boss,
+} from "../systems/bosses";
 import { createForestWorld, type ForestWorld } from "../world/forest";
 import {
   createCorruptionBarrier,
@@ -26,12 +32,7 @@ import {
 } from "../world/corruptionBarrier";
 import { createElder, type ElderSprite } from "../characters/elder";
 import { createKael } from "../characters/kael";
-import type { CharacterSprite } from "../characters/types";
-import {
-  createDeathBurst,
-  createImpactEffect,
-  showDamageNumber,
-} from "../effects/combatEffects";
+import { createDeathBurst } from "../effects/combatEffects";
 import { AREA_SCENE_KEYS } from "./areas";
 import { AreaScene } from "./AreaScene";
 
@@ -46,10 +47,7 @@ export class ForestScene extends AreaScene {
   /** O lobo da missão: derrotá-lo avança a história. */
   private wolf!: Enemy;
 
-  private kael!: CharacterSprite;
-  private kaelHealthGraphics!: Phaser.GameObjects.Graphics;
-  private kaelNameText!: Phaser.GameObjects.Text;
-  private kaelHealth: number = KAEL_STATS.maxHealth;
+  private kael!: Boss;
   private lastKaelAttackAt = -10000;
 
   constructor() {
@@ -98,37 +96,27 @@ export class ForestScene extends AreaScene {
 
     this.enemies.push(this.wolf, ...spiders);
 
-    this.createKael();
-  }
-
-  private createKael(): void {
-    this.kael = createKael(this, 850, 380);
-    this.kaelHealth = KAEL_STATS.maxHealth;
-    this.lastKaelAttackAt = -10000;
-
-    this.kaelHealthGraphics = this.add.graphics();
-    this.kaelHealthGraphics.setDepth(3000);
-    this.kaelHealthGraphics.setVisible(false);
-
-    this.kaelNameText = this.add.text(850, 325, "KAEL", {
-      fontFamily: "Georgia, serif",
-      fontSize: "18px",
-      fontStyle: "bold",
-      color: "#ff8293",
-      stroke: "#160d1c",
-      strokeThickness: 5,
+    this.kael = createBoss(this, createKael(this, 850, 380), KAEL_STATS, {
+      barWidth: 100,
+      barOffsetY: 53,
+      nameOffsetY: 76,
+      nameColor: "#ff8293",
+      barColor: 0xe43e62,
+      barBackColor: 0x562038,
+      impactColor: 0xff5267,
+      damageTextColor: "#ff8293",
+      deathColor: 0x8d264e,
     });
-
-    this.kaelNameText.setOrigin(0.5);
-    this.kaelNameText.setDepth(3000);
-    this.kaelNameText.setVisible(false);
+    this.lastKaelAttackAt = -10000;
   }
 
   protected setupAreaPhysics(obstacles: Phaser.GameObjects.Rectangle[]): void {
-    this.physics.add.collider(this.kael.body, obstacles);
+    const kaelBody = this.kael.sprite.body;
+
+    this.physics.add.collider(kaelBody, obstacles);
     this.physics.add.collider(this.player.body, this.elder.body);
 
-    this.physics.add.overlap(this.player.body, this.kael.body, () => {
+    this.physics.add.overlap(this.player.body, kaelBody, () => {
       if (progress.kaelUnlocked && !progress.kaelDefeated) {
         this.damagePlayer(KAEL_STATS.damage);
       }
@@ -154,6 +142,10 @@ export class ForestScene extends AreaScene {
     this.signs.trail.setText(this.t(TEXTS.places.trail));
     this.signs.forest.setText(this.t(TEXTS.places.forest));
     this.elder.label.setText(this.t(TEXTS.elder.label));
+
+    if (!progress.kaelDefeated) {
+      this.kael.nameText.setText(this.t(TEXTS.bosses.kael.name));
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -165,7 +157,7 @@ export class ForestScene extends AreaScene {
 
     if (progress.kaelUnlocked && !progress.kaelDefeated) {
       this.updateKael();
-      this.drawKaelHealthBar();
+      drawBossHealthBar(this.kael);
     }
   }
 
@@ -258,24 +250,22 @@ export class ForestScene extends AreaScene {
 
     this.revealKael();
 
-    this.statusText.setText(this.t(TEXTS.combat.bossAppeared));
+    this.statusText.setText(this.t(TEXTS.bosses.kael.appeared));
 
     this.updateQuestDisplay();
   }
 
   /** Mostra Kael e liga a física dele. */
   private revealKael(): void {
-    const body = this.getPhysicsBody(this.kael);
+    const body = this.getPhysicsBody(this.kael.sprite);
 
     body.enable = true;
     body.setVelocity(0, 0);
 
-    this.kael.body.setActive(true);
-    this.kael.container.setVisible(true);
-    this.kaelHealthGraphics.setVisible(true);
-    this.kaelNameText.setVisible(true);
+    this.kael.sprite.body.setActive(true);
+    this.kael.sprite.container.setVisible(true);
 
-    this.drawKaelHealthBar();
+    showBossUi(this.kael);
   }
 
   protected attackSpecialTarget(): boolean {
@@ -283,43 +273,21 @@ export class ForestScene extends AreaScene {
       return false;
     }
 
-    this.attackKael();
+    if (this.strikeBoss(this.kael, TEXTS.bosses.kael)) {
+      this.defeatKael();
+    }
+
     return true;
   }
 
-  private attackKael(): void {
-    const { x, y } = this.kael.body;
-    const damage = PLAYER_STATS.attackDamage;
-
-    if (!this.isTargetInFront(x, y, KAEL_STATS.hitRange)) {
-      this.statusText.setText(this.t(TEXTS.combat.kaelMissed));
-      return;
-    }
-
-    this.kaelHealth = Math.max(0, this.kaelHealth - damage);
-
-    createImpactEffect(this, x, y, 0xff5267);
-    showDamageNumber(this, x, y, damage, "#ff8293");
-
-    this.statusText.setText(this.t(TEXTS.combat.kaelHit(damage)));
-
-    this.kael.container.setAlpha(0.45);
-
-    this.time.delayedCall(100, () => {
-      if (this.kael.container.active && !progress.kaelDefeated) {
-        this.kael.container.setAlpha(1);
-      }
-    });
-
-    this.drawKaelHealthBar();
-
-    if (this.kaelHealth <= 0) {
-      this.defeatKael();
-    }
-  }
-
   private updateKael(): void {
-    const distance = this.chasePlayer(this.kael, KAEL_STATS.speed, 48, 650, 20);
+    const distance = this.chasePlayer(
+      this.kael.sprite,
+      KAEL_STATS.speed,
+      48,
+      650,
+      20,
+    );
 
     if (
       distance <= 65 &&
@@ -335,50 +303,22 @@ export class ForestScene extends AreaScene {
     progress.kaelDefeated = true;
     progress.questStage = "ruins";
 
-    createDeathBurst(this, this.kael.body.x, this.kael.body.y, 0x8d264e);
+    const { x, y } = this.kael.sprite.body;
+
+    createDeathBurst(this, x, y, this.kael.style.deathColor);
     this.removeKael();
 
     openCorruptionBarrier(this, this.northBarrier, true);
 
     this.updateQuestDisplay();
-    this.statusText.setText(this.t(TEXTS.combat.kaelDefeated));
+    this.statusText.setText(this.t(TEXTS.bosses.kael.defeated));
 
     saveProgress();
   }
 
   /** Tira Kael do mapa (ao derrotá-lo ou ao carregar um save). */
   private removeKael(): void {
-    this.disableCharacter(this.kael);
-    this.kael.container.destroy();
-    this.kaelHealthGraphics.destroy();
-    this.kaelNameText.destroy();
-  }
-
-  private drawKaelHealthBar(): void {
-    if (!progress.kaelUnlocked || progress.kaelDefeated) {
-      return;
-    }
-
-    const width = 100;
-    const x = this.kael.body.x - width / 2;
-    const y = this.kael.body.y - 53;
-    const bar = this.kaelHealthGraphics;
-
-    bar.clear();
-
-    bar.fillStyle(0x100c16, 0.95);
-    bar.fillRect(x, y, width, 10);
-
-    bar.fillStyle(0x562038, 1);
-    bar.fillRect(x + 1, y + 1, width - 2, 8);
-
-    const healthWidth = (width - 2) * (this.kaelHealth / KAEL_STATS.maxHealth);
-
-    if (healthWidth > 0) {
-      bar.fillStyle(0xe43e62, 1);
-      bar.fillRect(x + 1, y + 1, healthWidth, 8);
-    }
-
-    this.kaelNameText.setPosition(this.kael.body.x, this.kael.body.y - 76);
+    this.disableCharacter(this.kael.sprite);
+    destroyBoss(this.kael);
   }
 }

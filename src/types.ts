@@ -9,6 +9,7 @@ export const QUEST_STAGES = [
   "boss", // derrotar Kael
   "ruins", // ir às Ruínas do Santuário
   "guardian", // derrotar o guardião do Fragmento Astral
+  "fragment", // pegar o Fragmento Astral no altar
   "complete", // capítulo concluído
 ] as const;
 

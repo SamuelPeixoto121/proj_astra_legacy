@@ -16,10 +16,33 @@ export function createRuinsWorld(scene: Phaser.Scene): RuinsWorld {
   drawFloor(scene);
   drawPath(scene);
 
-  const obstacles = createColumns(scene);
+  const obstacles = [...createColumns(scene), createAltar(scene)];
   const sign = createSign(scene);
 
   return { obstacles, sign };
+}
+
+/** Altar no topo da trilha, onde fica o Fragmento Astral. */
+function createAltar(scene: Phaser.Scene): Phaser.GameObjects.Rectangle {
+  const y = 160;
+  const altar = scene.add.container(PATH_X, y);
+
+  altar.add([
+    scene.add.ellipse(0, 18, 170, 30, 0x0d0c12, 0.5),
+    scene.add.rectangle(0, 8, 150, 26, 0x4a4752), // degrau
+    scene.add.rectangle(0, -6, 108, 24, 0x5a5763), // topo
+    scene.add.rectangle(0, -6, 80, 3, 0xa58fd0, 0.6), // runas
+    scene.add.rectangle(-30, -6, 3, 14, 0xa58fd0, 0.6),
+    scene.add.rectangle(30, -6, 3, 14, 0xa58fd0, 0.6),
+  ]);
+
+  altar.setDepth(y + 10);
+
+  const obstacle = scene.add.rectangle(PATH_X, y, 120, 30, 0xffffff);
+  obstacle.setVisible(false);
+  scene.physics.add.existing(obstacle, true);
+
+  return obstacle;
 }
 
 function drawFloor(scene: Phaser.Scene): void {

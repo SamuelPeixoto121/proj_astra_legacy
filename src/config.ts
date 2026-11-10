@@ -70,6 +70,41 @@ export const KAEL_STATS = {
   attackCooldown: 1000,
 } as const;
 
+// Sentinela de Pedra, o guardião das Ruínas. Golpeia o chão em área:
+// - wakeRange: desperta quando o herói chega tão perto assim;
+// - slamTriggerRange: começa o golpe quando o herói está a essa distância;
+// - slamWindup: tempo (ms) do aviso antes do golpe — dá para fugir;
+// - slamRadius: quem estiver dentro desse raio na hora do golpe leva dano.
+export const SENTINEL_STATS = {
+  maxHealth: 320,
+  speed: 70,
+  hitRange: 110,
+  sightRange: 560,
+  stopDistance: 58,
+  wakeRange: 280,
+  slamTriggerRange: 90,
+  slamWindup: 750,
+  slamRadius: 95,
+  slamDamage: 28,
+  slamCooldown: 1500,
+} as const;
+
+export const SENTINEL_POSITION = { x: 700, y: 300 } as const;
+
+// Fragmento Astral no altar das Ruínas.
+export const FRAGMENT_POSITION = { x: 700, y: 126 } as const;
+export const FRAGMENT_COLLECT_RANGE = 70;
+
+// Aranhas das Ruínas.
+export const RUINS_SPIDER_SPAWNS = [
+  { x: 360, y: 560 },
+  { x: 1040, y: 640 },
+  { x: 990, y: 300 },
+] as const;
+
+// Pedra Astral das Ruínas (antes do guardião).
+export const RUINS_SHRINE_POSITION = { x: 645, y: 730 } as const;
+
 export const ELDER_TALK_RANGE = 85;
 
 // Pedra Astral: checkpoint no meio da trilha.
@@ -83,6 +118,7 @@ export const CHECKPOINTS = {
   shrine: { area: "forest", x: 790, y: 715 },
   forestNorth: { area: "forest", x: 850, y: 110 },
   ruinsEntrance: { area: "ruins", x: 700, y: 880 },
+  ruinsShrine: { area: "ruins", x: 700, y: 745 },
 } as const satisfies Record<string, { area: AreaId; x: number; y: number }>;
 
 export type CheckpointId = keyof typeof CHECKPOINTS;

@@ -14,12 +14,13 @@ import {
   SHRINE_ACTIVATION_RANGE,
   type CheckpointId,
 } from "../config";
-import type { AreaId } from "../types";
+import { QUEST_STAGES, type AreaId } from "../types";
 import { TEXTS, type Localized } from "../i18n/texts";
 import { LANGUAGE_CHANGED_EVENT } from "../i18n/page";
 import { clearSave } from "../systems/saveGame";
 import { progress, resetProgress, saveProgress } from "../systems/progress";
 import { drawEnemyHealthBar, type Enemy } from "../systems/enemies";
+import { drawBossHealthBar, type Boss } from "../systems/bosses";
 import {
   animatePlayerWalk,
   animateSwordSwing,
@@ -419,11 +420,15 @@ export abstract class AreaScene extends Phaser.Scene {
 
     this.questText.setText(this.t(TEXTS.quests[stage]));
 
+    // Depois de Kael (etapa "ruins" em diante), o jogo está no Capítulo 1.
+    const inChapterOne =
+      QUEST_STAGES.indexOf(stage) >= QUEST_STAGES.indexOf("ruins");
+
     if (this.victory) {
       this.statusText.setText(this.t(TEXTS.hud.victory));
     } else if (stage === "complete") {
-      this.statusText.setText(this.t(TEXTS.hud.prologueComplete));
-    } else if (stage === "ruins" || stage === "guardian") {
+      this.statusText.setText(this.t(TEXTS.hud.chapterComplete));
+    } else if (inChapterOne) {
       this.statusText.setText(this.t(TEXTS.hud.chapterTitle));
     } else {
       this.statusText.setText(this.t(TEXTS.hud.title));
@@ -734,6 +739,46 @@ export abstract class AreaScene extends Phaser.Scene {
     this.removeEnemy(enemy);
 
     this.onEnemyDefeated(enemy);
+  }
+
+  /**
+   * Golpe da espada num chefe: confere alcance e direção, tira vida,
+   * mostra os efeitos e a mensagem. Devolve true se o chefe foi derrotado.
+   */
+  protected strikeBoss(
+    boss: Boss,
+    texts: { missed: Localized; hit: (damage: number) => Localized },
+  ): boolean {
+    const { x, y } = boss.sprite.body;
+    const { style } = boss;
+    const damage = PLAYER_STATS.attackDamage;
+
+    if (!this.isTargetInFront(x, y, boss.hitRange)) {
+      this.statusText.setText(this.t(texts.missed));
+      return false;
+    }
+
+    boss.health = Math.max(0, boss.health - damage);
+
+    createImpactEffect(this, x, y, style.impactColor);
+    showDamageNumber(this, x, y, damage, style.damageTextColor);
+
+    this.statusText.setText(this.t(texts.hit(damage)));
+
+    // O chefe pisca ao ser atingido.
+    const { container } = boss.sprite;
+
+    container.setAlpha(0.45);
+
+    this.time.delayedCall(100, () => {
+      if (container.active && boss.health > 0) {
+        container.setAlpha(1);
+      }
+    });
+
+    drawBossHealthBar(boss);
+
+    return boss.health <= 0;
   }
 
   /** Tira um inimigo do mapa (ao derrotá-lo ou ao carregar um save). */

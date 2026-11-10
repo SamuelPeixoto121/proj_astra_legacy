@@ -115,6 +115,58 @@ export function showDamageNumber(
   });
 }
 
+/**
+ * Aviso de golpe em área: círculo vermelho pulsando no chão.
+ * Some sozinho depois de `duration` milissegundos.
+ */
+export function createSlamWarning(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  radius: number,
+  duration: number,
+): void {
+  const warning = scene.add
+    .circle(x, y, radius, 0xff3b5c, 0.12)
+    .setStrokeStyle(3, 0xff3b5c, 0.85)
+    .setDepth(y - 5);
+
+  scene.tweens.add({
+    targets: warning,
+    alpha: { from: 0.5, to: 1 },
+    duration: duration / 4,
+    yoyo: true,
+    repeat: 1,
+  });
+
+  scene.time.delayedCall(duration, () => warning.destroy());
+}
+
+/** Onda de choque de um golpe no chão, com poeira. */
+export function createShockwave(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  radius: number,
+): void {
+  const ring = scene.add
+    .circle(x, y, radius)
+    .setStrokeStyle(5, 0xd9c8ff, 0.9)
+    .setScale(0.2)
+    .setDepth(y + 150);
+
+  scene.tweens.add({
+    targets: ring,
+    scale: 1,
+    alpha: 0,
+    duration: 380,
+    ease: "Cubic.Out",
+    onComplete: () => ring.destroy(),
+  });
+
+  createImpactEffect(scene, x, y + 10, 0x9e98ad, 12, radius * 0.8);
+}
+
 /** Anel e partículas quando um inimigo é derrotado. */
 export function createDeathBurst(
   scene: Phaser.Scene,
