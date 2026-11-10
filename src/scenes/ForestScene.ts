@@ -28,6 +28,7 @@ import {
   animatePlayerWalk,
   animateSwordSwing,
   createPlayer,
+  updatePlayerDirection,
   type PlayerSprite,
 } from "../characters/player";
 import { createElder, type ElderSprite } from "../characters/elder";
@@ -1018,6 +1019,7 @@ export class ForestScene extends Phaser.Scene {
     if (moving) {
       this.facingX = x;
       this.facingY = y;
+      updatePlayerDirection(this.player, x, y);
     }
 
     this.getPhysicsBody(this.player).setVelocity(
