@@ -58,6 +58,9 @@ function drawPath(scene: Phaser.Scene): void {
     graphics.lineTo(820, 650);
     graphics.lineTo(800, 500);
     graphics.lineTo(850, 380);
+    // Continuação ao norte, rumo às Ruínas do Santuário.
+    graphics.lineTo(865, 230);
+    graphics.lineTo(850, 0);
     graphics.strokePath();
   };
 
@@ -91,7 +94,16 @@ function createTrees(scene: Phaser.Scene): Phaser.GameObjects.Rectangle[] {
       continue;
     }
 
-    colliders.push(createTree(scene, x, y, 0.75 + random(0.6)));
+    // O tamanho é sorteado ANTES da regra abaixo para não mudar a sequência
+    // de sorteios: assim as outras árvores continuam nos mesmos lugares.
+    const size = 0.75 + random(0.6);
+
+    // Mantém livre a trilha ao norte (rumo às Ruínas).
+    if (Math.abs(x - 855) < 80 && y < 380) {
+      continue;
+    }
+
+    colliders.push(createTree(scene, x, y, size));
   }
 
   return colliders;

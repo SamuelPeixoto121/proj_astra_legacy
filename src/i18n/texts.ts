@@ -11,6 +11,10 @@ export const TEXTS = {
       pt: "ASTRA LEGACY  •  PRÓLOGO",
       en: "ASTRA LEGACY  •  PROLOGUE",
     },
+    chapterTitle: {
+      pt: "ASTRA LEGACY  •  CAPÍTULO 1",
+      en: "ASTRA LEGACY  •  CHAPTER 1",
+    },
     prologueComplete: {
       pt: "PRÓLOGO CONCLUÍDO",
       en: "PROLOGUE COMPLETE",
@@ -34,6 +38,14 @@ export const TEXTS = {
       pt: "NOVO OBJETIVO: O SENHOR DA CORRUPÇÃO\nEncontre e derrote Kael na floresta.",
       en: "NEW OBJECTIVE: LORD OF CORRUPTION\nFind and defeat Kael in the forest.",
     },
+    ruins: {
+      pt: "NOVO OBJETIVO: AS RUÍNAS DO SANTUÁRIO\nSiga a trilha ao norte da clareira de Kael.",
+      en: "NEW OBJECTIVE: THE SANCTUARY RUINS\nFollow the trail north of Kael's clearing.",
+    },
+    guardian: {
+      pt: "MISSÃO: O PRIMEIRO FRAGMENTO\nEncontre o guardião que protege o Fragmento Astral.",
+      en: "QUEST: THE FIRST FRAGMENT\nFind the guardian protecting the Astral Fragment.",
+    },
     complete: {
       pt: "PRÓLOGO CONCLUÍDO!\nVocê derrotou Kael e sobreviveu à corrupção.",
       en: "PROLOGUE COMPLETE!\nYou defeated Kael and survived the corruption.",
@@ -43,6 +55,7 @@ export const TEXTS = {
   places: {
     trail: { pt: "TRILHA DA ALVORADA", en: "DAWNVALE TRAIL" },
     forest: { pt: "FLORESTA SUSSURRANTE", en: "WHISPERING FOREST" },
+    ruins: { pt: "RUÍNAS DO SANTUÁRIO", en: "SANCTUARY RUINS" },
   },
 
   page: {
@@ -119,10 +132,12 @@ export const TEXTS = {
     },
     bossDefeated: {
       pt: [
-        "Você derrotou Kael! A corrupção perdeu sua força, e Alvorada terá uma chance de reconstruir seu futuro.",
+        "Você derrotou Kael! Mas a corrupção não nasceu dele... algo o alimentava.",
+        "Sinto a luz de um Fragmento Astral nas Ruínas do Santuário, ao norte. Siga a trilha além da clareira e recupere-o antes que a escuridão o consuma.",
       ],
       en: [
-        "You defeated Kael! The corruption has lost its power, and Dawnvale may finally rebuild its future.",
+        "You defeated Kael! But the corruption did not come from him... something was feeding it.",
+        "I sense the light of an Astral Fragment in the Sanctuary Ruins to the north. Follow the trail beyond the clearing and recover it before the darkness consumes it.",
       ],
     },
   } satisfies Record<string, Localized<string[]>>,
@@ -181,6 +196,10 @@ export const TEXTS = {
       pt: "UMA PRESENÇA SOMBRIA SURGIU...",
       en: "A DARK PRESENCE HAS AWAKENED...",
     },
+    kaelDefeated: {
+      pt: "KAEL DERROTADO! A BARREIRA AO NORTE SE DESFEZ.",
+      en: "KAEL DEFEATED! THE BARRIER TO THE NORTH HAS FADED.",
+    },
   },
 
   save: {
@@ -191,6 +210,10 @@ export const TEXTS = {
     progressLoaded: {
       pt: "PROGRESSO CARREGADO",
       en: "PROGRESS LOADED",
+    },
+    progressSaved: {
+      pt: "PROGRESSO SALVO",
+      en: "PROGRESS SAVED",
     },
   },
 

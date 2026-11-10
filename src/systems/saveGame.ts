@@ -2,25 +2,19 @@
 // O save sobrevive ao fechar a aba, mas fica só neste navegador.
 
 import { CHECKPOINTS, type CheckpointId } from "../config";
-import type { Language, QuestStage } from "../types";
+import { QUEST_STAGES, type Language, type QuestStage } from "../types";
+import type { GameProgress } from "./progress";
 
 const SAVE_KEY = "astra-legacy:save";
 
 // Aumente este número se o formato do save mudar no futuro.
 // Saves de versões antigas são ignorados em vez de quebrar o jogo.
-const SAVE_VERSION = 1;
+// Versão 2: áreas (Ruínas do Santuário) e kaelDefeated.
+const SAVE_VERSION = 2;
 
-export interface SaveData {
-  language: Language;
-  questStage: QuestStage;
-  elderTalked: boolean;
-  wolfDefeated: boolean;
-  kaelUnlocked: boolean;
-  checkpointId: CheckpointId;
-}
+export type SaveData = GameProgress;
 
 const LANGUAGES: readonly Language[] = ["pt", "en"];
-const QUEST_STAGES: readonly QuestStage[] = ["talk", "hunt", "boss", "complete"];
 
 export function saveGame(data: SaveData): void {
   try {
@@ -71,6 +65,7 @@ function parseSave(value: unknown): SaveData | null {
     typeof save.elderTalked === "boolean" &&
     typeof save.wolfDefeated === "boolean" &&
     typeof save.kaelUnlocked === "boolean" &&
+    typeof save.kaelDefeated === "boolean" &&
     typeof save.checkpointId === "string" &&
     save.checkpointId in CHECKPOINTS;
 
@@ -84,6 +79,7 @@ function parseSave(value: unknown): SaveData | null {
     elderTalked: save.elderTalked as boolean,
     wolfDefeated: save.wolfDefeated as boolean,
     kaelUnlocked: save.kaelUnlocked as boolean,
+    kaelDefeated: save.kaelDefeated as boolean,
     checkpointId: save.checkpointId as CheckpointId,
   };
 }

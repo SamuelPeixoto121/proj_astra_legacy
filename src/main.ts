@@ -2,7 +2,9 @@
 
 import Phaser from "phaser";
 import "./style.css";
+import { BootScene } from "./scenes/BootScene";
 import { ForestScene } from "./scenes/ForestScene";
+import { RuinsScene } from "./scenes/RuinsScene";
 import { LANGUAGE_CHANGED_EVENT, updatePageLanguage } from "./i18n/page";
 
 const game = new Phaser.Game({
@@ -23,7 +25,8 @@ const game = new Phaser.Game({
       debug: false,
     },
   },
-  scene: [ForestScene],
+  // A BootScene abre primeiro e decide qual área mostrar (pelo save).
+  scene: [BootScene, ForestScene, RuinsScene],
 });
 
 // A cena avisa quando o idioma muda; aqui traduzimos a página ao redor do jogo.

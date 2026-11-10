@@ -1,0 +1,1009 @@
+// Cena-base de todas as áreas do jogo.
+// Aqui fica tudo o que toda área tem: herói, controles, HUD, diálogo,
+// combate contra inimigos comuns, checkpoints, saídas para outras áreas,
+// troca de idioma e tela de fim de jogo.
+//
+// Cada área (ForestScene, RuinsScene...) herda desta classe e só escreve
+// o que é próprio dela: cenário, personagens e regras da missão.
+
+import Phaser from "phaser";
+import {
+  AREA_FADE_TIME,
+  CHECKPOINTS,
+  PLAYER_STATS,
+  SHRINE_ACTIVATION_RANGE,
+  type CheckpointId,
+} from "../config";
+import type { AreaId } from "../types";
+import { TEXTS, type Localized } from "../i18n/texts";
+import { LANGUAGE_CHANGED_EVENT } from "../i18n/page";
+import { clearSave } from "../systems/saveGame";
+import { progress, resetProgress, saveProgress } from "../systems/progress";
+import { drawEnemyHealthBar, type Enemy } from "../systems/enemies";
+import {
+  animatePlayerWalk,
+  animateSwordSwing,
+  createPlayer,
+  updatePlayerDirection,
+  type PlayerSprite,
+} from "../characters/player";
+import type { CharacterSprite } from "../characters/types";
+import {
+  activateShrine,
+  createCheckpointShrine,
+  type CheckpointShrine,
+} from "../world/checkpointShrine";
+import {
+  createDeathBurst,
+  createImpactEffect,
+  createSlashEffect,
+  showDamageNumber,
+} from "../effects/combatEffects";
+import { AREA_SCENE_KEYS, startFromSave } from "./areas";
+
+/** Dados recebidos ao abrir uma área. */
+export interface AreaSceneData {
+  /** Mensagem a mostrar no topo ao entrar (ex.: "PROGRESSO CARREGADO"). */
+  statusMessage?: Localized;
+}
+
+/** Retângulo que leva o herói para outro checkpoint (em outra área). */
+interface AreaExit {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  target: CheckpointId;
+  isOpen: () => boolean;
+}
+
+interface AreaShrine {
+  sprite: CheckpointShrine;
+  checkpointId: CheckpointId;
+}
+
+/** Conteúdo de um diálogo. É uma função para poder ser traduzido na hora. */
+type DialogueSource = () => { name: string; lines: string[] };
+
+export abstract class AreaScene extends Phaser.Scene {
+  protected abstract readonly areaId: AreaId;
+  protected abstract readonly worldWidth: number;
+  protected abstract readonly worldHeight: number;
+
+  protected player!: PlayerSprite;
+  /** Inimigos comuns da área. As áreas adicionam os seus em createActors(). */
+  protected enemies: Enemy[] = [];
+
+  protected statusText!: Phaser.GameObjects.Text;
+  protected gameOver = false;
+
+  private facingX = 0;
+  private facingY = 1;
+
+  private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+  private wasd!: Record<"W" | "A" | "S" | "D", Phaser.Input.Keyboard.Key>;
+  private attackKey!: Phaser.Input.Keyboard.Key;
+  private interactKey!: Phaser.Input.Keyboard.Key;
+  private languageKey!: Phaser.Input.Keyboard.Key;
+  private restartKey!: Phaser.Input.Keyboard.Key;
+  private newGameKey!: Phaser.Input.Keyboard.Key;
+
+  private hudGraphics!: Phaser.GameObjects.Graphics;
+  private questText!: Phaser.GameObjects.Text;
+  private interactionHint!: Phaser.GameObjects.Text;
+
+  private dialoguePanel!: Phaser.GameObjects.Rectangle;
+  private dialogueName!: Phaser.GameObjects.Text;
+  private dialogueText!: Phaser.GameObjects.Text;
+  private dialogueHint!: Phaser.GameObjects.Text;
+
+  private gameOverOverlay?: Phaser.GameObjects.Rectangle;
+  private gameOverText?: Phaser.GameObjects.Text;
+
+  private playerHealth: number = PLAYER_STATS.maxHealth;
+  private lastAttackAt = -10000;
+  private lastDamageAt = -10000;
+  private victory = false;
+
+  private dialogueOpen = false;
+  private dialogueSource?: DialogueSource;
+  private onDialogueClose?: () => void;
+  private dialogueLines: string[] = [];
+  private dialogueIndex = 0;
+
+  private exits: AreaExit[] = [];
+  private shrines: AreaShrine[] = [];
+  private transitioning = false;
+
+  // ---------------------------------------------------------------------------
+  // O que cada área precisa (ou pode) escrever
+  // ---------------------------------------------------------------------------
+
+  /** Desenha o cenário. Devolve os obstáculos fixos (árvores, colunas...). */
+  protected abstract createWorld(): Phaser.GameObjects.Rectangle[];
+
+  /** Cria NPCs, inimigos (em this.enemies) e chefes. */
+  protected abstract createActors(): void;
+
+  /** Colisões próprias da área (ex.: chefe, NPCs). */
+  protected setupAreaPhysics(_obstacles: Phaser.GameObjects.Rectangle[]): void {}
+
+  /** Deixa a área igual ao progresso salvo (sem efeitos nem mensagens). */
+  protected restoreAreaState(): void {}
+
+  /** Chamado uma vez, logo depois que a área é aberta. */
+  protected onAreaEntered(): void {}
+
+  /** Lógica da área a cada quadro (NPCs, chefe...). */
+  protected updateArea(): void {}
+
+  /** Atualiza os textos fixos da área (placas, nomes) no idioma atual. */
+  protected applyAreaLanguage(): void {}
+
+  /**
+   * Chamado quando o golpe não acertou nenhum inimigo comum.
+   * Devolve true se a área tratou o golpe (ex.: atacou o chefe).
+   */
+  protected attackSpecialTarget(): boolean {
+    return false;
+  }
+
+  /** Chamado depois que um inimigo comum é derrotado. */
+  protected onEnemyDefeated(enemy: Enemy): void {
+    this.statusText.setText(this.t(TEXTS.enemies[enemy.kind].defeated));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Criação da área
+  // ---------------------------------------------------------------------------
+
+  create(data: AreaSceneData = {}): void {
+    this.resetSceneState();
+
+    const obstacles = this.createWorld();
+    const spawn = this.getSpawnPoint();
+
+    this.player = createPlayer(this, spawn.x, spawn.y);
+    this.createActors();
+
+    this.createInterface();
+    this.createInput();
+    this.setupPhysics(obstacles);
+    this.setupCamera();
+
+    this.restoreShrines();
+    this.restoreAreaState();
+    this.onAreaEntered();
+    this.applyLanguage();
+
+    if (data.statusMessage) {
+      this.statusText.setText(this.t(data.statusMessage));
+    }
+
+    this.cameras.main.fadeIn(AREA_FADE_TIME, 0, 0, 0);
+  }
+
+  /** Volta o estado da cena ao inicial (a cena é reaproveitada ao reabrir). */
+  private resetSceneState(): void {
+    this.enemies = [];
+    this.exits = [];
+    this.shrines = [];
+    this.transitioning = false;
+
+    this.playerHealth = PLAYER_STATS.maxHealth;
+    this.facingX = 0;
+    this.facingY = 1;
+    this.lastAttackAt = -10000;
+    this.lastDamageAt = -10000;
+
+    this.gameOver = false;
+    this.victory = false;
+    this.gameOverOverlay = undefined;
+    this.gameOverText = undefined;
+
+    this.dialogueOpen = false;
+    this.dialogueSource = undefined;
+    this.onDialogueClose = undefined;
+    this.dialogueLines = [];
+    this.dialogueIndex = 0;
+  }
+
+  /** Onde o herói aparece: no checkpoint salvo, se ele for desta área. */
+  private getSpawnPoint(): { x: number; y: number } {
+    const checkpoint = CHECKPOINTS[progress.checkpointId];
+
+    if (checkpoint.area === this.areaId) {
+      return checkpoint;
+    }
+
+    // Segurança: usa o primeiro checkpoint desta área.
+    const fallback = Object.values(CHECKPOINTS).find(
+      (point) => point.area === this.areaId,
+    );
+
+    return fallback ?? { x: this.worldWidth / 2, y: this.worldHeight / 2 };
+  }
+
+  private createInput(): void {
+    if (!this.input.keyboard) {
+      throw new Error("O teclado não está disponível.");
+    }
+
+    const keyboard = this.input.keyboard;
+    const { KeyCodes } = Phaser.Input.Keyboard;
+
+    this.cursors = keyboard.createCursorKeys();
+
+    this.wasd = {
+      W: keyboard.addKey(KeyCodes.W),
+      A: keyboard.addKey(KeyCodes.A),
+      S: keyboard.addKey(KeyCodes.S),
+      D: keyboard.addKey(KeyCodes.D),
+    };
+
+    this.attackKey = keyboard.addKey(KeyCodes.J);
+    this.interactKey = keyboard.addKey(KeyCodes.E);
+    this.languageKey = keyboard.addKey(KeyCodes.L);
+    this.restartKey = keyboard.addKey(KeyCodes.R);
+    this.newGameKey = keyboard.addKey(KeyCodes.N);
+  }
+
+  private setupPhysics(obstacles: Phaser.GameObjects.Rectangle[]): void {
+    // A física pode ter ficado pausada pela tela de fim de jogo.
+    this.physics.world.resume();
+    this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
+
+    this.getPhysicsBody(this.player).setCollideWorldBounds(true);
+
+    const enemyBodies = this.enemies.map((enemy) => enemy.sprite.body);
+
+    this.physics.add.collider([this.player.body, ...enemyBodies], obstacles);
+
+    // Inimigos não se sobrepõem uns aos outros.
+    this.physics.add.collider(enemyBodies, enemyBodies);
+
+    // O dano dos inimigos comuns vem do ataque deles (ver updateEnemy).
+
+    this.setupAreaPhysics(obstacles);
+  }
+
+  private setupCamera(): void {
+    const camera = this.cameras.main;
+
+    camera.setBounds(0, 0, this.worldWidth, this.worldHeight);
+    camera.startFollow(this.player.body, true, 0.08, 0.08);
+    camera.setZoom(1);
+
+    this.scale.on("resize", this.handleResize, this);
+
+    // Evita acumular o mesmo evento a cada vez que a cena é reaberta.
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.scale.off("resize", this.handleResize, this);
+    });
+  }
+
+  private handleResize(gameSize: Phaser.Structs.Size): void {
+    this.cameras.main.setSize(gameSize.width, gameSize.height);
+
+    this.dialoguePanel.setPosition(20, gameSize.height - 155);
+    this.dialoguePanel.setSize(gameSize.width - 40, 135);
+    this.dialogueName.setPosition(40, gameSize.height - 140);
+    this.dialogueText.setPosition(40, gameSize.height - 108);
+    this.dialogueHint.setPosition(gameSize.width - 245, gameSize.height - 43);
+
+    this.gameOverOverlay?.setSize(gameSize.width, gameSize.height);
+    this.gameOverText?.setPosition(gameSize.width / 2, gameSize.height / 2);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Interface (HUD, missão e diálogo)
+  // ---------------------------------------------------------------------------
+
+  private createInterface(): void {
+    this.statusText = this.add
+      .text(20, 18, "", {
+        fontFamily: "Georgia, serif",
+        fontSize: "14px",
+        color: "#e9dfbf",
+        backgroundColor: "#15231bd9",
+        padding: { x: 12, y: 9 },
+      })
+      .setScrollFactor(0)
+      .setDepth(3000);
+
+    this.hudGraphics = this.add.graphics();
+    this.hudGraphics.setScrollFactor(0);
+    this.hudGraphics.setDepth(3000);
+
+    this.questText = this.add
+      .text(20, 112, "", {
+        fontFamily: "Georgia, serif",
+        fontSize: "14px",
+        color: "#f0dfac",
+        backgroundColor: "#15231bd9",
+        padding: { x: 12, y: 9 },
+        wordWrap: { width: 360 },
+      })
+      .setScrollFactor(0)
+      .setDepth(3000);
+
+    this.interactionHint = this.add
+      .text(0, 0, "", {
+        fontFamily: "Georgia, serif",
+        fontSize: "14px",
+        color: "#f0dfac",
+        backgroundColor: "#15231be8",
+        padding: { x: 8, y: 6 },
+      })
+      .setOrigin(0.5)
+      .setDepth(3500)
+      .setVisible(false);
+
+    this.dialoguePanel = this.add
+      .rectangle(
+        20,
+        this.scale.height - 155,
+        this.scale.width - 40,
+        135,
+        0x111710,
+        0.96,
+      )
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setStrokeStyle(2, 0xc2a76b, 0.95)
+      .setDepth(6000)
+      .setVisible(false);
+
+    this.dialogueName = this.add
+      .text(40, this.scale.height - 140, "", {
+        fontFamily: "Georgia, serif",
+        fontSize: "17px",
+        color: "#f0dfac",
+        fontStyle: "bold",
+      })
+      .setScrollFactor(0)
+      .setDepth(6001)
+      .setVisible(false);
+
+    this.dialogueText = this.add
+      .text(40, this.scale.height - 108, "", {
+        fontFamily: "Georgia, serif",
+        fontSize: "16px",
+        color: "#e9dfbf",
+        wordWrap: {
+          width: Math.max(300, this.scale.width - 100),
+        },
+        lineSpacing: 5,
+      })
+      .setScrollFactor(0)
+      .setDepth(6001)
+      .setVisible(false);
+
+    this.dialogueHint = this.add
+      .text(this.scale.width - 245, this.scale.height - 43, "", {
+        fontFamily: "Georgia, serif",
+        fontSize: "12px",
+        color: "#c2a76b",
+      })
+      .setScrollFactor(0)
+      .setDepth(6001)
+      .setVisible(false);
+
+    this.drawHud();
+  }
+
+  /** Escolhe o texto no idioma atual. */
+  protected t<T>(text: Localized<T>): T {
+    return text[progress.language];
+  }
+
+  private drawHud(): void {
+    this.hudGraphics.clear();
+
+    this.hudGraphics.fillStyle(0x111710, 0.9);
+    this.hudGraphics.fillRoundedRect(20, 54, 224, 24, 5);
+
+    this.hudGraphics.fillStyle(0x592e31, 1);
+    this.hudGraphics.fillRect(24, 58, 216, 16);
+
+    const healthWidth = 216 * (this.playerHealth / PLAYER_STATS.maxHealth);
+
+    if (healthWidth > 0) {
+      this.hudGraphics.fillStyle(0xb83e48, 1);
+      this.hudGraphics.fillRect(24, 58, healthWidth, 16);
+    }
+  }
+
+  protected updateQuestDisplay(): void {
+    const stage = progress.questStage;
+
+    this.questText.setText(this.t(TEXTS.quests[stage]));
+
+    if (this.victory) {
+      this.statusText.setText(this.t(TEXTS.hud.victory));
+    } else if (stage === "complete") {
+      this.statusText.setText(this.t(TEXTS.hud.prologueComplete));
+    } else if (stage === "ruins" || stage === "guardian") {
+      this.statusText.setText(this.t(TEXTS.hud.chapterTitle));
+    } else {
+      this.statusText.setText(this.t(TEXTS.hud.title));
+    }
+  }
+
+  /** Mostra a dica de interação (ex.: "E • Conversar") num ponto do mapa. */
+  protected showInteractionHint(text: string, x: number, y: number): void {
+    this.interactionHint.setText(text).setPosition(x, y).setVisible(true);
+  }
+
+  protected hideInteractionHint(): void {
+    this.interactionHint.setVisible(false);
+  }
+
+  /** true no quadro em que a tecla de interagir (E) foi apertada. */
+  protected justPressedInteract(): boolean {
+    return Phaser.Input.Keyboard.JustDown(this.interactKey);
+  }
+
+  protected distanceToPlayer(x: number, y: number): number {
+    return Phaser.Math.Distance.Between(
+      this.player.body.x,
+      this.player.body.y,
+      x,
+      y,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Diálogo
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Abre um diálogo. O conteúdo vem de uma função para poder ser
+   * traduzido se o jogador trocar o idioma no meio da conversa.
+   */
+  protected openDialogue(source: DialogueSource, onClose?: () => void): void {
+    const { name, lines } = source();
+
+    this.dialogueOpen = true;
+    this.dialogueSource = source;
+    this.onDialogueClose = onClose;
+    this.dialogueLines = lines;
+    this.dialogueIndex = 0;
+
+    this.hideInteractionHint();
+
+    this.dialoguePanel.setVisible(true);
+    this.dialogueName.setVisible(true).setText(name);
+    this.dialogueText.setVisible(true);
+    this.dialogueHint.setVisible(true);
+
+    this.showCurrentDialogue();
+  }
+
+  private showCurrentDialogue(): void {
+    this.dialogueText.setText(this.dialogueLines[this.dialogueIndex] ?? "");
+    this.dialogueHint.setText(this.t(TEXTS.hints.continue));
+  }
+
+  private advanceDialogue(): void {
+    this.dialogueIndex += 1;
+
+    if (this.dialogueIndex < this.dialogueLines.length) {
+      this.showCurrentDialogue();
+      return;
+    }
+
+    this.closeDialogue();
+  }
+
+  private closeDialogue(): void {
+    this.dialogueOpen = false;
+
+    this.dialoguePanel.setVisible(false);
+    this.dialogueName.setVisible(false);
+    this.dialogueText.setVisible(false);
+    this.dialogueHint.setVisible(false);
+
+    const onClose = this.onDialogueClose;
+
+    this.dialogueSource = undefined;
+    this.onDialogueClose = undefined;
+
+    onClose?.();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Idioma
+  // ---------------------------------------------------------------------------
+
+  /** Atualiza os textos fixos da área, o HUD e a página no idioma atual. */
+  private applyLanguage(): void {
+    this.applyAreaLanguage();
+    this.updateQuestDisplay();
+
+    this.game.events.emit(LANGUAGE_CHANGED_EVENT, progress.language);
+  }
+
+  private toggleLanguage(): void {
+    progress.language = progress.language === "pt" ? "en" : "pt";
+
+    this.applyLanguage();
+
+    if (this.dialogueOpen && this.dialogueSource) {
+      const { name, lines } = this.dialogueSource();
+
+      this.dialogueName.setText(name);
+      this.dialogueLines = lines;
+      this.dialogueIndex = Math.min(this.dialogueIndex, lines.length - 1);
+      this.showCurrentDialogue();
+    }
+
+    this.gameOverText?.setText(this.getEndScreenMessage());
+
+    // Na tela final o save já foi tratado (apagado na vitória).
+    if (!this.gameOver) {
+      saveProgress();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Checkpoints (Pedras Astrais) e saídas para outras áreas
+  // ---------------------------------------------------------------------------
+
+  /** Coloca uma Pedra Astral que salva o jogo no checkpoint indicado. */
+  protected addShrine(x: number, y: number, checkpointId: CheckpointId): void {
+    this.shrines.push({
+      sprite: createCheckpointShrine(this, x, y),
+      checkpointId,
+    });
+  }
+
+  private restoreShrines(): void {
+    for (const shrine of this.shrines) {
+      if (shrine.checkpointId === progress.checkpointId) {
+        activateShrine(this, shrine.sprite, false);
+      }
+    }
+  }
+
+  private updateShrines(): void {
+    for (const shrine of this.shrines) {
+      const { container } = shrine.sprite;
+
+      if (
+        shrine.sprite.active ||
+        this.distanceToPlayer(container.x, container.y) > SHRINE_ACTIVATION_RANGE
+      ) {
+        continue;
+      }
+
+      activateShrine(this, shrine.sprite, true);
+      progress.checkpointId = shrine.checkpointId;
+      saveProgress();
+
+      this.statusText.setText(this.t(TEXTS.save.checkpointSaved));
+    }
+  }
+
+  /** Cria uma saída: ao entrar no retângulo, o herói vai para outra área. */
+  protected addExit(exit: AreaExit): void {
+    this.exits.push(exit);
+  }
+
+  private updateExits(): void {
+    const { x, y } = this.player.body;
+
+    for (const exit of this.exits) {
+      const inside =
+        x >= exit.x &&
+        x <= exit.x + exit.width &&
+        y >= exit.y &&
+        y <= exit.y + exit.height;
+
+      if (inside && exit.isOpen()) {
+        this.travelTo(exit.target);
+        return;
+      }
+    }
+  }
+
+  /** Salva no checkpoint de destino e abre a área dele, com escurecimento. */
+  private travelTo(checkpointId: CheckpointId): void {
+    this.transitioning = true;
+    this.getPhysicsBody(this.player).setVelocity(0, 0);
+
+    progress.checkpointId = checkpointId;
+    saveProgress();
+
+    const sceneKey = AREA_SCENE_KEYS[CHECKPOINTS[checkpointId].area];
+
+    this.cameras.main.fadeOut(AREA_FADE_TIME, 0, 0, 0);
+    this.cameras.main.once(
+      Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE,
+      () => {
+        const data: AreaSceneData = { statusMessage: TEXTS.save.progressSaved };
+        this.scene.start(sceneKey, data);
+      },
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Combate
+  // ---------------------------------------------------------------------------
+
+  private attack(): void {
+    const now = this.time.now;
+
+    if (now - this.lastAttackAt < PLAYER_STATS.attackCooldown) {
+      return;
+    }
+
+    this.lastAttackAt = now;
+
+    animateSwordSwing(this, this.player);
+    createSlashEffect(
+      this,
+      this.player.body.x,
+      this.player.body.y,
+      this.facingX,
+      this.facingY,
+    );
+
+    const target = this.findEnemyInFront();
+
+    if (target) {
+      this.hitEnemy(target);
+      return;
+    }
+
+    if (this.attackSpecialTarget()) {
+      return;
+    }
+
+    this.statusText.setText(this.t(TEXTS.combat.missed));
+  }
+
+  /** O alvo precisa estar perto e na frente do herói. */
+  protected isTargetInFront(
+    targetX: number,
+    targetY: number,
+    range: number,
+  ): boolean {
+    const dx = targetX - this.player.body.x;
+    const dy = targetY - this.player.body.y;
+    const distance = Math.hypot(dx, dy);
+
+    if (distance > range || distance === 0) {
+      return false;
+    }
+
+    const facingDot =
+      (dx / distance) * this.facingX + (dy / distance) * this.facingY;
+
+    return facingDot >= 0.2;
+  }
+
+  /** O inimigo comum mais próximo que a espada consegue acertar. */
+  private findEnemyInFront(): Enemy | undefined {
+    let closest: Enemy | undefined;
+    let closestDistance = Infinity;
+
+    for (const enemy of this.enemies) {
+      if (enemy.defeated) continue;
+
+      const { x, y } = enemy.sprite.body;
+
+      if (!this.isTargetInFront(x, y, enemy.definition.stats.hitRange)) {
+        continue;
+      }
+
+      const distance = this.distanceToPlayer(x, y);
+
+      if (distance < closestDistance) {
+        closest = enemy;
+        closestDistance = distance;
+      }
+    }
+
+    return closest;
+  }
+
+  private hitEnemy(enemy: Enemy): void {
+    const { x, y } = enemy.sprite.body;
+    const { colors } = enemy.definition;
+    const damage = PLAYER_STATS.attackDamage;
+
+    enemy.health = Math.max(0, enemy.health - damage);
+
+    createImpactEffect(this, x, y, colors.impact);
+    showDamageNumber(this, x, y, damage, colors.damageText);
+
+    this.statusText.setText(this.t(TEXTS.enemies[enemy.kind].hit(damage)));
+
+    drawEnemyHealthBar(enemy);
+
+    if (enemy.health <= 0) {
+      this.defeatEnemy(enemy);
+    }
+  }
+
+  private defeatEnemy(enemy: Enemy): void {
+    const { x, y } = enemy.sprite.body;
+
+    createDeathBurst(this, x, y, enemy.definition.colors.death);
+    this.removeEnemy(enemy);
+
+    this.onEnemyDefeated(enemy);
+  }
+
+  /** Tira um inimigo do mapa (ao derrotá-lo ou ao carregar um save). */
+  protected removeEnemy(enemy: Enemy): void {
+    enemy.defeated = true;
+
+    this.disableCharacter(enemy.sprite);
+    enemy.sprite.container.destroy();
+    enemy.healthBar.destroy();
+  }
+
+  protected damagePlayer(amount: number): void {
+    if (
+      this.gameOver ||
+      this.time.now - this.lastDamageAt < PLAYER_STATS.invulnerabilityTime
+    ) {
+      return;
+    }
+
+    this.lastDamageAt = this.time.now;
+
+    const { container } = this.player;
+
+    createImpactEffect(this, container.x, container.y - 10, 0xff5267, 9, 30);
+    showDamageNumber(this, container.x, container.y - 15, amount, "#ff5267");
+
+    this.playerHealth = Math.max(0, this.playerHealth - amount);
+    this.drawHud();
+
+    this.statusText.setText(this.t(TEXTS.combat.playerHurt(amount)));
+
+    // O herói pisca duas vezes ao receber dano.
+    container.setAlpha(0.4);
+
+    for (const [delay, alpha] of [
+      [180, 1],
+      [360, 0.4],
+      [540, 1],
+    ]) {
+      this.time.delayedCall(delay, () => {
+        if (container.active && !this.gameOver) {
+          container.setAlpha(alpha);
+        }
+      });
+    }
+
+    if (this.playerHealth <= 0) {
+      this.showGameOver(false);
+    }
+  }
+
+  /** Para o movimento e desliga a física de um personagem derrotado. */
+  protected disableCharacter(character: CharacterSprite): void {
+    const body = this.getPhysicsBody(character);
+
+    body.setVelocity(0, 0);
+    body.enable = false;
+
+    character.body.setActive(false);
+    character.body.setVisible(false);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Fim de jogo
+  // ---------------------------------------------------------------------------
+
+  private getEndScreenMessage(): string {
+    return this.t(
+      this.victory ? TEXTS.endScreen.victory : TEXTS.endScreen.defeat,
+    );
+  }
+
+  protected showGameOver(isVictory: boolean): void {
+    this.gameOver = true;
+    this.victory = isVictory;
+
+    this.physics.world.pause();
+
+    this.gameOverOverlay = this.add
+      .rectangle(
+        0,
+        0,
+        this.scale.width,
+        this.scale.height,
+        isVictory ? 0x11120a : 0x080d0a,
+        0.9,
+      )
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(5000);
+
+    this.gameOverText = this.add
+      .text(
+        this.scale.width / 2,
+        this.scale.height / 2,
+        this.getEndScreenMessage(),
+        {
+          fontFamily: "Georgia, serif",
+          fontSize: "24px",
+          color: isVictory ? "#f0dfac" : "#e9dfbf",
+          align: "center",
+          stroke: "#15231b",
+          strokeThickness: 3,
+          wordWrap: { width: this.scale.width - 60 },
+        },
+      )
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(5001);
+  }
+
+  private startNewGame(): void {
+    clearSave();
+    resetProgress();
+    this.scene.start(AREA_SCENE_KEYS.forest);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Loop principal (roda a cada quadro)
+  // ---------------------------------------------------------------------------
+
+  update(): void {
+    if (!this.player || !this.wasd || !this.cursors || this.transitioning) {
+      return;
+    }
+
+    if (this.gameOver) {
+      // R: volta ao último save (na vitória o save já foi apagado).
+      // N: apaga o save e começa do zero.
+      if (Phaser.Input.Keyboard.JustDown(this.newGameKey)) {
+        this.startNewGame();
+      } else if (Phaser.Input.Keyboard.JustDown(this.restartKey)) {
+        startFromSave(this);
+      }
+      return;
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(this.languageKey)) {
+      this.toggleLanguage();
+    }
+
+    if (this.dialogueOpen) {
+      this.getPhysicsBody(this.player).setVelocity(0, 0);
+      animatePlayerWalk(this.player, false, this.time.now);
+
+      if (this.justPressedInteract()) {
+        this.advanceDialogue();
+      }
+
+      return;
+    }
+
+    this.updatePlayerMovement();
+    this.updateShrines();
+
+    if (Phaser.Input.Keyboard.JustDown(this.attackKey)) {
+      this.attack();
+    }
+
+    for (const enemy of this.enemies) {
+      if (enemy.defeated) continue;
+
+      this.updateEnemy(enemy);
+      drawEnemyHealthBar(enemy);
+    }
+
+    this.updateArea();
+    this.updateExits();
+    this.drawHud();
+  }
+
+  private updatePlayerMovement(): void {
+    let x = 0;
+    let y = 0;
+
+    if (this.cursors.left.isDown || this.wasd.A.isDown) x -= 1;
+    if (this.cursors.right.isDown || this.wasd.D.isDown) x += 1;
+    if (this.cursors.up.isDown || this.wasd.W.isDown) y -= 1;
+    if (this.cursors.down.isDown || this.wasd.S.isDown) y += 1;
+
+    // Na diagonal, mantém a mesma velocidade das direções retas.
+    if (x !== 0 && y !== 0) {
+      x *= Math.SQRT1_2;
+      y *= Math.SQRT1_2;
+    }
+
+    const moving = x !== 0 || y !== 0;
+
+    if (moving) {
+      this.facingX = x;
+      this.facingY = y;
+      updatePlayerDirection(this.player, x, y);
+    }
+
+    this.getPhysicsBody(this.player).setVelocity(
+      x * PLAYER_STATS.speed,
+      y * PLAYER_STATS.speed,
+    );
+
+    this.player.container.setPosition(this.player.body.x, this.player.body.y);
+    this.player.container.setDepth(this.player.body.y + 50);
+
+    animatePlayerWalk(this.player, moving, this.time.now);
+  }
+
+  /** Persegue o herói e ataca quando ele está ao alcance. */
+  private updateEnemy(enemy: Enemy): void {
+    const { stats } = enemy.definition;
+
+    const distance = this.chasePlayer(
+      enemy.sprite,
+      stats.speed,
+      stats.stopDistance,
+      stats.sightRange,
+      10,
+    );
+
+    if (
+      distance > stats.attackReach ||
+      this.time.now - enemy.lastAttackAt < stats.attackCooldown
+    ) {
+      return;
+    }
+
+    enemy.lastAttackAt = this.time.now;
+
+    // Pequeno "pulo" para o jogador ver o ataque.
+    this.tweens.add({
+      targets: enemy.sprite.container,
+      scale: 1.18,
+      duration: 90,
+      yoyo: true,
+      ease: "Quad.Out",
+    });
+
+    this.damagePlayer(stats.damage);
+  }
+
+  /**
+   * Faz um personagem perseguir o herói quando ele está dentro do alcance
+   * de visão. Devolve a distância até o herói.
+   */
+  protected chasePlayer(
+    character: CharacterSprite,
+    speed: number,
+    minDistance: number,
+    sightRange: number,
+    depthOffset: number,
+  ): number {
+    const dx = this.player.body.x - character.body.x;
+    const dy = this.player.body.y - character.body.y;
+    const distance = Math.hypot(dx, dy);
+
+    const body = this.getPhysicsBody(character);
+
+    if (distance > minDistance && distance < sightRange) {
+      body.setVelocity((dx / distance) * speed, (dy / distance) * speed);
+    } else {
+      body.setVelocity(0, 0);
+    }
+
+    character.container.setPosition(character.body.x, character.body.y);
+    character.container.setDepth(character.body.y + depthOffset);
+
+    return distance;
+  }
+
+  protected getPhysicsBody(
+    character: CharacterSprite,
+  ): Phaser.Physics.Arcade.Body {
+    return character.body.body as Phaser.Physics.Arcade.Body;
+  }
+}

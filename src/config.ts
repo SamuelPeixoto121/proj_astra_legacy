@@ -1,9 +1,22 @@
 // Números de balanceamento e tamanho do mundo.
 // Para ajustar a dificuldade do jogo, altere os valores aqui.
 
+import type { AreaId } from "./types";
+
+// Floresta Sussurrante
 export const WORLD_WIDTH = 1600;
 export const WORLD_HEIGHT = 1200;
 export const TILE_SIZE = 64;
+
+// Ruínas do Santuário
+export const RUINS_WIDTH = 1400;
+export const RUINS_HEIGHT = 1000;
+
+// Barreira de corrupção que fecha a trilha ao norte até Kael ser derrotado.
+export const NORTH_BARRIER = { x: 850, y: 240, width: 200 } as const;
+
+// Tempo (ms) do escurecimento ao trocar de área.
+export const AREA_FADE_TIME = 350;
 
 export const PLAYER_STATS = {
   maxHealth: 100,
@@ -63,10 +76,13 @@ export const ELDER_TALK_RANGE = 85;
 export const SHRINE_POSITION = { x: 740, y: 700 } as const;
 export const SHRINE_ACTIVATION_RANGE = 60;
 
-// Onde o herói reaparece em cada checkpoint.
+// Onde o herói reaparece em cada checkpoint, e em qual área.
+// Entrar numa área também salva o jogo no checkpoint de entrada dela.
 export const CHECKPOINTS = {
-  village: { x: 790, y: 960 },
-  shrine: { x: 790, y: 715 },
-} as const;
+  village: { area: "forest", x: 790, y: 960 },
+  shrine: { area: "forest", x: 790, y: 715 },
+  forestNorth: { area: "forest", x: 850, y: 110 },
+  ruinsEntrance: { area: "ruins", x: 700, y: 880 },
+} as const satisfies Record<string, { area: AreaId; x: number; y: number }>;
 
 export type CheckpointId = keyof typeof CHECKPOINTS;

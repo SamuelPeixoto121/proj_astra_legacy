@@ -2,7 +2,20 @@
 
 export type Language = "pt" | "en";
 
-export type QuestStage = "talk" | "hunt" | "boss" | "complete";
+/** Etapas da missão, em ordem. */
+export const QUEST_STAGES = [
+  "talk", // falar com o Ancião
+  "hunt", // derrotar o Lobo Corrompido
+  "boss", // derrotar Kael
+  "ruins", // ir às Ruínas do Santuário
+  "guardian", // derrotar o guardião do Fragmento Astral
+  "complete", // capítulo concluído
+] as const;
 
-/** Tipos de inimigos comuns (o chefe Kael é tratado à parte). */
+export type QuestStage = (typeof QUEST_STAGES)[number];
+
+/** Áreas (mapas) do jogo. Cada área é uma cena do Phaser. */
+export type AreaId = "forest" | "ruins";
+
+/** Tipos de inimigos comuns (os chefes são tratados à parte). */
 export type EnemyKind = "wolf" | "spider";
