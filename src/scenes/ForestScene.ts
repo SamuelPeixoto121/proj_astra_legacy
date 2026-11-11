@@ -32,9 +32,27 @@ import {
 } from "../world/corruptionBarrier";
 import { createElder, type ElderSprite } from "../characters/elder";
 import { createKael } from "../characters/kael";
-import { createDeathBurst } from "../effects/combatEffects";
+import {
+  createChargeWarning,
+  createDeathBurst,
+  createImpactEffect,
+} from "../effects/combatEffects";
 import { AREA_SCENE_KEYS } from "./areas";
 import { AreaScene } from "./AreaScene";
+
+/**
+ * Estados de Kael:
+ * hidden (escondido) → chasing (persegue) → windup (prepara a investida)
+ * → charging (corre em linha reta) → recovering (parado) → chasing ...
+ * → defeated (derrotado).
+ */
+type KaelState =
+  | "hidden"
+  | "chasing"
+  | "windup"
+  | "charging"
+  | "recovering"
+  | "defeated";
 
 export class ForestScene extends AreaScene {
   protected readonly areaId = "forest";
@@ -49,7 +67,11 @@ export class ForestScene extends AreaScene {
   private wolf!: Enemy;
 
   private kael!: Boss;
+  private kaelState: KaelState = "hidden";
   private lastKaelAttackAt = -10000;
+  private lastChargeAt = -10000;
+  /** Direção da investida, travada no momento do aviso. */
+  private chargeDirection = { x: 0, y: 0 };
 
   constructor() {
     super(AREA_SCENE_KEYS.forest);
@@ -108,7 +130,10 @@ export class ForestScene extends AreaScene {
       damageTextColor: "#ff8293",
       deathColor: 0x8d264e,
     });
+
+    this.kaelState = "hidden";
     this.lastKaelAttackAt = -10000;
+    this.lastChargeAt = -10000;
   }
 
   protected setupAreaPhysics(obstacles: Phaser.GameObjects.Rectangle[]): void {
@@ -117,10 +142,22 @@ export class ForestScene extends AreaScene {
     this.physics.add.collider(kaelBody, obstacles);
     this.physics.add.collider(this.player.body, this.elder.body);
 
+    // Encostar em Kael machuca; durante a investida, machuca mais.
+    // Escondido, derrotado ou se recuperando (janela para atacar): não machuca.
     this.physics.add.overlap(this.player.body, kaelBody, () => {
-      if (progress.kaelUnlocked && !progress.kaelDefeated) {
-        this.damagePlayer(KAEL_STATS.damage);
+      if (
+        this.kaelState === "hidden" ||
+        this.kaelState === "defeated" ||
+        this.kaelState === "recovering"
+      ) {
+        return;
       }
+
+      this.damagePlayer(
+        this.kaelState === "charging"
+          ? KAEL_STATS.chargeDamage
+          : KAEL_STATS.damage,
+      );
     });
   }
 
@@ -266,6 +303,8 @@ export class ForestScene extends AreaScene {
     this.kael.sprite.body.setActive(true);
     this.kael.sprite.container.setVisible(true);
 
+    this.kaelState = "chasing";
+
     showBossUi(this.kael);
   }
 
@@ -282,21 +321,173 @@ export class ForestScene extends AreaScene {
   }
 
   private updateKael(): void {
+    switch (this.kaelState) {
+      case "chasing":
+        this.updateKaelChasing();
+        return;
+
+      case "windup":
+      case "recovering":
+        // Parado: preparando a investida ou se recuperando dela.
+        this.getPhysicsBody(this.kael.sprite).setVelocity(0, 0);
+        this.syncKaelSprite();
+        return;
+
+      case "charging":
+        this.syncKaelSprite();
+
+        // Bateu numa árvore (ou na borda do mapa): fica atordoado.
+        if (!this.getPhysicsBody(this.kael.sprite).blocked.none) {
+          this.endCharge(true);
+        }
+        return;
+
+      case "hidden":
+      case "defeated":
+        return;
+    }
+  }
+
+  private updateKaelChasing(): void {
+    const now = this.time.now;
     const distance = this.chasePlayer(
       this.kael.sprite,
       KAEL_STATS.speed,
-      48,
-      650,
+      KAEL_STATS.stopDistance,
+      KAEL_STATS.sightRange,
       20,
     );
 
+    // Ataque de perto.
     if (
-      distance <= 65 &&
-      this.time.now - this.lastKaelAttackAt >= KAEL_STATS.attackCooldown
+      distance <= KAEL_STATS.meleeReach &&
+      now - this.lastKaelAttackAt >= KAEL_STATS.attackCooldown
     ) {
-      this.lastKaelAttackAt = this.time.now;
+      this.lastKaelAttackAt = now;
       this.damagePlayer(KAEL_STATS.damage);
+      return;
     }
+
+    // Distância média: prepara a investida.
+    if (
+      distance >= KAEL_STATS.chargeMinRange &&
+      distance <= KAEL_STATS.chargeMaxRange &&
+      now - this.lastChargeAt >= KAEL_STATS.chargeCooldown
+    ) {
+      this.startChargeWindup(distance);
+    }
+  }
+
+  /** Para, mostra a faixa de aviso e trava a direção da investida. */
+  private startChargeWindup(distance: number): void {
+    this.kaelState = "windup";
+    this.lastChargeAt = this.time.now;
+
+    const { x, y } = this.kael.sprite.body;
+    const dx = this.player.body.x - x;
+    const dy = this.player.body.y - y;
+
+    this.chargeDirection = { x: dx / distance, y: dy / distance };
+
+    this.getPhysicsBody(this.kael.sprite).setVelocity(0, 0);
+
+    const chargeLength =
+      (KAEL_STATS.chargeSpeed * KAEL_STATS.chargeDuration) / 1000;
+
+    createChargeWarning(
+      this,
+      x,
+      y,
+      Math.atan2(dy, dx),
+      chargeLength + 20,
+      40,
+      KAEL_STATS.chargeWindup,
+    );
+
+    // Kael "se agacha" enquanto prepara a investida.
+    this.tweens.add({
+      targets: this.kael.sprite.container,
+      scaleX: 1.1,
+      scaleY: 0.85,
+      duration: KAEL_STATS.chargeWindup,
+      ease: "Quad.In",
+    });
+
+    this.statusText.setText(this.t(TEXTS.bosses.kael.charging));
+
+    this.time.delayedCall(KAEL_STATS.chargeWindup, () => this.startCharge());
+  }
+
+  private startCharge(): void {
+    // Pode ter sido derrotado durante o aviso.
+    if (this.kaelState !== "windup") {
+      return;
+    }
+
+    this.kaelState = "charging";
+
+    const { container, body } = this.kael.sprite;
+
+    this.tweens.killTweensOf(container);
+    container.setScale(1);
+
+    this.getPhysicsBody(this.kael.sprite).setVelocity(
+      this.chargeDirection.x * KAEL_STATS.chargeSpeed,
+      this.chargeDirection.y * KAEL_STATS.chargeSpeed,
+    );
+
+    // Poeira na largada.
+    createImpactEffect(this, body.x, body.y + 12, 0x8a7a6a, 8, 26);
+
+    this.time.delayedCall(KAEL_STATS.chargeDuration, () => this.endCharge(false));
+  }
+
+  /** Termina a investida. Se bateu em algo, fica atordoado por mais tempo. */
+  private endCharge(crashed: boolean): void {
+    if (this.kaelState !== "charging") {
+      return;
+    }
+
+    this.kaelState = "recovering";
+
+    const { container, body } = this.kael.sprite;
+
+    this.getPhysicsBody(this.kael.sprite).setVelocity(0, 0);
+
+    if (crashed) {
+      this.cameras.main.shake(200, 0.007);
+      createImpactEffect(this, body.x, body.y, 0xd9c8ff, 10, 32);
+      this.statusText.setText(this.t(TEXTS.bosses.kael.stunned));
+
+      // Balança tonto enquanto está atordoado.
+      this.tweens.add({
+        targets: container,
+        angle: { from: -8, to: 8 },
+        duration: 160,
+        yoyo: true,
+        repeat: -1,
+      });
+    }
+
+    const recoverTime = crashed ? KAEL_STATS.stunTime : KAEL_STATS.recoverTime;
+
+    this.time.delayedCall(recoverTime, () => {
+      if (this.kaelState !== "recovering") {
+        return;
+      }
+
+      this.tweens.killTweensOf(container);
+      container.setAngle(0);
+      this.kaelState = "chasing";
+    });
+  }
+
+  /** Mantém o desenho de Kael junto do corpo físico. */
+  private syncKaelSprite(): void {
+    const { container, body } = this.kael.sprite;
+
+    container.setPosition(body.x, body.y);
+    container.setDepth(body.y + 20);
   }
 
   /** Derrotar Kael desfaz a barreira e envia o herói às Ruínas. */
@@ -319,6 +510,8 @@ export class ForestScene extends AreaScene {
 
   /** Tira Kael do mapa (ao derrotá-lo ou ao carregar um save). */
   private removeKael(): void {
+    this.kaelState = "defeated";
+    this.tweens.killTweensOf(this.kael.sprite.container);
     this.disableCharacter(this.kael.sprite);
     destroyBoss(this.kael);
   }

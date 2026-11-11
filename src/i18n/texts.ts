@@ -210,6 +210,14 @@ export const TEXTS = {
         pt: "KAEL DERROTADO! A BARREIRA AO NORTE SE DESFEZ.",
         en: "KAEL DEFEATED! THE BARRIER TO THE NORTH HAS FADED.",
       },
+      charging: {
+        pt: "KAEL VAI AVANÇAR! SAIA DO CAMINHO!",
+        en: "KAEL IS ABOUT TO CHARGE! GET OUT OF THE WAY!",
+      },
+      stunned: {
+        pt: "KAEL BATEU E FICOU ATORDOADO! ATAQUE AGORA!",
+        en: "KAEL CRASHED AND IS STUNNED! ATTACK NOW!",
+      },
     },
     sentinel: {
       name: { pt: "SENTINELA DE PEDRA", en: "STONE SENTINEL" },

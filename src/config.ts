@@ -66,12 +66,31 @@ export const SPIDER_SPAWNS = [
   { x: 1180, y: 430 },
 ] as const;
 
+// Kael, chefe do prólogo. Persegue e ataca de perto; à distância média,
+// faz uma investida em linha reta (com aviso no chão antes).
+// - chargeMinRange/chargeMaxRange: distância do herói para iniciar a investida;
+// - chargeWindup: tempo (ms) do aviso antes de correr — dá para sair da frente;
+// - chargeSpeed/chargeDuration: velocidade e duração (ms) da corrida;
+// - recoverTime: tempo parado depois da investida (janela para atacar);
+// - stunTime: tempo atordoado se ele bater numa árvore durante a investida.
 export const KAEL_STATS = {
   maxHealth: 250,
   speed: 105,
   damage: 20,
   hitRange: 105,
   attackCooldown: 1000,
+  sightRange: 650,
+  stopDistance: 48,
+  meleeReach: 65,
+  chargeMinRange: 130,
+  chargeMaxRange: 380,
+  chargeWindup: 650,
+  chargeSpeed: 430,
+  chargeDuration: 450,
+  chargeDamage: 26,
+  chargeCooldown: 3200,
+  recoverTime: 700,
+  stunTime: 1600,
 } as const;
 
 // Sentinela de Pedra, o guardião das Ruínas. Golpeia o chão em área:

@@ -142,6 +142,37 @@ export function createSlamWarning(
   scene.time.delayedCall(duration, () => warning.destroy());
 }
 
+/**
+ * Aviso de investida: faixa vermelha no chão, saindo de (x, y) na direção
+ * `angle` (em radianos). Some sozinha depois de `duration` milissegundos.
+ */
+export function createChargeWarning(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  angle: number,
+  length: number,
+  width: number,
+  duration: number,
+): void {
+  const warning = scene.add
+    .rectangle(x, y, length, width, 0xff3b5c, 0.14)
+    .setOrigin(0, 0.5)
+    .setStrokeStyle(2, 0xff3b5c, 0.8)
+    .setRotation(angle)
+    .setDepth(y - 5);
+
+  scene.tweens.add({
+    targets: warning,
+    alpha: { from: 0.5, to: 1 },
+    duration: duration / 4,
+    yoyo: true,
+    repeat: 1,
+  });
+
+  scene.time.delayedCall(duration, () => warning.destroy());
+}
+
 /** Onda de choque de um golpe no chão, com poeira. */
 export function createShockwave(
   scene: Phaser.Scene,
