@@ -269,6 +269,19 @@ export const TEXTS = {
     soundOff: { pt: "M  som desligado", en: "M  sound off" },
   },
 
+  // Menu de pausa (Esc durante o jogo).
+  pause: {
+    title: { pt: "PAUSADO", en: "PAUSED" },
+    resume: { pt: "Continuar", en: "Resume" },
+    soundOn: { pt: "Som: ligado", en: "Sound: on" },
+    soundOff: { pt: "Som: desligado", en: "Sound: off" },
+    toTitle: { pt: "Tela inicial", en: "Title screen" },
+    hint: {
+      pt: "↑ ↓  escolher   •   Enter  confirmar   •   Esc  continuar",
+      en: "↑ ↓  select   •   Enter  confirm   •   Esc  resume",
+    },
+  },
+
   sound: {
     on: { pt: "SOM LIGADO (M)", en: "SOUND ON (M)" },
     off: { pt: "SOM DESLIGADO (M)", en: "SOUND OFF (M)" },

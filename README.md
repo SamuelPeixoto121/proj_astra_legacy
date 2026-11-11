@@ -34,6 +34,8 @@ O **prólogo** e o **Capítulo 1** estão completos e jogáveis:
   aparecendo ao entrar
 - **Tela inicial** com Continuar / Novo jogo (com confirmação antes de apagar o
   progresso) / Idioma, fundo animado e navegação por teclado ou mouse
+- **Menu de pausa** (Esc): o jogo congela por completo, com opções de som,
+  idioma e volta à tela inicial
 - **Sistema de missões** em etapas e **diálogos** que mudam conforme o progresso
 - **Salvamento automático** e **checkpoints** (Pedras Astrais): ao ser derrotado,
   o jogador volta ao último checkpoint sem perder o progresso
@@ -55,7 +57,7 @@ O **prólogo** e o **Capítulo 1** estão completos e jogáveis:
 | `E` | Conversar / avançar diálogo |
 | `L` | Trocar idioma (PT/EN) |
 | `M` | Ligar/desligar o som |
-| `Esc` | Voltar à tela inicial |
+| `Esc` | Menu de pausa (Continuar, Som, Idioma, Tela inicial) |
 | `R` | Voltar ao último checkpoint / jogar de novo |
 | `N` | Começar um novo jogo (na tela de derrota) |
 
@@ -100,6 +102,7 @@ src/
 │   └── page.ts                Tradução da página HTML ao redor do jogo
 ├── scenes/
 │   ├── TitleScene.ts          Tela inicial: Continuar, Novo jogo, Idioma
+│   ├── PauseScene.ts          Menu de pausa, aberto por cima da área
 │   ├── AreaScene.ts           Cena-base: herói, HUD, diálogo, combate, checkpoints
 │   ├── ForestScene.ts         Floresta Sussurrante (prólogo)
 │   └── RuinsScene.ts          Ruínas do Santuário (Capítulo 1)
@@ -107,6 +110,7 @@ src/
 ├── world/                     Cenários, checkpoints, barreira e Fragmento Astral
 ├── effects/                   Efeitos visuais de combate
 ├── audio/                     Motor de áudio, efeitos sonoros e música gerados por código
+├── ui/                        Menu e painel de idioma reaproveitados pelas telas
 └── systems/
     ├── progress.ts            Progresso do jogador, compartilhado entre as áreas
     ├── preferences.ts         Preferências (idioma) guardadas fora do save
@@ -169,4 +173,4 @@ music are generated procedurally in code (Web Audio API) — no image or audio f
 
 **[Play it in your browser](https://samuelpeixoto121.github.io/proj_astra_legacy/)**,
 or run it locally with `npm install` and `npm run dev`, then open http://localhost:5173.
-Controls: WASD/arrows to move, J to attack, Shift to roll, E to interact, L to switch language, M to toggle sound, Esc for the title screen.
+Controls: WASD/arrows to move, J to attack, Shift to roll, E to interact, L to switch language, M to toggle sound, Esc for the pause menu.

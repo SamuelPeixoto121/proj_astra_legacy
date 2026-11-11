@@ -42,7 +42,13 @@ import {
   createSlashEffect,
   showDamageNumber,
 } from "../effects/combatEffects";
-import { AREA_SCENE_KEYS, TITLE_SCENE_KEY, startFromSave } from "./areas";
+import {
+  AREA_SCENE_KEYS,
+  PAUSE_SCENE_KEY,
+  TITLE_SCENE_KEY,
+  startFromSave,
+} from "./areas";
+import type { PauseSceneData } from "./PauseScene";
 import { saveLanguagePreference } from "../systems/preferences";
 import { audio } from "../audio/engine";
 import type { MusicTrackId } from "../audio/music";
@@ -339,9 +345,20 @@ export abstract class AreaScene extends Phaser.Scene {
     this.scale.on("resize", this.handleResize, this);
 
     // Evita acumular o mesmo evento a cada vez que a cena é reaberta.
+    this.events.on(Phaser.Scenes.Events.RESUME, this.handleResume, this);
+
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off("resize", this.handleResize, this);
+      this.events.off(Phaser.Scenes.Events.RESUME, this.handleResume, this);
     });
+  }
+
+  /** Volta do menu de pausa. */
+  private handleResume(): void {
+    // Esquece teclas apertadas no menu (senão o Esc que fechou a pausa
+    // abriria a pausa de novo aqui).
+    this.input.keyboard?.resetKeys();
+    this.refreshLanguage();
   }
 
   private handleResize(gameSize: Phaser.Structs.Size): void {
@@ -598,6 +615,15 @@ export abstract class AreaScene extends Phaser.Scene {
     progress.language = progress.language === "pt" ? "en" : "pt";
     saveLanguagePreference(progress.language);
 
+    this.refreshLanguage();
+  }
+
+  /**
+   * Atualiza todos os textos no idioma atual (HUD, placas, diálogo aberto,
+   * tela de fim) e salva. Usado ao trocar o idioma pela tecla L e ao voltar
+   * do menu de pausa (onde o idioma pode ter sido trocado).
+   */
+  private refreshLanguage(): void {
     this.applyLanguage();
 
     if (this.dialogueOpen && this.dialogueSource) {
@@ -967,6 +993,14 @@ export abstract class AreaScene extends Phaser.Scene {
       .setDepth(5001);
   }
 
+  /** Pausa esta área e abre o menu de pausa por cima. */
+  private openPauseMenu(): void {
+    const data: PauseSceneData = { areaKey: this.scene.key };
+
+    this.scene.launch(PAUSE_SCENE_KEY, data);
+    this.scene.pause();
+  }
+
   /** Escurece a tela e volta para a tela inicial. */
   private goToTitle(): void {
     this.transitioning = true;
@@ -994,9 +1028,14 @@ export abstract class AreaScene extends Phaser.Scene {
       return;
     }
 
-    // Esc: volta para a tela inicial (o progresso salvo continua lá).
+    // Esc: abre o menu de pausa. Nas telas de vitória/derrota, vai direto
+    // para a tela inicial (como está escrito nelas).
     if (Phaser.Input.Keyboard.JustDown(this.titleKey)) {
-      this.goToTitle();
+      if (this.gameOver) {
+        this.goToTitle();
+      } else {
+        this.openPauseMenu();
+      }
       return;
     }
 

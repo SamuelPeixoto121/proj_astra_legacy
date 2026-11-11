@@ -1,9 +1,9 @@
 // Tela inicial: título, menu (Continuar / Novo jogo / Idioma) e fundo animado.
-// É a primeira cena do jogo. "Idioma" abre um painel para escolher o idioma.
+// É a primeira cena do jogo. "Idioma" abre o painel de idioma.
 //
 // Teclado: ↑ ↓ (ou W S) escolhem, Enter (ou E, J, Espaço) confirma,
 // Esc fecha o painel de idioma, L abre o painel, M liga/desliga o som.
-// Mouse também funciona: passar por cima seleciona, clicar confirma.
+// Mouse também funciona (ver ui/Menu.ts).
 
 import Phaser from "phaser";
 import { AREA_FADE_TIME } from "../config";
@@ -12,42 +12,15 @@ import { LANGUAGE_CHANGED_EVENT } from "../i18n/page";
 import { audio } from "../audio/engine";
 import { clearSave, loadGame } from "../systems/saveGame";
 import { progress, resetProgress } from "../systems/progress";
-import { saveLanguagePreference } from "../systems/preferences";
-import type { Language } from "../types";
+import { Menu, type MenuOption } from "../ui/Menu";
+import { LanguagePanel } from "../ui/LanguagePanel";
 import { AREA_SCENE_KEYS, TITLE_SCENE_KEY, startFromSave } from "./areas";
 
-/** O que cada opção faz ao ser confirmada. */
-type MenuAction =
-  | { type: "continue" }
-  | { type: "newGame" }
-  | { type: "openLanguages" }
-  | { type: "setLanguage"; language: Language }
-  | { type: "back" };
-
-interface MenuItem {
-  action: MenuAction;
-  text: Phaser.GameObjects.Text;
-}
-
-/** "main" = menu principal; "language" = painel de idioma aberto. */
-type MenuMode = "main" | "language";
-
-/** Nome de cada idioma escrito nele mesmo (padrão em jogos). */
-const LANGUAGE_NAMES: Record<Language, string> = {
-  pt: "Português",
-  en: "English",
-};
-
-const COLOR_SELECTED = "#f0dfac";
-const COLOR_IDLE = "#8f9a86";
 const COLOR_WARNING = "#ff9aa8";
 
-const ITEM_SPACING = 46;
-
 export class TitleScene extends Phaser.Scene {
-  private mode: MenuMode = "main";
-  private items: MenuItem[] = [];
-  private selected = 0;
+  private menu!: Menu;
+  private languagePanel!: LanguagePanel;
   private hasSave = false;
   /** true depois do primeiro Enter em "Novo jogo" com um save existente. */
   private confirmingNewGame = false;
@@ -59,13 +32,8 @@ export class TitleScene extends Phaser.Scene {
   private subtitle!: Phaser.GameObjects.Text;
   private hint!: Phaser.GameObjects.Text;
   private treeline!: Phaser.GameObjects.Graphics;
-  private panel!: Phaser.GameObjects.Rectangle;
-  private panelTitle!: Phaser.GameObjects.Text;
 
   private keys!: {
-    up: Phaser.Input.Keyboard.Key[];
-    down: Phaser.Input.Keyboard.Key[];
-    confirm: Phaser.Input.Keyboard.Key[];
     back: Phaser.Input.Keyboard.Key;
     language: Phaser.Input.Keyboard.Key;
     mute: Phaser.Input.Keyboard.Key;
@@ -76,9 +44,6 @@ export class TitleScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.mode = "main";
-    this.items = [];
-    this.selected = 0;
     this.confirmingNewGame = false;
     this.leaving = false;
     this.hasSave = loadGame() !== null;
@@ -91,10 +56,17 @@ export class TitleScene extends Phaser.Scene {
 
     this.createBackground();
     this.createTexts();
-    this.createLanguagePanel();
     this.createInput();
 
-    this.buildMenu("main", 0);
+    this.menu = new Menu(this);
+    this.menu.onSelectionChange = () => {
+      this.confirmingNewGame = false;
+    };
+    this.languagePanel = new LanguagePanel(this);
+
+    this.showMainMenu(0);
+    this.layout();
+    this.refreshTexts();
 
     this.scale.on("resize", this.layout, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -180,48 +152,20 @@ export class TitleScene extends Phaser.Scene {
       .setOrigin(0.5);
   }
 
-  /** Painel do idioma: caixa com título; as opções são criadas em buildMenu(). */
-  private createLanguagePanel(): void {
-    this.panel = this.add
-      .rectangle(0, 0, 360, 230, 0x111710, 0.96)
-      .setStrokeStyle(2, 0xc2a76b, 0.95)
-      .setVisible(false);
-
-    this.panelTitle = this.add
-      .text(0, 0, "", {
-        fontFamily: "Georgia, serif",
-        fontSize: "20px",
-        fontStyle: "bold",
-        color: "#f0dfac",
-      })
-      .setOrigin(0.5)
-      .setVisible(false);
-  }
-
   /** Posiciona tudo conforme o tamanho atual da tela. */
   private layout(): void {
     const { width, height } = this.scale;
-    const logoY = height * 0.3;
     const centerX = width / 2;
+    const logoY = height * 0.3;
+    const menuTop = height * 0.56;
 
     this.glowOuter.setPosition(centerX, logoY);
     this.glowInner.setPosition(centerX, logoY);
     this.logo.setPosition(centerX, logoY);
     this.subtitle.setPosition(centerX, logoY + 54);
 
-    const menuTop = height * 0.56;
-
-    // O painel de idioma fica centralizado onde fica o menu.
-    const panelCenterY = menuTop + ITEM_SPACING;
-
-    this.panel.setPosition(centerX, panelCenterY);
-    this.panelTitle.setPosition(centerX, panelCenterY - 80);
-
-    const itemsTop = this.mode === "language" ? panelCenterY - 30 : menuTop;
-
-    this.items.forEach(({ text }, index) => {
-      text.setPosition(centerX, itemsTop + index * ITEM_SPACING);
-    });
+    this.menu.setPosition(centerX, menuTop);
+    this.languagePanel.setPosition(centerX, menuTop + 46);
 
     this.hint.setPosition(centerX, height - 30);
 
@@ -251,187 +195,92 @@ export class TitleScene extends Phaser.Scene {
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Menu
-  // ---------------------------------------------------------------------------
-
-  /** Monta as opções do modo indicado (menu principal ou painel de idioma). */
-  private buildMenu(mode: MenuMode, selected: number): void {
-    for (const item of this.items) {
-      item.text.destroy();
-    }
-
-    this.mode = mode;
-    this.selected = selected;
-    this.confirmingNewGame = false;
-
-    const actions: MenuAction[] =
-      mode === "language"
-        ? [
-            { type: "setLanguage", language: "pt" },
-            { type: "setLanguage", language: "en" },
-            { type: "back" },
-          ]
-        : [
-            ...(this.hasSave ? [{ type: "continue" } as const] : []),
-            { type: "newGame" },
-            { type: "openLanguages" },
-          ];
-
-    this.items = actions.map((action, index) => {
-      const text = this.add
-        .text(0, 0, "", {
-          fontFamily: "Georgia, serif",
-          fontSize: "22px",
-          color: COLOR_IDLE,
-          stroke: "#0d140f",
-          strokeThickness: 4,
-        })
-        .setOrigin(0.5)
-        .setInteractive({ useHandCursor: true });
-
-      text.on("pointerover", () => this.select(index));
-      text.on("pointerdown", () => {
-        this.select(index);
-        this.confirm();
-      });
-
-      return { action, text };
-    });
-
-    const panelOpen = mode === "language";
-
-    this.panel.setVisible(panelOpen);
-    this.panelTitle.setVisible(panelOpen);
-
-    this.layout();
-    this.refreshTexts();
-  }
-
   private t<T>(text: Localized<T>): T {
     return text[progress.language];
   }
 
-  private labelFor(action: MenuAction): string {
-    switch (action.type) {
-      case "continue":
-        return this.t(TEXTS.title.continue);
-      case "newGame":
-        return this.confirmingNewGame
-          ? this.t(TEXTS.title.confirmNewGame)
-          : this.t(TEXTS.title.newGame);
-      case "openLanguages":
-        return this.t(TEXTS.title.language);
-      case "setLanguage": {
-        const name = LANGUAGE_NAMES[action.language];
-        return action.language === progress.language ? `${name}  ✓` : name;
-      }
-      case "back":
-        return this.t(TEXTS.title.back);
-    }
-  }
-
   private refreshTexts(): void {
     this.subtitle.setText(this.t(TEXTS.page.subtitle));
-    this.panelTitle.setText(this.t(TEXTS.title.languagePanelTitle));
 
-    const hint =
-      this.mode === "language" ? TEXTS.title.panelHint : TEXTS.title.hint;
+    const hint = this.languagePanel.isOpen
+      ? TEXTS.title.panelHint
+      : TEXTS.title.hint;
     const sound = audio.isMuted() ? TEXTS.title.soundOff : TEXTS.title.soundOn;
 
     this.hint.setText(`${this.t(hint)}   •   ${this.t(sound)}`);
-
-    this.items.forEach(({ action, text }, index) => {
-      const isSelected = index === this.selected;
-      const label = this.labelFor(action);
-      const warning = action.type === "newGame" && this.confirmingNewGame;
-
-      text.setText(isSelected ? `◆  ${label}  ◆` : label);
-      text.setColor(
-        warning ? COLOR_WARNING : isSelected ? COLOR_SELECTED : COLOR_IDLE,
-      );
-    });
+    this.menu.refresh();
 
     // A página HTML ao redor do jogo acompanha o idioma.
     this.game.events.emit(LANGUAGE_CHANGED_EVENT, progress.language);
   }
 
-  private select(index: number): void {
-    if (index === this.selected || this.leaving) {
-      return;
+  // ---------------------------------------------------------------------------
+  // Menu
+  // ---------------------------------------------------------------------------
+
+  private showMainMenu(selected: number): void {
+    const options: MenuOption[] = [];
+
+    if (this.hasSave) {
+      options.push({
+        label: () => this.t(TEXTS.title.continue),
+        onSelect: () => this.leave(() => startFromSave(this)),
+      });
     }
 
-    this.selected = index;
+    options.push(
+      {
+        label: () =>
+          this.t(
+            this.confirmingNewGame
+              ? TEXTS.title.confirmNewGame
+              : TEXTS.title.newGame,
+          ),
+        color: () => (this.confirmingNewGame ? COLOR_WARNING : undefined),
+        onSelect: () => this.selectNewGame(),
+      },
+      {
+        label: () => this.t(TEXTS.title.language),
+        onSelect: () => this.openLanguagePanel(),
+      },
+    );
+
     this.confirmingNewGame = false;
-    audio.play("tick");
-    this.refreshTexts();
+    this.menu.setOptions(options, selected);
   }
 
-  private move(delta: number): void {
-    const count = this.items.length;
-    this.select((this.selected + delta + count) % count);
-  }
-
-  private confirm(): void {
-    if (this.leaving) {
+  private selectNewGame(): void {
+    // Com um save existente, pede confirmação antes de apagar.
+    if (this.hasSave && !this.confirmingNewGame) {
+      this.confirmingNewGame = true;
+      audio.play("warning");
+      this.menu.refresh();
       return;
     }
 
-    const { action } = this.items[this.selected];
-
-    switch (action.type) {
-      case "continue":
-        this.leave(() => startFromSave(this));
-        return;
-
-      case "newGame":
-        // Com um save existente, pede confirmação antes de apagar.
-        if (this.hasSave && !this.confirmingNewGame) {
-          this.confirmingNewGame = true;
-          audio.play("warning");
-          this.refreshTexts();
-          return;
-        }
-
-        this.leave(() => {
-          clearSave();
-          resetProgress();
-          this.scene.start(AREA_SCENE_KEYS.forest);
-        });
-        return;
-
-      case "openLanguages":
-        this.openLanguagePanel();
-        return;
-
-      case "setLanguage":
-        progress.language = action.language;
-        saveLanguagePreference(action.language);
-        this.closeLanguagePanel();
-        return;
-
-      case "back":
-        this.closeLanguagePanel();
-        return;
-    }
+    this.leave(() => {
+      clearSave();
+      resetProgress();
+      this.scene.start(AREA_SCENE_KEYS.forest);
+    });
   }
 
   private openLanguagePanel(): void {
-    audio.play("tick");
+    this.menu.setOptions([]);
 
-    // Começa com o idioma atual selecionado.
-    this.buildMenu("language", progress.language === "pt" ? 0 : 1);
-  }
+    this.languagePanel.open(() => {
+      // Volta ao menu com "Idioma" selecionado.
+      this.showMainMenu(this.hasSave ? 2 : 1);
+      this.refreshTexts();
+    });
 
-  /** Fecha o painel e volta ao menu, com "Idioma" selecionado. */
-  private closeLanguagePanel(): void {
-    audio.play("tick");
-    this.buildMenu("main", this.hasSave ? 2 : 1);
+    this.refreshTexts();
   }
 
   /** Escurece a tela e então executa `next` (abrir o jogo). */
   private leave(next: () => void): void {
     this.leaving = true;
+    this.menu.enabled = false;
     audio.play("shrine");
 
     this.cameras.main.fadeOut(AREA_FADE_TIME * 2, 0, 0, 0);
@@ -450,23 +299,12 @@ export class TitleScene extends Phaser.Scene {
       throw new Error("O teclado não está disponível.");
     }
 
-    const keyboard = this.input.keyboard;
     const { KeyCodes } = Phaser.Input.Keyboard;
-    const add = (code: number): Phaser.Input.Keyboard.Key =>
-      keyboard.addKey(code);
 
     this.keys = {
-      up: [add(KeyCodes.UP), add(KeyCodes.W)],
-      down: [add(KeyCodes.DOWN), add(KeyCodes.S)],
-      confirm: [
-        add(KeyCodes.ENTER),
-        add(KeyCodes.SPACE),
-        add(KeyCodes.E),
-        add(KeyCodes.J),
-      ],
-      back: add(KeyCodes.ESC),
-      language: add(KeyCodes.L),
-      mute: add(KeyCodes.M),
+      back: this.input.keyboard.addKey(KeyCodes.ESC),
+      language: this.input.keyboard.addKey(KeyCodes.L),
+      mute: this.input.keyboard.addKey(KeyCodes.M),
     };
   }
 
@@ -475,22 +313,23 @@ export class TitleScene extends Phaser.Scene {
       return;
     }
 
-    const pressed = (keys: Phaser.Input.Keyboard.Key[]): boolean =>
-      keys.some((key) => Phaser.Input.Keyboard.JustDown(key));
+    const { JustDown } = Phaser.Input.Keyboard;
 
-    if (pressed(this.keys.up)) this.move(-1);
-    if (pressed(this.keys.down)) this.move(1);
-    if (pressed(this.keys.confirm)) this.confirm();
-
-    if (Phaser.Input.Keyboard.JustDown(this.keys.back) && this.mode === "language") {
-      this.closeLanguagePanel();
+    if (this.languagePanel.isOpen) {
+      if (JustDown(this.keys.back)) {
+        this.languagePanel.close();
+      } else {
+        this.languagePanel.update();
+      }
+    } else {
+      if (JustDown(this.keys.language)) {
+        this.openLanguagePanel();
+      } else {
+        this.menu.update();
+      }
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.keys.language) && this.mode === "main") {
-      this.openLanguagePanel();
-    }
-
-    if (Phaser.Input.Keyboard.JustDown(this.keys.mute)) {
+    if (JustDown(this.keys.mute)) {
       audio.toggleMute();
       this.refreshTexts();
     }
