@@ -15,6 +15,7 @@ export type SfxName =
   | "slam" // impacto pesado
   | "shoot" // projétil disparado
   | "deflect" // projétil rebatido pela espada
+  | "teleport" // chefe some e reaparece
   | "fragment" // Fragmento Astral
   | "victory"
   | "defeat";
@@ -242,6 +243,19 @@ export function playSfx(
     case "deflect":
       tone(ctx, out, { freq: 1400, to: 700, duration: 0.12, type: "triangle", gain: 0.1 });
       tone(ctx, out, { freq: 2100, duration: 0.08, gain: 0.05 });
+      return;
+
+    case "teleport":
+      tone(ctx, out, { freq: 900, to: 180, duration: 0.3, type: "sine", gain: 0.08 });
+      tone(ctx, out, { freq: 260, to: 1300, duration: 0.3, type: "triangle", gain: 0.05, delay: 0.12 });
+      noise(ctx, out, noiseBuffer, {
+        duration: 0.35,
+        gain: 0.07,
+        filter: "bandpass",
+        freq: 3000,
+        to: 600,
+        q: 3,
+      });
       return;
 
     case "fragment":

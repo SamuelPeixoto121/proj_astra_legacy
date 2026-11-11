@@ -24,8 +24,8 @@ export const TEXTS = {
       en: "CHAPTER 2 COMPLETE",
     },
     victory: {
-      pt: "FRAGMENTO RECUPERADO • VITÓRIA",
-      en: "FRAGMENT RECOVERED • VICTORY",
+      pt: "SEGUNDO FRAGMENTO RECUPERADO • VITÓRIA",
+      en: "SECOND FRAGMENT RECOVERED • VICTORY",
     },
   },
 
@@ -297,6 +297,37 @@ export const TEXTS = {
         en: "SENTINEL DEFEATED! THE FRAGMENT HAS BEEN RELEASED.",
       },
     },
+    witch: {
+      name: { pt: "FEITICEIRA DO PÂNTANO", en: "SWAMP SORCERESS" },
+      appeared: {
+        pt: "A FEITICEIRA DO PÂNTANO DESPERTOU!",
+        en: "THE SWAMP SORCERESS HAS AWAKENED!",
+      },
+      missed: {
+        pt: "APROXIME-SE E VIRE PARA A FEITICEIRA",
+        en: "GET CLOSER AND FACE THE SORCERESS",
+      },
+      hit: (damage: number): Localized => ({
+        pt: `FEITICEIRA ATINGIDA! DANO: ${damage}`,
+        en: `SORCERESS HIT! DAMAGE: ${damage}`,
+      }),
+      teleported: {
+        pt: "A FEITICEIRA SE TELEPORTOU!",
+        en: "THE SORCERESS TELEPORTED!",
+      },
+      marks: {
+        pt: "MARCAS SOMBRIAS! NÃO PARE DE SE MOVER!",
+        en: "SHADOW MARKS! KEEP MOVING!",
+      },
+      enraged: {
+        pt: "A FEITICEIRA ESTÁ FURIOSA!",
+        en: "THE SORCERESS IS ENRAGED!",
+      },
+      defeated: {
+        pt: "FEITICEIRA DERROTADA! O SEGUNDO FRAGMENTO FOI LIBERTADO.",
+        en: "SORCERESS DEFEATED! THE SECOND FRAGMENT HAS BEEN RELEASED.",
+      },
+    },
   },
 
   // Tela inicial.
@@ -357,8 +388,8 @@ export const TEXTS = {
 
   endScreen: {
     victory: {
-      pt: "CAPÍTULO 1 CONCLUÍDO!\n\nVocê recuperou o primeiro Fragmento Astral.\nA luz de Astra volta a brilhar.\n\nR  •  Jogar novamente\nEsc  •  Tela inicial",
-      en: "CHAPTER 1 COMPLETE!\n\nYou recovered the first Astral Fragment.\nAstra's light shines once more.\n\nR  •  Play again\nEsc  •  Title screen",
+      pt: "CAPÍTULO 2 CONCLUÍDO!\n\nVocê recuperou o segundo Fragmento Astral.\nA névoa do pântano começa a se dissipar.\n\nR  •  Jogar novamente\nEsc  •  Tela inicial",
+      en: "CHAPTER 2 COMPLETE!\n\nYou recovered the second Astral Fragment.\nThe swamp mist begins to fade.\n\nR  •  Play again\nEsc  •  Title screen",
     },
     defeat: {
       pt: "VOCÊ FOI DERROTADO\n\nR  •  Voltar ao último checkpoint\nN  •  Começar um novo jogo\nEsc  •  Tela inicial",

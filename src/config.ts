@@ -222,6 +222,56 @@ export const SWAMP_WISP_SPAWNS = [
   { x: 990, y: 380 },
 ] as const;
 
+// Feiticeira do Pântano, a guardiã do segundo Fragmento Astral.
+// - wakeRange: aparece quando o herói chega tão perto assim;
+// - volley*: rajada de projéteis em leque (volleyWindup = aviso antes);
+// - teleport*: se o herói chega a teleportTriggerRange, ela some e
+//   reaparece longe (só de tempos em tempos: teleportCooldown);
+// - mark*: ataque especial: marcas no chão onde o herói está, que explodem
+//   depois de markWindup (dá para fugir);
+// - enraged*: abaixo dessa fração da vida ela fica mais agressiva.
+// Enquanto conjura (rajada ou marcas) ela não teleporta: é a hora de atacar.
+export const WITCH_STATS = {
+  maxHealth: 300,
+  hitRange: 95,
+  wakeRange: 330,
+  volleyWindup: 650,
+  volleyCooldown: 2300,
+  volleyCount: 3,
+  volleySpread: 0.26,
+  projectileSpeed: 240,
+  projectileRange: 620,
+  projectileDamage: 14,
+  teleportTriggerRange: 130,
+  teleportCooldown: 3800,
+  teleportMinDistance: 230,
+  teleportTime: 260,
+  markCooldown: 8000,
+  markCount: 3,
+  markInterval: 420,
+  markWindup: 1000,
+  markRadius: 70,
+  markDamage: 22,
+  enragedAt: 0.5,
+  enragedVolleyCount: 5,
+  enragedCooldownFactor: 0.7,
+} as const;
+
+export const WITCH_POSITION = { x: 800, y: 190 } as const;
+
+/** Pontos da clareira para onde a feiticeira pode se teleportar. */
+export const WITCH_TELEPORT_POINTS = [
+  { x: 650, y: 170 },
+  { x: 950, y: 170 },
+  { x: 800, y: 120 },
+  { x: 690, y: 270 },
+  { x: 910, y: 270 },
+  { x: 800, y: 230 },
+] as const;
+
+// Segundo Fragmento Astral: surge no centro da clareira.
+export const SWAMP_FRAGMENT_POSITION = { x: 800, y: 180 } as const;
+
 // Aranhas do Pântano.
 export const SWAMP_SPIDER_SPAWNS = [
   { x: 380, y: 980 },
