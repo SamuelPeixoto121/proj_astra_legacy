@@ -10,13 +10,16 @@
 > Central de Astra. Você chega ao Vilarejo da Alvorada no momento em que uma
 > corrupção antiga começa a consumir a Floresta Sussurrante.
 
-O **prólogo** e o **Capítulo 1** estão completos e jogáveis:
+O **prólogo** e os **Capítulos 1 e 2** estão completos e jogáveis:
 
 - **Prólogo — A Floresta Sussurrante:** converse com o Ancião da Alvorada,
   derrote o Lobo Corrompido e enfrente Kael, o Senhor da Corrupção.
 - **Capítulo 1 — O Primeiro Fragmento:** atravesse a barreira de corrupção até
   as Ruínas do Santuário, vença a Sentinela de Pedra e recupere o primeiro
   Fragmento Astral.
+- **Capítulo 2 — O Segundo Fragmento:** atravesse o portal atrás do altar até o
+  Pântano Sombrio, sobreviva aos Espíritos do Pântano e derrote a Feiticeira do
+  Pântano para recuperar o segundo Fragmento Astral.
 
 ## Funcionalidades
 
@@ -24,12 +27,17 @@ O **prólogo** e o **Capítulo 1** estão completos e jogáveis:
 - **Combate corpo a corpo** com alcance e direção do golpe, efeitos de corte,
   impacto, números de dano e barras de vida
 - **Rolamento** (Shift) com invencibilidade: dá para rolar através da investida
-  de Kael ou para fora do golpe em área da Sentinela
+  de Kael, para fora do golpe em área da Sentinela ou por dentro de projéteis
 - **Inimigos com perseguição**: o Lobo Corrompido da missão e Aranhas Corrompidas
   espalhadas pelos mapas
-- **Dois chefes com estilos diferentes**: Kael persegue sem trégua; a Sentinela de
-  Pedra desperta quando o herói se aproxima e **golpeia o chão em área**, com um
-  aviso visual que permite desviar
+- **Inimigos à distância**: Espíritos do Pântano flutuam por cima das árvores,
+  mantêm distância e disparam projéteis com aviso. Os projéteis batem nas
+  árvores e podem ser **rebatidos com a espada**
+- **Três chefes com estilos diferentes**: Kael faz **investidas** com aviso; a
+  Sentinela de Pedra **golpeia o chão em área**; a Feiticeira do Pântano ataca
+  de longe com **rajadas em leque**, **teleporta** quando o herói se aproxima,
+  lança **marcas sombrias** no chão e fica furiosa com metade da vida
+- **Terreno que interfere**: poças de lama no pântano deixam o herói mais lento
 - **Várias áreas** ligadas por passagens, com transição de tela e o nome da área
   aparecendo ao entrar
 - **Tela inicial** com Continuar / Novo jogo (com confirmação antes de apagar o
@@ -105,9 +113,10 @@ src/
 │   ├── PauseScene.ts          Menu de pausa, aberto por cima da área
 │   ├── AreaScene.ts           Cena-base: herói, HUD, diálogo, combate, checkpoints
 │   ├── ForestScene.ts         Floresta Sussurrante (prólogo)
-│   └── RuinsScene.ts          Ruínas do Santuário (Capítulo 1)
-├── characters/                Herói, Ancião, Lobo, Aranha, Kael e Sentinela
-├── world/                     Cenários, checkpoints, barreira e Fragmento Astral
+│   ├── RuinsScene.ts          Ruínas do Santuário (Capítulo 1)
+│   └── SwampScene.ts          Pântano Sombrio (Capítulo 2)
+├── characters/                Herói, Ancião, Lobo, Aranha, Espírito, Kael, Sentinela e Feiticeira
+├── world/                     Cenários, checkpoints, barreira, portal e Fragmento Astral
 ├── effects/                   Efeitos visuais de combate
 ├── audio/                     Motor de áudio, efeitos sonoros e música gerados por código
 ├── ui/                        Menu e painel de idioma reaproveitados pelas telas
@@ -115,6 +124,7 @@ src/
     ├── progress.ts            Progresso do jogador, compartilhado entre as áreas
     ├── preferences.ts         Preferências (idioma) guardadas fora do save
     ├── enemies.ts             Tipos de inimigos descritos por dados
+    ├── projectiles.ts         Projéteis (inimigos e chefes que atacam de longe)
     ├── bosses.ts              Partes comuns dos chefes
     └── saveGame.ts            Salvamento no navegador
 ```
@@ -143,16 +153,21 @@ Algumas decisões do projeto:
 - **Progresso separado das cenas.** O estado da missão fica em um módulo
   compartilhado (`systems/progress.ts`), que é o que vai para o save. Por isso
   trocar de área ou reiniciar não perde nada.
-- **Chefes com estados.** A Sentinela de Pedra funciona como uma máquina de
-  estados (adormecida → perseguindo ⇄ preparando o golpe → derrotada), o que
-  deixa o comportamento previsível e fácil de ajustar.
+- **Chefes com estados.** Cada chefe funciona como uma máquina de estados. A
+  Feiticeira, por exemplo: esperando → flutuando ⇄ conjurando / lançando marcas
+  / teleportando → derrotada. Isso deixa o comportamento previsível e fácil de
+  ajustar, e cria brechas claras para o jogador (ela não teleporta enquanto conjura).
+- **Ataque à distância reaproveitável.** Inimigos e chefes usam o mesmo sistema
+  de projéteis (`systems/projectiles.ts`); um inimigo novo que atira só precisa
+  declarar os dados do tiro.
 
 ## Próximos passos
 
 - [x] Animações do herói por direção
 - [x] Novos inimigos e áreas
 - [x] Capítulo 1: o primeiro Fragmento Astral
-- [ ] Capítulo 2: novos fragmentos e o caminho até Ignis
+- [x] Capítulo 2: o segundo Fragmento Astral
+- [ ] Próximos capítulos: os fragmentos restantes e o caminho até Ignis
 - [ ] Sistema de equipamentos
 
 ## Autor
@@ -164,9 +179,11 @@ Desenvolvido por **Samuel Peixoto**: [github.com/SamuelPeixoto121](https://githu
 ### English summary
 
 **Astra Legacy** is a top-down 2D dark fantasy action RPG built with **Phaser 4**,
-**TypeScript** (strict) and **Vite**. The playable prologue and Chapter 1 feature
-8-direction movement, directional melee combat with visual effects, data-driven
-enemies, **two boss fights** (including a telegraphed area attack), multiple areas
+**TypeScript** (strict) and **Vite**. The playable prologue and Chapters 1 and 2 feature
+8-direction movement, directional melee combat with visual effects, a dodge roll,
+data-driven enemies (including ranged ones with deflectable projectiles),
+**three boss fights** (a telegraphed charge, an area slam, and a teleporting
+sorceress with projectile volleys), multiple areas
 with transitions, a staged quest system, dialogue, **autosave with checkpoints**,
 and full **Portuguese/English** localization. All graphics, sound effects and
 music are generated procedurally in code (Web Audio API) — no image or audio files.
