@@ -8,6 +8,7 @@
 
 import Phaser from "phaser";
 import {
+  AREA_BANNER,
   AREA_FADE_TIME,
   CHECKPOINTS,
   PLAYER_STATS,
@@ -70,6 +71,8 @@ export abstract class AreaScene extends Phaser.Scene {
   protected abstract readonly areaId: AreaId;
   protected abstract readonly worldWidth: number;
   protected abstract readonly worldHeight: number;
+  /** Nome mostrado no centro da tela ao entrar na área. */
+  protected abstract readonly areaName: Localized;
 
   protected player!: PlayerSprite;
   /** Inimigos comuns da área. As áreas adicionam os seus em createActors(). */
@@ -115,6 +118,7 @@ export abstract class AreaScene extends Phaser.Scene {
   private exits: AreaExit[] = [];
   private shrines: AreaShrine[] = [];
   private transitioning = false;
+  private areaBanner?: Phaser.GameObjects.Text;
 
   // ---------------------------------------------------------------------------
   // O que cada área precisa (ou pode) escrever
@@ -182,6 +186,39 @@ export abstract class AreaScene extends Phaser.Scene {
     }
 
     this.cameras.main.fadeIn(AREA_FADE_TIME, 0, 0, 0);
+    this.showAreaBanner();
+  }
+
+  /** Nome da área grande no centro da tela, aparecendo e sumindo devagar. */
+  private showAreaBanner(): void {
+    const banner = this.add
+      .text(this.scale.width / 2, this.scale.height * 0.3, this.t(this.areaName), {
+        fontFamily: "Georgia, serif",
+        fontSize: "34px",
+        color: "#f0dfac",
+        stroke: "#0d140f",
+        strokeThickness: 6,
+        align: "center",
+      })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(4000)
+      .setAlpha(0);
+
+    this.areaBanner = banner;
+
+    this.tweens.add({
+      targets: banner,
+      alpha: 1,
+      duration: AREA_BANNER.fade,
+      hold: AREA_BANNER.hold,
+      yoyo: true,
+      ease: "Sine.InOut",
+      onComplete: () => {
+        banner.destroy();
+        this.areaBanner = undefined;
+      },
+    });
   }
 
   /** Volta o estado da cena ao inicial (a cena é reaproveitada ao reabrir). */
@@ -190,6 +227,7 @@ export abstract class AreaScene extends Phaser.Scene {
     this.exits = [];
     this.shrines = [];
     this.transitioning = false;
+    this.areaBanner = undefined;
 
     this.playerHealth = PLAYER_STATS.maxHealth;
     this.facingX = 0;
@@ -294,6 +332,7 @@ export abstract class AreaScene extends Phaser.Scene {
 
     this.gameOverOverlay?.setSize(gameSize.width, gameSize.height);
     this.gameOverText?.setPosition(gameSize.width / 2, gameSize.height / 2);
+    this.areaBanner?.setPosition(gameSize.width / 2, gameSize.height * 0.3);
   }
 
   // ---------------------------------------------------------------------------
@@ -525,6 +564,7 @@ export abstract class AreaScene extends Phaser.Scene {
   private applyLanguage(): void {
     this.applyAreaLanguage();
     this.updateQuestDisplay();
+    this.areaBanner?.setText(this.t(this.areaName));
 
     this.game.events.emit(LANGUAGE_CHANGED_EVENT, progress.language);
   }

@@ -57,6 +57,7 @@ export class RuinsScene extends AreaScene {
   protected readonly areaId = "ruins";
   protected readonly worldWidth = RUINS_WIDTH;
   protected readonly worldHeight = RUINS_HEIGHT;
+  protected readonly areaName = TEXTS.places.ruins;
 
   private sign!: Phaser.GameObjects.Text;
   private fragment!: AstralFragment;

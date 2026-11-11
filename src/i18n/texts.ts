@@ -64,13 +64,13 @@ export const TEXTS = {
 
   page: {
     title: {
-      pt: "Astra Legacy — A Floresta Sussurrante",
-      en: "Astra Legacy — The Whispering Forest",
+      pt: "Astra Legacy — Os Fragmentos Astrais",
+      en: "Astra Legacy — The Astral Fragments",
     },
     eyebrow: { pt: "UM RPG DE FANTASIA SOMBRIA", en: "A DARK FANTASY RPG" },
     subtitle: {
-      pt: "Prólogo: A Floresta Sussurrante",
-      en: "Prologue: The Whispering Forest",
+      pt: "Em busca dos Fragmentos Astrais",
+      en: "In search of the Astral Fragments",
     },
     controls: {
       pt: [
@@ -87,8 +87,8 @@ export const TEXTS = {
       ],
     } satisfies Localized<[string, string][]>,
     tagline: {
-      pt: "Explore a floresta. Sua jornada está apenas começando.",
-      en: "Explore the forest. Your journey is only beginning.",
+      pt: "Explore, lute e recupere a luz de Astra.",
+      en: "Explore, fight and restore Astra's light.",
     },
   },
 

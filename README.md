@@ -10,8 +10,13 @@
 > Central de Astra. Você chega ao Vilarejo da Alvorada no momento em que uma
 > corrupção antiga começa a consumir a Floresta Sussurrante.
 
-O **prólogo** está completo e jogável: explore a floresta, converse com o Ancião
-da Alvorada, derrote o Lobo Corrompido e enfrente Kael, o Senhor da Corrupção.
+O **prólogo** e o **Capítulo 1** estão completos e jogáveis:
+
+- **Prólogo — A Floresta Sussurrante:** converse com o Ancião da Alvorada,
+  derrote o Lobo Corrompido e enfrente Kael, o Senhor da Corrupção.
+- **Capítulo 1 — O Primeiro Fragmento:** atravesse a barreira de corrupção até
+  as Ruínas do Santuário, vença a Sentinela de Pedra e recupere o primeiro
+  Fragmento Astral.
 
 ## Funcionalidades
 
@@ -19,9 +24,14 @@ da Alvorada, derrote o Lobo Corrompido e enfrente Kael, o Senhor da Corrupção.
 - **Combate corpo a corpo** com alcance e direção do golpe, efeitos de corte,
   impacto, números de dano e barras de vida
 - **Inimigos com perseguição**: o Lobo Corrompido da missão e Aranhas Corrompidas
-  espalhadas pela floresta, além de um **chefe** que só aparece depois de cumprir a missão
+  espalhadas pelos mapas
+- **Dois chefes com estilos diferentes**: Kael persegue sem trégua; a Sentinela de
+  Pedra desperta quando o herói se aproxima e **golpeia o chão em área**, com um
+  aviso visual que permite desviar
+- **Várias áreas** ligadas por passagens, com transição de tela e o nome da área
+  aparecendo ao entrar
 - **Sistema de missões** em etapas e **diálogos** que mudam conforme o progresso
-- **Salvamento automático** e **checkpoint** (Pedra Astral): ao ser derrotado,
+- **Salvamento automático** e **checkpoints** (Pedras Astrais): ao ser derrotado,
   o jogador volta ao último checkpoint sem perder o progresso
 - **Português e inglês**: todo o jogo e a página trocam de idioma na hora
 - **Animações procedurais**: caminhada, golpe de espada e efeitos de dano
@@ -80,12 +90,17 @@ src/
 │   ├── texts.ts               Todos os textos em PT e EN
 │   └── page.ts                Tradução da página HTML ao redor do jogo
 ├── scenes/
-│   └── ForestScene.ts         Regras do jogo: missões, combate, diálogo, HUD
-├── characters/                Aparência e animações do herói, Ancião, Lobo, Aranha e Kael
-├── world/                     Cenário da floresta e checkpoint
+│   ├── BootScene.ts           Lê o save e abre a área certa
+│   ├── AreaScene.ts           Cena-base: herói, HUD, diálogo, combate, checkpoints
+│   ├── ForestScene.ts         Floresta Sussurrante (prólogo)
+│   └── RuinsScene.ts          Ruínas do Santuário (Capítulo 1)
+├── characters/                Herói, Ancião, Lobo, Aranha, Kael e Sentinela
+├── world/                     Cenários, checkpoints, barreira e Fragmento Astral
 ├── effects/                   Efeitos visuais de combate
 └── systems/
+    ├── progress.ts            Progresso do jogador, compartilhado entre as áreas
     ├── enemies.ts             Tipos de inimigos descritos por dados
+    ├── bosses.ts              Partes comuns dos chefes
     └── saveGame.ts            Salvamento no navegador
 ```
 
@@ -102,17 +117,27 @@ Algumas decisões do projeto:
   ao carregar: um save corrompido ou antigo é ignorado em vez de travar o jogo.
 - **Personagem = corpo físico + desenho.** Cada personagem tem um retângulo
   invisível com física e um desenho que o acompanha. A perseguição dos inimigos
-  é uma função só, reaproveitada por todos eles e pelo chefe.
+  é uma função só, reaproveitada por todos eles e pelos chefes.
 - **Inimigos orientados a dados.** Cada tipo de inimigo é um registro com
   atributos, cores, barra de vida e função de desenho (`systems/enemies.ts`).
   A cena trata todos da mesma forma: adicionar um inimigo novo não exige
   mudar a lógica de combate.
+- **Cena-base para as áreas.** Herói, HUD, diálogo, combate, checkpoints e
+  passagens ficam em `AreaScene`. Cada área herda dela e só descreve o próprio
+  cenário, personagens e regras da missão.
+- **Progresso separado das cenas.** O estado da missão fica em um módulo
+  compartilhado (`systems/progress.ts`), que é o que vai para o save. Por isso
+  trocar de área ou reiniciar não perde nada.
+- **Chefes com estados.** A Sentinela de Pedra funciona como uma máquina de
+  estados (adormecida → perseguindo ⇄ preparando o golpe → derrotada), o que
+  deixa o comportamento previsível e fácil de ajustar.
 
 ## Próximos passos
 
 - [x] Animações do herói por direção
-- [ ] Novos inimigos e áreas
-- [ ] Continuação da história: os Fragmentos Astrais e Ignis
+- [x] Novos inimigos e áreas
+- [x] Capítulo 1: o primeiro Fragmento Astral
+- [ ] Capítulo 2: novos fragmentos e o caminho até Ignis
 - [ ] Sistema de equipamentos
 
 ## Autor
@@ -124,10 +149,12 @@ Desenvolvido por **Samuel Peixoto**: [github.com/SamuelPeixoto121](https://githu
 ### English summary
 
 **Astra Legacy** is a top-down 2D dark fantasy action RPG built with **Phaser 4**,
-**TypeScript** (strict) and **Vite**. The playable prologue features 8-direction
-movement, directional melee combat with visual effects, enemy AI, a boss fight,
-a staged quest system, dialogue, **autosave with checkpoints**, and full
-**Portuguese/English** localization. All graphics are drawn procedurally in code.
+**TypeScript** (strict) and **Vite**. The playable prologue and Chapter 1 feature
+8-direction movement, directional melee combat with visual effects, data-driven
+enemies, **two boss fights** (including a telegraphed area attack), multiple areas
+with transitions, a staged quest system, dialogue, **autosave with checkpoints**,
+and full **Portuguese/English** localization. All graphics are drawn procedurally
+in code.
 
 **[Play it in your browser](https://samuelpeixoto121.github.io/proj_astra_legacy/)**,
 or run it locally with `npm install` and `npm run dev`, then open http://localhost:5173.

@@ -18,6 +18,10 @@ export const NORTH_BARRIER = { x: 850, y: 240, width: 200 } as const;
 // Tempo (ms) do escurecimento ao trocar de área.
 export const AREA_FADE_TIME = 350;
 
+// Nome da área no centro da tela ao entrar: tempo para aparecer/sumir e
+// quanto tempo fica totalmente visível (ms).
+export const AREA_BANNER = { fade: 700, hold: 1800 } as const;
+
 export const PLAYER_STATS = {
   maxHealth: 100,
   speed: 220,

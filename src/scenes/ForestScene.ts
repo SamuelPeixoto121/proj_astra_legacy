@@ -40,6 +40,7 @@ export class ForestScene extends AreaScene {
   protected readonly areaId = "forest";
   protected readonly worldWidth = WORLD_WIDTH;
   protected readonly worldHeight = WORLD_HEIGHT;
+  protected readonly areaName = TEXTS.places.forest;
 
   private signs!: ForestWorld["signs"];
   private northBarrier!: CorruptionBarrier;
