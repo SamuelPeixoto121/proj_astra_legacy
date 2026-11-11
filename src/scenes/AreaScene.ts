@@ -11,6 +11,7 @@ import {
   AREA_BANNER,
   AREA_FADE_TIME,
   CHECKPOINTS,
+  ENEMY_WANDER,
   PLAYER_STATS,
   SHRINE_ACTIVATION_RANGE,
   type CheckpointId,
@@ -1025,8 +1026,22 @@ export abstract class AreaScene extends Phaser.Scene {
   }
 
   /** Persegue o herói e ataca quando ele está ao alcance. */
+  /**
+   * Inimigo comum: passeia perto de casa enquanto o herói está longe;
+   * quando o herói chega perto, persegue e ataca ao alcance.
+   */
   private updateEnemy(enemy: Enemy): void {
     const { stats } = enemy.definition;
+    const { x, y } = enemy.sprite.body;
+
+    if (this.distanceToPlayer(x, y) >= stats.sightRange) {
+      this.wander(enemy);
+      this.animateEnemy(enemy);
+      return;
+    }
+
+    // Viu o herói: esquece o passeio e persegue.
+    enemy.wanderTarget = undefined;
 
     const distance = this.chasePlayer(
       enemy.sprite,
@@ -1035,6 +1050,8 @@ export abstract class AreaScene extends Phaser.Scene {
       stats.sightRange,
       10,
     );
+
+    this.animateEnemy(enemy);
 
     if (
       distance > stats.attackReach ||
@@ -1045,16 +1062,83 @@ export abstract class AreaScene extends Phaser.Scene {
 
     enemy.lastAttackAt = this.time.now;
 
-    // Pequeno "pulo" para o jogador ver o ataque.
+    // Pequeno "pulo" para o jogador ver o ataque. Só a altura muda:
+    // a largura (scaleX) guarda o espelhamento do desenho.
     this.tweens.add({
       targets: enemy.sprite.container,
-      scale: 1.18,
+      scaleY: 1.18,
       duration: 90,
       yoyo: true,
       ease: "Quad.Out",
     });
 
     this.damagePlayer(stats.damage);
+  }
+
+  /**
+   * Passeio: escolhe um ponto perto de casa, anda devagar até ele,
+   * faz uma pausa e escolhe outro. Também traz de volta para casa um
+   * inimigo que perdeu o herói de vista longe dali.
+   */
+  private wander(enemy: Enemy): void {
+    const now = this.time.now;
+    const body = this.getPhysicsBody(enemy.sprite);
+    const { stats } = enemy.definition;
+
+    if (!enemy.wanderTarget) {
+      body.setVelocity(0, 0);
+
+      if (now < enemy.nextWanderAt) {
+        return;
+      }
+
+      // Ponto aleatório dentro do raio de passeio, ao redor de casa.
+      const angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
+      const radius = Phaser.Math.FloatBetween(0.3, 1) * stats.wanderRadius;
+
+      enemy.wanderTarget = {
+        x: enemy.home.x + Math.cos(angle) * radius,
+        y: enemy.home.y + Math.sin(angle) * radius,
+      };
+      enemy.wanderGiveUpAt = now + ENEMY_WANDER.giveUpTime;
+    }
+
+    const dx = enemy.wanderTarget.x - enemy.sprite.body.x;
+    const dy = enemy.wanderTarget.y - enemy.sprite.body.y;
+    const distance = Math.hypot(dx, dy);
+
+    // Chegou (ou ficou preso tempo demais): para e espera um pouco.
+    if (distance < 6 || now >= enemy.wanderGiveUpAt) {
+      enemy.wanderTarget = undefined;
+      enemy.nextWanderAt =
+        now +
+        Phaser.Math.Between(ENEMY_WANDER.pauseMin, ENEMY_WANDER.pauseMax);
+      body.setVelocity(0, 0);
+      return;
+    }
+
+    body.setVelocity(
+      (dx / distance) * stats.wanderSpeed,
+      (dy / distance) * stats.wanderSpeed,
+    );
+  }
+
+  /**
+   * Mantém o desenho junto do corpo físico; ao andar, balança de leve e,
+   * se o desenho olha para a direita, vira para o lado em que anda.
+   */
+  private animateEnemy(enemy: Enemy): void {
+    const { container, body } = enemy.sprite;
+    const velocity = this.getPhysicsBody(enemy.sprite).velocity;
+    const moving = Math.abs(velocity.x) + Math.abs(velocity.y) > 1;
+
+    container.setPosition(body.x, body.y);
+    container.setDepth(body.y + 10);
+    container.setAngle(moving ? Math.sin(this.time.now / 90) * 4 : 0);
+
+    if (enemy.definition.facesRight && Math.abs(velocity.x) > 1) {
+      container.scaleX = velocity.x < 0 ? -1 : 1;
+    }
   }
 
   /**

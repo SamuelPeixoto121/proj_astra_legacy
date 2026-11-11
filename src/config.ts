@@ -36,7 +36,9 @@ export const PLAYER_STATS = {
 // - stopDistance: param de andar quando chegam tão perto assim;
 // - attackReach: atacam o herói quando estão a essa distância ou menos
 //   (precisa ser maior que stopDistance, senão nunca alcançam);
-// - attackCooldown: tempo mínimo entre dois ataques, em milissegundos.
+// - attackCooldown: tempo mínimo entre dois ataques, em milissegundos;
+// - wanderRadius: com o herói longe, passeiam até essa distância de onde nasceram;
+// - wanderSpeed: velocidade do passeio (mais lenta que a perseguição).
 export const WOLF_STATS = {
   maxHealth: 60,
   speed: 85,
@@ -46,6 +48,8 @@ export const WOLF_STATS = {
   stopDistance: 36,
   attackReach: 46,
   attackCooldown: 900,
+  wanderRadius: 110,
+  wanderSpeed: 40,
 } as const;
 
 export const SPIDER_STATS = {
@@ -57,6 +61,18 @@ export const SPIDER_STATS = {
   stopDistance: 26,
   attackReach: 36,
   attackCooldown: 700,
+  wanderRadius: 70,
+  wanderSpeed: 55,
+} as const;
+
+// Passeio dos inimigos comuns (vale para todos):
+// - pauseMin/pauseMax: pausa (ms) entre um passeio e outro;
+// - giveUpTime: se não chegar ao destino nesse tempo (ex.: preso numa árvore),
+//   desiste e escolhe outro.
+export const ENEMY_WANDER = {
+  pauseMin: 1000,
+  pauseMax: 2500,
+  giveUpTime: 4000,
 } as const;
 
 // Aranhas espalhadas pela floresta, longe da trilha (não fazem parte da missão).

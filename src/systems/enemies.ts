@@ -8,8 +8,8 @@
 // 3. registre o tipo em ENEMY_TYPES abaixo;
 // 4. adicione os textos em i18n/texts.ts (TEXTS.enemies).
 
-import type Phaser from "phaser";
-import { SPIDER_STATS, WOLF_STATS } from "../config";
+import Phaser from "phaser";
+import { ENEMY_WANDER, SPIDER_STATS, WOLF_STATS } from "../config";
 import type { EnemyKind } from "../types";
 import type { CharacterSprite } from "../characters/types";
 import { createWolf } from "../characters/wolf";
@@ -24,11 +24,18 @@ export interface EnemyStats {
   stopDistance: number;
   attackReach: number;
   attackCooldown: number;
+  wanderRadius: number;
+  wanderSpeed: number;
 }
 
 interface EnemyDefinition {
   stats: EnemyStats;
   create: (scene: Phaser.Scene, x: number, y: number) => CharacterSprite;
+  /**
+   * true se o desenho olha para a direita: ele é espelhado ao andar para
+   * a esquerda. Inimigos simétricos (vistos de cima) usam false.
+   */
+  facesRight: boolean;
   colors: {
     impact: number;
     damageText: string;
@@ -42,6 +49,7 @@ export const ENEMY_TYPES: Record<EnemyKind, EnemyDefinition> = {
   wolf: {
     stats: WOLF_STATS,
     create: createWolf,
+    facesRight: true,
     colors: {
       impact: 0xffb56b,
       damageText: "#fff0c2",
@@ -53,6 +61,7 @@ export const ENEMY_TYPES: Record<EnemyKind, EnemyDefinition> = {
   spider: {
     stats: SPIDER_STATS,
     create: createSpider,
+    facesRight: false,
     colors: {
       impact: 0xc9ff9a,
       damageText: "#e6ffd0",
@@ -72,6 +81,14 @@ export interface Enemy {
   defeated: boolean;
   /** Momento (em ms) do último ataque deste inimigo. */
   lastAttackAt: number;
+  /** Onde nasceu: o passeio acontece ao redor deste ponto. */
+  home: { x: number; y: number };
+  /** Ponto para onde está passeando agora (undefined = parado). */
+  wanderTarget?: { x: number; y: number };
+  /** Quando pode começar o próximo passeio (ms). */
+  nextWanderAt: number;
+  /** Se ainda não chegou ao destino até aqui (ms), desiste. */
+  wanderGiveUpAt: number;
 }
 
 export function spawnEnemy(
@@ -94,6 +111,11 @@ export function spawnEnemy(
     health: definition.stats.maxHealth,
     defeated: false,
     lastAttackAt: -10000,
+    home: { x, y },
+    // Cada inimigo começa a passear num momento diferente.
+    nextWanderAt:
+      scene.time.now + Phaser.Math.Between(0, ENEMY_WANDER.pauseMax),
+    wanderGiveUpAt: 0,
   };
 }
 
