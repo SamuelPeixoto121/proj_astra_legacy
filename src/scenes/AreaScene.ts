@@ -42,7 +42,8 @@ import {
   createSlashEffect,
   showDamageNumber,
 } from "../effects/combatEffects";
-import { AREA_SCENE_KEYS, startFromSave } from "./areas";
+import { AREA_SCENE_KEYS, TITLE_SCENE_KEY, startFromSave } from "./areas";
+import { saveLanguagePreference } from "../systems/preferences";
 import { audio } from "../audio/engine";
 import type { MusicTrackId } from "../audio/music";
 
@@ -97,6 +98,7 @@ export abstract class AreaScene extends Phaser.Scene {
   private languageKey!: Phaser.Input.Keyboard.Key;
   private restartKey!: Phaser.Input.Keyboard.Key;
   private muteKey!: Phaser.Input.Keyboard.Key;
+  private titleKey!: Phaser.Input.Keyboard.Key;
   private newGameKey!: Phaser.Input.Keyboard.Key;
 
   private hudGraphics!: Phaser.GameObjects.Graphics;
@@ -305,6 +307,7 @@ export abstract class AreaScene extends Phaser.Scene {
     this.restartKey = keyboard.addKey(KeyCodes.R);
     this.newGameKey = keyboard.addKey(KeyCodes.N);
     this.muteKey = keyboard.addKey(KeyCodes.M);
+    this.titleKey = keyboard.addKey(KeyCodes.ESC);
   }
 
   private setupPhysics(obstacles: Phaser.GameObjects.Rectangle[]): void {
@@ -593,6 +596,7 @@ export abstract class AreaScene extends Phaser.Scene {
 
   private toggleLanguage(): void {
     progress.language = progress.language === "pt" ? "en" : "pt";
+    saveLanguagePreference(progress.language);
 
     this.applyLanguage();
 
@@ -963,6 +967,18 @@ export abstract class AreaScene extends Phaser.Scene {
       .setDepth(5001);
   }
 
+  /** Escurece a tela e volta para a tela inicial. */
+  private goToTitle(): void {
+    this.transitioning = true;
+    this.getPhysicsBody(this.player).setVelocity(0, 0);
+
+    this.cameras.main.fadeOut(AREA_FADE_TIME, 0, 0, 0);
+    this.cameras.main.once(
+      Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE,
+      () => this.scene.start(TITLE_SCENE_KEY),
+    );
+  }
+
   private startNewGame(): void {
     clearSave();
     resetProgress();
@@ -975,6 +991,12 @@ export abstract class AreaScene extends Phaser.Scene {
 
   update(): void {
     if (!this.player || !this.wasd || !this.cursors || this.transitioning) {
+      return;
+    }
+
+    // Esc: volta para a tela inicial (o progresso salvo continua lá).
+    if (Phaser.Input.Keyboard.JustDown(this.titleKey)) {
+      this.goToTitle();
       return;
     }
 

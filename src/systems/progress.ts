@@ -5,6 +5,7 @@
 import type { CheckpointId } from "../config";
 import type { Language, QuestStage } from "../types";
 import { loadGame, saveGame } from "./saveGame";
+import { readLanguagePreference } from "./preferences";
 
 export interface GameProgress {
   language: Language;
@@ -18,7 +19,8 @@ export interface GameProgress {
 
 function createInitialProgress(): GameProgress {
   return {
-    language: "pt",
+    // O idioma vem da preferência guardada (vale também para jogo novo).
+    language: readLanguagePreference() ?? "pt",
     questStage: "talk",
     elderTalked: false,
     wolfDefeated: false,
@@ -45,6 +47,10 @@ export function loadProgress(): boolean {
   }
 
   Object.assign(progress, save);
+
+  // A preferência de idioma vale mais que o idioma guardado no save.
+  progress.language = readLanguagePreference() ?? save.language;
+
   return true;
 }
 

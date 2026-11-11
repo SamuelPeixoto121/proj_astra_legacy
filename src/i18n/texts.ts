@@ -80,6 +80,7 @@ export const TEXTS = {
         ["E", "interagir"],
         ["L", "idioma"],
         ["M", "som"],
+        ["Esc", "menu"],
       ],
       en: [
         ["WASD / arrows", "move"],
@@ -88,6 +89,7 @@ export const TEXTS = {
         ["E", "interact"],
         ["L", "language"],
         ["M", "sound"],
+        ["Esc", "menu"],
       ],
     } satisfies Localized<[string, string][]>,
     tagline: {
@@ -244,6 +246,29 @@ export const TEXTS = {
     },
   },
 
+  // Tela inicial.
+  title: {
+    continue: { pt: "Continuar", en: "Continue" },
+    newGame: { pt: "Novo jogo", en: "New game" },
+    confirmNewGame: {
+      pt: "Apagar o progresso e começar?  (Enter)",
+      en: "Erase progress and start?  (Enter)",
+    },
+    language: { pt: "Idioma: Português", en: "Language: English" },
+    languagePanelTitle: { pt: "Escolha o idioma", en: "Choose your language" },
+    back: { pt: "Voltar", en: "Back" },
+    hint: {
+      pt: "↑ ↓  escolher   •   Enter  confirmar",
+      en: "↑ ↓  select   •   Enter  confirm",
+    },
+    panelHint: {
+      pt: "↑ ↓  escolher   •   Enter  confirmar   •   Esc  voltar",
+      en: "↑ ↓  select   •   Enter  confirm   •   Esc  back",
+    },
+    soundOn: { pt: "M  som ligado", en: "M  sound on" },
+    soundOff: { pt: "M  som desligado", en: "M  sound off" },
+  },
+
   sound: {
     on: { pt: "SOM LIGADO (M)", en: "SOUND ON (M)" },
     off: { pt: "SOM DESLIGADO (M)", en: "SOUND OFF (M)" },
@@ -266,12 +291,12 @@ export const TEXTS = {
 
   endScreen: {
     victory: {
-      pt: "CAPÍTULO 1 CONCLUÍDO!\n\nVocê recuperou o primeiro Fragmento Astral.\nA luz de Astra volta a brilhar.\n\nPressione R para jogar novamente",
-      en: "CHAPTER 1 COMPLETE!\n\nYou recovered the first Astral Fragment.\nAstra's light shines once more.\n\nPress R to play again",
+      pt: "CAPÍTULO 1 CONCLUÍDO!\n\nVocê recuperou o primeiro Fragmento Astral.\nA luz de Astra volta a brilhar.\n\nR  •  Jogar novamente\nEsc  •  Tela inicial",
+      en: "CHAPTER 1 COMPLETE!\n\nYou recovered the first Astral Fragment.\nAstra's light shines once more.\n\nR  •  Play again\nEsc  •  Title screen",
     },
     defeat: {
-      pt: "VOCÊ FOI DERROTADO\n\nR  •  Voltar ao último checkpoint\nN  •  Começar um novo jogo",
-      en: "YOU WERE DEFEATED\n\nR  •  Return to the last checkpoint\nN  •  Start a new game",
+      pt: "VOCÊ FOI DERROTADO\n\nR  •  Voltar ao último checkpoint\nN  •  Começar um novo jogo\nEsc  •  Tela inicial",
+      en: "YOU WERE DEFEATED\n\nR  •  Return to the last checkpoint\nN  •  Start a new game\nEsc  •  Title screen",
     },
   },
 };

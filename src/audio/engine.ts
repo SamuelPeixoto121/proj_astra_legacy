@@ -110,6 +110,10 @@ class AudioEngine {
     void this.ctx?.close();
   }
 
+  isMuted(): boolean {
+    return this.muted;
+  }
+
   /** Liga/desliga todo o som. Devolve true se ficou mudo. */
   toggleMute(): boolean {
     this.muted = !this.muted;
