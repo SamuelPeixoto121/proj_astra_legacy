@@ -39,7 +39,9 @@ O **prólogo** e o **Capítulo 1** estão completos e jogáveis:
 - **Animações procedurais**: caminhada, golpe de espada e efeitos de dano
 - **Herói com poses por direção**: frente, costas e perfil, montadas a partir
   de uma tabela de dados (a esquerda é o perfil espelhado)
-- Todos os gráficos são **desenhados por código**, sem imagens externas
+- **Som e música gerados por código** (Web Audio API): efeitos de combate e
+  música ambiente que muda por área, com tambores nas lutas contra chefes
+- Todos os gráficos e sons são **criados por código**, sem imagens nem arquivos de áudio
 
 ## Controles
 
@@ -50,6 +52,7 @@ O **prólogo** e o **Capítulo 1** estão completos e jogáveis:
 | `Shift` | Rolar (invencível durante o rolamento) |
 | `E` | Conversar / avançar diálogo |
 | `L` | Trocar idioma (PT/EN) |
+| `M` | Ligar/desligar o som |
 | `R` | Voltar ao último checkpoint / jogar de novo |
 | `N` | Começar um novo jogo (na tela de derrota) |
 
@@ -100,6 +103,7 @@ src/
 ├── characters/                Herói, Ancião, Lobo, Aranha, Kael e Sentinela
 ├── world/                     Cenários, checkpoints, barreira e Fragmento Astral
 ├── effects/                   Efeitos visuais de combate
+├── audio/                     Motor de áudio, efeitos sonoros e música gerados por código
 └── systems/
     ├── progress.ts            Progresso do jogador, compartilhado entre as áreas
     ├── enemies.ts             Tipos de inimigos descritos por dados
@@ -156,9 +160,9 @@ Desenvolvido por **Samuel Peixoto**: [github.com/SamuelPeixoto121](https://githu
 8-direction movement, directional melee combat with visual effects, data-driven
 enemies, **two boss fights** (including a telegraphed area attack), multiple areas
 with transitions, a staged quest system, dialogue, **autosave with checkpoints**,
-and full **Portuguese/English** localization. All graphics are drawn procedurally
-in code.
+and full **Portuguese/English** localization. All graphics, sound effects and
+music are generated procedurally in code (Web Audio API) — no image or audio files.
 
 **[Play it in your browser](https://samuelpeixoto121.github.io/proj_astra_legacy/)**,
 or run it locally with `npm install` and `npm run dev`, then open http://localhost:5173.
-Controls: WASD/arrows to move, J to attack, Shift to roll, E to interact, L to switch language.
+Controls: WASD/arrows to move, J to attack, Shift to roll, E to interact, L to switch language, M to toggle sound.

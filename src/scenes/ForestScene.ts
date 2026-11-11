@@ -37,6 +37,7 @@ import {
   createDeathBurst,
   createImpactEffect,
 } from "../effects/combatEffects";
+import { audio } from "../audio/engine";
 import { AREA_SCENE_KEYS } from "./areas";
 import { AreaScene } from "./AreaScene";
 
@@ -59,6 +60,7 @@ export class ForestScene extends AreaScene {
   protected readonly worldWidth = WORLD_WIDTH;
   protected readonly worldHeight = WORLD_HEIGHT;
   protected readonly areaName = TEXTS.places.forest;
+  protected readonly musicTrack = "forest";
 
   private signs!: ForestWorld["signs"];
   private northBarrier!: CorruptionBarrier;
@@ -287,6 +289,7 @@ export class ForestScene extends AreaScene {
     progress.questStage = "boss";
 
     this.revealKael();
+    audio.play("bossAppear");
 
     this.statusText.setText(this.t(TEXTS.bosses.kael.appeared));
 
@@ -306,6 +309,7 @@ export class ForestScene extends AreaScene {
     this.kaelState = "chasing";
 
     showBossUi(this.kael);
+    audio.setDrums(true);
   }
 
   protected attackSpecialTarget(): boolean {
@@ -414,6 +418,7 @@ export class ForestScene extends AreaScene {
     });
 
     this.statusText.setText(this.t(TEXTS.bosses.kael.charging));
+    audio.play("warning");
 
     this.time.delayedCall(KAEL_STATS.chargeWindup, () => this.startCharge());
   }
@@ -456,6 +461,7 @@ export class ForestScene extends AreaScene {
 
     if (crashed) {
       this.cameras.main.shake(200, 0.007);
+      audio.play("slam");
       createImpactEffect(this, body.x, body.y, 0xd9c8ff, 10, 32);
       this.statusText.setText(this.t(TEXTS.bosses.kael.stunned));
 
@@ -498,9 +504,11 @@ export class ForestScene extends AreaScene {
     const { x, y } = this.kael.sprite.body;
 
     createDeathBurst(this, x, y, this.kael.style.deathColor);
+    audio.play("enemyDeath");
     this.removeKael();
 
     openCorruptionBarrier(this, this.northBarrier, true);
+    audio.play("shrine");
 
     this.updateQuestDisplay();
     this.statusText.setText(this.t(TEXTS.bosses.kael.defeated));
@@ -511,6 +519,7 @@ export class ForestScene extends AreaScene {
   /** Tira Kael do mapa (ao derrotá-lo ou ao carregar um save). */
   private removeKael(): void {
     this.kaelState = "defeated";
+    audio.setDrums(false);
     this.tweens.killTweensOf(this.kael.sprite.container);
     this.disableCharacter(this.kael.sprite);
     destroyBoss(this.kael);

@@ -43,6 +43,8 @@ import {
   showDamageNumber,
 } from "../effects/combatEffects";
 import { AREA_SCENE_KEYS, startFromSave } from "./areas";
+import { audio } from "../audio/engine";
+import type { MusicTrackId } from "../audio/music";
 
 /** Dados recebidos ao abrir uma área. */
 export interface AreaSceneData {
@@ -74,6 +76,8 @@ export abstract class AreaScene extends Phaser.Scene {
   protected abstract readonly worldHeight: number;
   /** Nome mostrado no centro da tela ao entrar na área. */
   protected abstract readonly areaName: Localized;
+  /** Música ambiente da área. */
+  protected abstract readonly musicTrack: MusicTrackId;
 
   protected player!: PlayerSprite;
   /** Inimigos comuns da área. As áreas adicionam os seus em createActors(). */
@@ -92,6 +96,7 @@ export abstract class AreaScene extends Phaser.Scene {
   private interactKey!: Phaser.Input.Keyboard.Key;
   private languageKey!: Phaser.Input.Keyboard.Key;
   private restartKey!: Phaser.Input.Keyboard.Key;
+  private muteKey!: Phaser.Input.Keyboard.Key;
   private newGameKey!: Phaser.Input.Keyboard.Key;
 
   private hudGraphics!: Phaser.GameObjects.Graphics;
@@ -171,6 +176,10 @@ export abstract class AreaScene extends Phaser.Scene {
 
   create(data: AreaSceneData = {}): void {
     this.resetSceneState();
+
+    // Música da área; o tambor de chefe só liga se a área pedir.
+    audio.setDrums(false);
+    audio.setMusic(this.musicTrack);
 
     const obstacles = this.createWorld();
     const spawn = this.getSpawnPoint();
@@ -295,6 +304,7 @@ export abstract class AreaScene extends Phaser.Scene {
     this.languageKey = keyboard.addKey(KeyCodes.L);
     this.restartKey = keyboard.addKey(KeyCodes.R);
     this.newGameKey = keyboard.addKey(KeyCodes.N);
+    this.muteKey = keyboard.addKey(KeyCodes.M);
   }
 
   private setupPhysics(obstacles: Phaser.GameObjects.Rectangle[]): void {
@@ -525,6 +535,7 @@ export abstract class AreaScene extends Phaser.Scene {
     this.dialogueIndex = 0;
 
     this.hideInteractionHint();
+    audio.play("tick");
 
     this.dialoguePanel.setVisible(true);
     this.dialogueName.setVisible(true).setText(name);
@@ -541,6 +552,7 @@ export abstract class AreaScene extends Phaser.Scene {
 
   private advanceDialogue(): void {
     this.dialogueIndex += 1;
+    audio.play("tick");
 
     if (this.dialogueIndex < this.dialogueLines.length) {
       this.showCurrentDialogue();
@@ -633,6 +645,7 @@ export abstract class AreaScene extends Phaser.Scene {
       }
 
       activateShrine(this, shrine.sprite, true);
+      audio.play("shrine");
       progress.checkpointId = shrine.checkpointId;
       saveProgress();
 
@@ -696,6 +709,7 @@ export abstract class AreaScene extends Phaser.Scene {
     this.lastAttackAt = now;
 
     animateSwordSwing(this, this.player);
+    audio.play("swing");
     createSlashEffect(
       this,
       this.player.body.x,
@@ -769,6 +783,7 @@ export abstract class AreaScene extends Phaser.Scene {
     const damage = PLAYER_STATS.attackDamage;
 
     enemy.health = Math.max(0, enemy.health - damage);
+    audio.play("hit");
 
     createImpactEffect(this, x, y, colors.impact);
     showDamageNumber(this, x, y, damage, colors.damageText);
@@ -786,6 +801,7 @@ export abstract class AreaScene extends Phaser.Scene {
     const { x, y } = enemy.sprite.body;
 
     createDeathBurst(this, x, y, enemy.definition.colors.death);
+    audio.play("enemyDeath");
     this.removeEnemy(enemy);
 
     this.onEnemyDefeated(enemy);
@@ -809,6 +825,7 @@ export abstract class AreaScene extends Phaser.Scene {
     }
 
     boss.health = Math.max(0, boss.health - damage);
+    audio.play("hit");
 
     createImpactEffect(this, x, y, style.impactColor);
     showDamageNumber(this, x, y, damage, style.damageTextColor);
@@ -851,6 +868,7 @@ export abstract class AreaScene extends Phaser.Scene {
     }
 
     this.lastDamageAt = this.time.now;
+    audio.play("hurt");
 
     const { container } = this.player;
 
@@ -909,6 +927,9 @@ export abstract class AreaScene extends Phaser.Scene {
 
     this.physics.world.pause();
 
+    audio.stopMusic();
+    audio.play(isVictory ? "victory" : "defeat");
+
     this.gameOverOverlay = this.add
       .rectangle(
         0,
@@ -955,6 +976,12 @@ export abstract class AreaScene extends Phaser.Scene {
   update(): void {
     if (!this.player || !this.wasd || !this.cursors || this.transitioning) {
       return;
+    }
+
+    // M: liga/desliga o som (funciona a qualquer momento).
+    if (Phaser.Input.Keyboard.JustDown(this.muteKey)) {
+      const muted = audio.toggleMute();
+      this.statusText.setText(this.t(muted ? TEXTS.sound.off : TEXTS.sound.on));
     }
 
     if (this.gameOver) {
@@ -1064,6 +1091,7 @@ export abstract class AreaScene extends Phaser.Scene {
     }
 
     this.lastRollAt = now;
+    audio.play("roll");
     this.rollingUntil = now + PLAYER_STATS.rollDuration;
     this.rollDirection = { x: this.facingX, y: this.facingY };
 

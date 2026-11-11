@@ -43,6 +43,7 @@ import {
   createShockwave,
   createSlamWarning,
 } from "../effects/combatEffects";
+import { audio } from "../audio/engine";
 import { AREA_SCENE_KEYS } from "./areas";
 import { AreaScene } from "./AreaScene";
 
@@ -58,6 +59,7 @@ export class RuinsScene extends AreaScene {
   protected readonly worldWidth = RUINS_WIDTH;
   protected readonly worldHeight = RUINS_HEIGHT;
   protected readonly areaName = TEXTS.places.ruins;
+  protected readonly musicTrack = "ruins";
 
   private sign!: Phaser.GameObjects.Text;
   private fragment!: AstralFragment;
@@ -231,6 +233,9 @@ export class RuinsScene extends AreaScene {
 
     this.cameras.main.shake(250, 0.006);
     this.statusText.setText(this.t(TEXTS.bosses.sentinel.appeared));
+
+    audio.play("bossAppear");
+    audio.setDrums(true);
   }
 
   /** Começa o golpe no chão: mostra o aviso e golpeia depois do tempo. */
@@ -241,6 +246,8 @@ export class RuinsScene extends AreaScene {
     const { container } = this.sentinel.sprite;
 
     this.getPhysicsBody(this.sentinel.sprite).setVelocity(0, 0);
+
+    audio.play("warning");
 
     createSlamWarning(
       this,
@@ -279,6 +286,7 @@ export class RuinsScene extends AreaScene {
     container.setScale(1);
 
     createShockwave(this, x, y, SENTINEL_STATS.slamRadius);
+    audio.play("slam");
     this.cameras.main.shake(150, 0.008);
 
     if (this.distanceToPlayer(x, y) <= SENTINEL_STATS.slamRadius) {
@@ -305,6 +313,7 @@ export class RuinsScene extends AreaScene {
     const { x, y } = this.sentinel.sprite.body;
 
     createDeathBurst(this, x, y, this.sentinel.style.deathColor);
+    audio.play("enemyDeath");
     this.removeSentinel();
 
     revealAstralFragment(this, this.fragment, true);
@@ -318,6 +327,7 @@ export class RuinsScene extends AreaScene {
   /** Tira a Sentinela do mapa (ao derrotá-la ou ao carregar um save). */
   private removeSentinel(): void {
     this.sentinelState = "defeated";
+    audio.setDrums(false);
     this.tweens.killTweensOf(this.sentinel.sprite.container);
     this.disableCharacter(this.sentinel.sprite);
     destroyBoss(this.sentinel);
@@ -349,6 +359,7 @@ export class RuinsScene extends AreaScene {
     const { x, y } = this.fragment.container;
 
     createDeathBurst(this, x, y, 0xffe08a);
+    audio.play("fragment");
     this.fragment.container.destroy();
     this.fragment.visible = false;
 

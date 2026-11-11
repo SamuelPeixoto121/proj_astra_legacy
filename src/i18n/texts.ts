@@ -79,6 +79,7 @@ export const TEXTS = {
         ["Shift", "rolar"],
         ["E", "interagir"],
         ["L", "idioma"],
+        ["M", "som"],
       ],
       en: [
         ["WASD / arrows", "move"],
@@ -86,6 +87,7 @@ export const TEXTS = {
         ["Shift", "roll"],
         ["E", "interact"],
         ["L", "language"],
+        ["M", "sound"],
       ],
     } satisfies Localized<[string, string][]>,
     tagline: {
@@ -240,6 +242,11 @@ export const TEXTS = {
         en: "SENTINEL DEFEATED! THE FRAGMENT HAS BEEN RELEASED.",
       },
     },
+  },
+
+  sound: {
+    on: { pt: "SOM LIGADO (M)", en: "SOUND ON (M)" },
+    off: { pt: "SOM DESLIGADO (M)", en: "SOUND OFF (M)" },
   },
 
   save: {
