@@ -26,7 +26,18 @@ import {
   resetProgress,
   saveProgress,
 } from "../systems/progress";
-import { drawEnemyHealthBar, type Enemy } from "../systems/enemies";
+import {
+  drawEnemyHealthBar,
+  type Enemy,
+  type RangedAttack,
+} from "../systems/enemies";
+import {
+  createProjectile,
+  destroyProjectile,
+  moveProjectile,
+  type Projectile,
+  type ProjectileOptions,
+} from "../systems/projectiles";
 import { drawBossHealthBar, type Boss } from "../systems/bosses";
 import {
   animatePlayerWalk,
@@ -94,6 +105,10 @@ export abstract class AreaScene extends Phaser.Scene {
   protected player!: PlayerSprite;
   /** Inimigos comuns da área. As áreas adicionam os seus em createActors(). */
   protected enemies: Enemy[] = [];
+  /** Projéteis voando agora (de inimigos e chefes que atiram de longe). */
+  protected projectiles: Projectile[] = [];
+  /** Obstáculos fixos (árvores, colunas...): também bloqueiam projéteis. */
+  private obstacles: Phaser.GameObjects.Rectangle[] = [];
 
   protected statusText!: Phaser.GameObjects.Text;
   protected gameOver = false;
@@ -203,6 +218,7 @@ export abstract class AreaScene extends Phaser.Scene {
     audio.setMusic(this.musicTrack);
 
     const obstacles = this.createWorld();
+    this.obstacles = obstacles;
     const spawn = this.getSpawnPoint();
 
     this.player = createPlayer(this, spawn.x, spawn.y);
@@ -261,6 +277,8 @@ export abstract class AreaScene extends Phaser.Scene {
   /** Volta o estado da cena ao inicial (a cena é reaproveitada ao reabrir). */
   private resetSceneState(): void {
     this.enemies = [];
+    this.projectiles = [];
+    this.obstacles = [];
     this.exits = [];
     this.shrines = [];
     this.transitioning = false;
@@ -336,7 +354,10 @@ export abstract class AreaScene extends Phaser.Scene {
 
     this.getPhysicsBody(this.player).setCollideWorldBounds(true);
 
-    const enemyBodies = this.enemies.map((enemy) => enemy.sprite.body);
+    // Quem voa (espíritos) passa por cima de árvores e de outros inimigos.
+    const enemyBodies = this.enemies
+      .filter((enemy) => !enemy.definition.flying)
+      .map((enemy) => enemy.sprite.body);
 
     this.physics.add.collider([this.player.body, ...enemyBodies], obstacles);
 
@@ -760,18 +781,98 @@ export abstract class AreaScene extends Phaser.Scene {
       this.facingY,
     );
 
+    const deflected = this.deflectProjectiles();
     const target = this.findEnemyInFront();
 
     if (target) {
       this.hitEnemy(target);
-      return;
+    } else if (!this.attackSpecialTarget() && !deflected) {
+      this.statusText.setText(this.t(TEXTS.combat.missed));
     }
 
-    if (this.attackSpecialTarget()) {
-      return;
+    if (deflected) {
+      this.statusText.setText(this.t(TEXTS.combat.deflected));
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Projéteis
+  // ---------------------------------------------------------------------------
+
+  /** Dispara um projétil de (x, y) na direção `angle` (radianos). */
+  protected fireProjectile(
+    x: number,
+    y: number,
+    angle: number,
+    options: ProjectileOptions,
+  ): void {
+    this.projectiles.push(createProjectile(this, x, y, angle, options));
+    audio.play("shoot");
+  }
+
+  /** Move os projéteis e confere se bateram em algo ou no herói. */
+  private updateProjectiles(): void {
+    const delta = this.game.loop.delta;
+
+    this.projectiles = this.projectiles.filter((projectile) => {
+      const alive = moveProjectile(this, projectile, delta);
+      const { x, y } = projectile.container;
+
+      if (!alive || this.hitsObstacle(x, y)) {
+        destroyProjectile(this, projectile);
+        return false;
+      }
+
+      // Rolando, o herói é invencível: o projétil passa direto.
+      if (
+        !this.isRolling() &&
+        this.distanceToPlayer(x, y) <= projectile.radius + 12
+      ) {
+        this.damagePlayer(projectile.damage);
+        destroyProjectile(this, projectile);
+        return false;
+      }
+
+      return true;
+    });
+  }
+
+  /** O golpe de espada destrói projéteis na frente do herói. */
+  private deflectProjectiles(): boolean {
+    let deflected = false;
+
+    this.projectiles = this.projectiles.filter((projectile) => {
+      const { x, y } = projectile.container;
+
+      if (!this.isTargetInFront(x, y, 80)) {
+        return true;
+      }
+
+      destroyProjectile(this, projectile);
+      deflected = true;
+      return false;
+    });
+
+    if (deflected) {
+      audio.play("deflect");
     }
 
-    this.statusText.setText(this.t(TEXTS.combat.missed));
+    return deflected;
+  }
+
+  private hitsObstacle(x: number, y: number): boolean {
+    return this.obstacles.some((obstacle) => {
+      const body = obstacle.body as Phaser.Physics.Arcade.StaticBody | null;
+
+      return (
+        !!body &&
+        body.enable &&
+        x >= body.x &&
+        x <= body.right &&
+        y >= body.y &&
+        y <= body.bottom
+      );
+    });
   }
 
   /** O alvo precisa estar perto e na frente do herói. */
@@ -1104,6 +1205,7 @@ export abstract class AreaScene extends Phaser.Scene {
       drawEnemyHealthBar(enemy);
     }
 
+    this.updateProjectiles();
     this.updateArea();
     this.updateExits();
     this.drawHud();
@@ -1222,8 +1324,14 @@ export abstract class AreaScene extends Phaser.Scene {
       return;
     }
 
-    // Viu o herói: esquece o passeio e persegue.
+    // Viu o herói: esquece o passeio e persegue (ou atira, se for de longe).
     enemy.wanderTarget = undefined;
+
+    if (enemy.definition.ranged) {
+      this.updateRangedEnemy(enemy, enemy.definition.ranged);
+      this.animateEnemy(enemy);
+      return;
+    }
 
     const distance = this.chasePlayer(
       enemy.sprite,
@@ -1255,6 +1363,65 @@ export abstract class AreaScene extends Phaser.Scene {
     });
 
     this.damagePlayer(stats.damage);
+  }
+
+  /**
+   * Inimigo que ataca de longe: mantém a distância preferida do herói;
+   * quando pode atirar, para, brilha (aviso) e dispara na direção do herói.
+   */
+  private updateRangedEnemy(enemy: Enemy, ranged: RangedAttack): void {
+    const now = this.time.now;
+    const { stats } = enemy.definition;
+    const body = this.getPhysicsBody(enemy.sprite);
+    const { x, y } = enemy.sprite.body;
+    const dx = this.player.body.x - x;
+    const dy = this.player.body.y - y;
+    const distance = Math.max(1, Math.hypot(dx, dy));
+
+    // Mirando: fica parado até o tiro sair.
+    if (enemy.shotReadyAt > 0) {
+      body.setVelocity(0, 0);
+
+      if (now >= enemy.shotReadyAt) {
+        enemy.shotReadyAt = 0;
+        enemy.lastAttackAt = now;
+
+        this.fireProjectile(x, y - 8, Math.atan2(dy, dx), {
+          speed: ranged.projectileSpeed,
+          damage: stats.damage,
+          range: ranged.projectileRange,
+          color: ranged.projectileColor,
+        });
+      }
+      return;
+    }
+
+    // Começa a mirar: brilha e cresce (o aviso do tiro).
+    if (
+      distance <= stats.attackReach &&
+      now - enemy.lastAttackAt >= stats.attackCooldown
+    ) {
+      enemy.shotReadyAt = now + ranged.windup;
+      body.setVelocity(0, 0);
+
+      this.tweens.add({
+        targets: enemy.sprite.container,
+        scale: 1.3,
+        duration: ranged.windup / 2,
+        yoyo: true,
+        ease: "Sine.InOut",
+      });
+      return;
+    }
+
+    // Mantém a distância: recua se o herói chega perto, avança se ele foge.
+    const gap = distance - ranged.preferredDistance;
+    const direction = Math.abs(gap) < 30 ? 0 : Math.sign(gap);
+
+    body.setVelocity(
+      (dx / distance) * stats.speed * direction,
+      (dy / distance) * stats.speed * direction,
+    );
   }
 
   /**

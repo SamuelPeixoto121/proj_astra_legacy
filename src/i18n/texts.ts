@@ -219,12 +219,26 @@ export const TEXTS = {
         en: "CORRUPTED SPIDER DEFEATED!",
       },
     },
+    wisp: {
+      hit: (damage: number): Localized => ({
+        pt: `ESPÍRITO ATINGIDO! DANO: ${damage}`,
+        en: `SPIRIT HIT! DAMAGE: ${damage}`,
+      }),
+      defeated: {
+        pt: "ESPÍRITO DO PÂNTANO DISSIPADO!",
+        en: "SWAMP SPIRIT DISPELLED!",
+      },
+    },
   } satisfies Record<
     EnemyKind,
     { hit: (damage: number) => Localized; defeated: Localized }
   >,
 
   combat: {
+    deflected: {
+      pt: "PROJÉTIL REBATIDO!",
+      en: "PROJECTILE DEFLECTED!",
+    },
     missed: {
       pt: "O GOLPE NÃO ALCANÇOU NENHUM INIMIGO",
       en: "YOUR ATTACK DIDN'T REACH ANY ENEMY",

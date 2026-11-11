@@ -22,4 +22,4 @@ export type QuestStage = (typeof QUEST_STAGES)[number];
 export type AreaId = "forest" | "ruins" | "swamp";
 
 /** Tipos de inimigos comuns (os chefes são tratados à parte). */
-export type EnemyKind = "wolf" | "spider";
+export type EnemyKind = "wolf" | "spider" | "wisp";

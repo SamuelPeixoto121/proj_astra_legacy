@@ -13,6 +13,8 @@ export type SfxName =
   | "bossAppear" // chefe apareceu/despertou
   | "warning" // aviso de ataque (investida, golpe no chão)
   | "slam" // impacto pesado
+  | "shoot" // projétil disparado
+  | "deflect" // projétil rebatido pela espada
   | "fragment" // Fragmento Astral
   | "victory"
   | "defeat";
@@ -223,6 +225,23 @@ export function playSfx(
         freq: 500,
         to: 90,
       });
+      return;
+
+    case "shoot":
+      tone(ctx, out, { freq: 520, to: 980, duration: 0.18, type: "sine", gain: 0.07 });
+      noise(ctx, out, noiseBuffer, {
+        duration: 0.15,
+        gain: 0.06,
+        filter: "bandpass",
+        freq: 2400,
+        to: 900,
+        q: 2,
+      });
+      return;
+
+    case "deflect":
+      tone(ctx, out, { freq: 1400, to: 700, duration: 0.12, type: "triangle", gain: 0.1 });
+      tone(ctx, out, { freq: 2100, duration: 0.08, gain: 0.05 });
       return;
 
     case "fragment":

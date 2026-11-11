@@ -76,6 +76,34 @@ export const SPIDER_STATS = {
   wanderSpeed: 55,
 } as const;
 
+// Espírito do Pântano: ataca à distância. Para inimigos assim:
+// - damage: dano de cada projétil;
+// - attackReach: distância máxima para atirar;
+// - attackCooldown: tempo (ms) entre dois tiros.
+// E os dados de "ranged" (ver systems/enemies.ts):
+// - preferredDistance: distância que ele tenta manter do herói;
+// - windup: tempo (ms) brilhando antes de atirar (o aviso);
+// - projectileSpeed/projectileRange: velocidade e alcance do projétil.
+export const WISP_STATS = {
+  maxHealth: 40,
+  speed: 80,
+  damage: 10,
+  hitRange: 80,
+  sightRange: 380,
+  stopDistance: 0,
+  attackReach: 330,
+  attackCooldown: 2000,
+  wanderRadius: 90,
+  wanderSpeed: 35,
+} as const;
+
+export const WISP_RANGED = {
+  preferredDistance: 210,
+  windup: 450,
+  projectileSpeed: 220,
+  projectileRange: 520,
+} as const;
+
 // Passeio dos inimigos comuns (vale para todos):
 // - pauseMin/pauseMax: pausa (ms) entre um passeio e outro;
 // - giveUpTime: se não chegar ao destino nesse tempo (ex.: preso numa árvore),
@@ -186,7 +214,15 @@ export const SWAMP_MUD_SPEED = 0.5;
 export const SWAMP_RETURN_PORTAL_POSITION = { x: 800, y: 1150 } as const;
 export const SWAMP_SHRINE_POSITION = { x: 715, y: 690 } as const;
 
-// Aranhas do Pântano (os espíritos chegam na próxima etapa).
+// Espíritos do Pântano (atacam de longe).
+export const SWAMP_WISP_SPAWNS = [
+  { x: 600, y: 830 },
+  { x: 1050, y: 660 },
+  { x: 560, y: 500 },
+  { x: 990, y: 380 },
+] as const;
+
+// Aranhas do Pântano.
 export const SWAMP_SPIDER_SPAWNS = [
   { x: 380, y: 980 },
   { x: 1240, y: 720 },

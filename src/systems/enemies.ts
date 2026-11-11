@@ -9,11 +9,18 @@
 // 4. adicione os textos em i18n/texts.ts (TEXTS.enemies).
 
 import Phaser from "phaser";
-import { ENEMY_WANDER, SPIDER_STATS, WOLF_STATS } from "../config";
+import {
+  ENEMY_WANDER,
+  SPIDER_STATS,
+  WISP_RANGED,
+  WISP_STATS,
+  WOLF_STATS,
+} from "../config";
 import type { EnemyKind } from "../types";
 import type { CharacterSprite } from "../characters/types";
 import { createWolf } from "../characters/wolf";
 import { createSpider } from "../characters/spider";
+import { createWisp } from "../characters/wisp";
 
 export interface EnemyStats {
   maxHealth: number;
@@ -28,6 +35,15 @@ export interface EnemyStats {
   wanderSpeed: number;
 }
 
+/** Dados de quem ataca à distância (ver WISP_RANGED em config.ts). */
+export interface RangedAttack {
+  preferredDistance: number;
+  windup: number;
+  projectileSpeed: number;
+  projectileRange: number;
+  projectileColor: number;
+}
+
 interface EnemyDefinition {
   stats: EnemyStats;
   create: (scene: Phaser.Scene, x: number, y: number) => CharacterSprite;
@@ -36,6 +52,10 @@ interface EnemyDefinition {
    * a esquerda. Inimigos simétricos (vistos de cima) usam false.
    */
   facesRight: boolean;
+  /** true = voa por cima de árvores e obstáculos (ex.: espíritos). */
+  flying: boolean;
+  /** Presente só em inimigos que atiram de longe. */
+  ranged?: RangedAttack;
   colors: {
     impact: number;
     damageText: string;
@@ -50,6 +70,7 @@ export const ENEMY_TYPES: Record<EnemyKind, EnemyDefinition> = {
     stats: WOLF_STATS,
     create: createWolf,
     facesRight: true,
+    flying: false,
     colors: {
       impact: 0xffb56b,
       damageText: "#fff0c2",
@@ -62,6 +83,7 @@ export const ENEMY_TYPES: Record<EnemyKind, EnemyDefinition> = {
     stats: SPIDER_STATS,
     create: createSpider,
     facesRight: false,
+    flying: false,
     colors: {
       impact: 0xc9ff9a,
       damageText: "#e6ffd0",
@@ -69,6 +91,20 @@ export const ENEMY_TYPES: Record<EnemyKind, EnemyDefinition> = {
       death: 0x7a4c9e,
     },
     healthBar: { width: 36, offsetY: 28 },
+  },
+  wisp: {
+    stats: WISP_STATS,
+    create: createWisp,
+    facesRight: false,
+    flying: true,
+    ranged: { ...WISP_RANGED, projectileColor: 0x7fffd4 },
+    colors: {
+      impact: 0xbfffe8,
+      damageText: "#dffff4",
+      healthBar: 0x5fe0b8,
+      death: 0x7fffd4,
+    },
+    healthBar: { width: 36, offsetY: 34 },
   },
 };
 
@@ -89,6 +125,8 @@ export interface Enemy {
   nextWanderAt: number;
   /** Se ainda não chegou ao destino até aqui (ms), desiste. */
   wanderGiveUpAt: number;
+  /** Inimigos que atiram: quando o tiro sai (ms); 0 = não está mirando. */
+  shotReadyAt: number;
 }
 
 export function spawnEnemy(
@@ -116,6 +154,7 @@ export function spawnEnemy(
     nextWanderAt:
       scene.time.now + Phaser.Math.Between(0, ENEMY_WANDER.pauseMax),
     wanderGiveUpAt: 0,
+    shotReadyAt: 0,
   };
 }
 

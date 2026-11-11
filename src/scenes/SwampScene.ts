@@ -1,7 +1,8 @@
 // Pântano Sombrio: Capítulo 2.
 // Chega-se aqui pelo portal atrás do altar das Ruínas.
 // Missão: encontrar e derrotar a feiticeira que guarda o segundo Fragmento
-// Astral (a feiticeira e os espíritos entram nas próximas etapas).
+// Astral (a feiticeira entra na próxima etapa).
+// Espíritos do Pântano atacam de longe; aranhas, de perto.
 //
 // Poças de lama deixam o herói mais lento; rolar não é afetado.
 
@@ -12,6 +13,7 @@ import {
   SWAMP_RETURN_PORTAL_POSITION,
   SWAMP_SHRINE_POSITION,
   SWAMP_SPIDER_SPAWNS,
+  SWAMP_WISP_SPAWNS,
   SWAMP_WIDTH,
 } from "../config";
 import { TEXTS } from "../i18n/texts";
@@ -75,7 +77,11 @@ export class SwampScene extends AreaScene {
       spawnEnemy(this, "spider", x, y),
     );
 
-    this.enemies.push(...spiders);
+    const wisps = SWAMP_WISP_SPAWNS.map(({ x, y }) =>
+      spawnEnemy(this, "wisp", x, y),
+    );
+
+    this.enemies.push(...spiders, ...wisps);
   }
 
   protected onAreaEntered(): void {
