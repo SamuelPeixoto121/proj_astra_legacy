@@ -12,6 +12,10 @@ export const TILE_SIZE = 64;
 export const RUINS_WIDTH = 1400;
 export const RUINS_HEIGHT = 1000;
 
+// Pântano Sombrio
+export const SWAMP_WIDTH = 1600;
+export const SWAMP_HEIGHT = 1200;
+
 // Barreira de corrupção que fecha a trilha ao norte até Kael ser derrotado.
 export const NORTH_BARRIER = { x: 850, y: 240, width: 200 } as const;
 
@@ -151,6 +155,44 @@ export const RUINS_SPIDER_SPAWNS = [
 // Pedra Astral das Ruínas (antes do guardião).
 export const RUINS_SHRINE_POSITION = { x: 645, y: 730 } as const;
 
+// Portal de luz atrás do altar das Ruínas (abre ao pegar o fragmento).
+export const RUINS_PORTAL_POSITION = { x: 700, y: 60 } as const;
+
+// Pântano Sombrio.
+// Trilha (pontos em ordem, de baixo para cima) e poças de lama:
+// dentro da lama o herói anda mais devagar (rolar não é afetado).
+export const SWAMP_PATH = [
+  { x: 800, y: 1200 },
+  { x: 760, y: 980 },
+  { x: 880, y: 820 },
+  { x: 800, y: 640 },
+  { x: 700, y: 480 },
+  { x: 800, y: 320 },
+  { x: 800, y: 170 },
+] as const;
+
+export const SWAMP_MUD_POOLS = [
+  { x: 780, y: 900, rx: 110, ry: 55 },
+  { x: 860, y: 560, rx: 130, ry: 60 },
+  { x: 420, y: 760, rx: 150, ry: 80 },
+  { x: 1180, y: 520, rx: 140, ry: 70 },
+  { x: 1150, y: 900, rx: 120, ry: 60 },
+  { x: 450, y: 350, rx: 120, ry: 60 },
+] as const;
+
+/** Velocidade do herói dentro da lama (0.5 = metade). */
+export const SWAMP_MUD_SPEED = 0.5;
+
+export const SWAMP_RETURN_PORTAL_POSITION = { x: 800, y: 1150 } as const;
+export const SWAMP_SHRINE_POSITION = { x: 715, y: 690 } as const;
+
+// Aranhas do Pântano (os espíritos chegam na próxima etapa).
+export const SWAMP_SPIDER_SPAWNS = [
+  { x: 380, y: 980 },
+  { x: 1240, y: 720 },
+  { x: 1050, y: 300 },
+] as const;
+
 export const ELDER_TALK_RANGE = 85;
 
 // Pedra Astral: checkpoint no meio da trilha.
@@ -165,6 +207,9 @@ export const CHECKPOINTS = {
   forestNorth: { area: "forest", x: 850, y: 110 },
   ruinsEntrance: { area: "ruins", x: 700, y: 880 },
   ruinsShrine: { area: "ruins", x: 700, y: 745 },
+  ruinsPortal: { area: "ruins", x: 700, y: 112 },
+  swampEntrance: { area: "swamp", x: 800, y: 1060 },
+  swampShrine: { area: "swamp", x: 770, y: 705 },
 } as const satisfies Record<string, { area: AreaId; x: number; y: number }>;
 
 export type CheckpointId = keyof typeof CHECKPOINTS;

@@ -1,6 +1,7 @@
 // Ruínas do Santuário: Capítulo 1.
 // Missão: derrotar a Sentinela de Pedra, guardiã do primeiro Fragmento
-// Astral, e pegar o fragmento no altar para concluir o capítulo.
+// Astral, e pegar o fragmento no altar. Isso abre um portal atrás do altar,
+// que leva ao Pântano Sombrio (Capítulo 2).
 //
 // A Sentinela é lenta, mas golpeia o chão em área. Antes do golpe, um
 // círculo vermelho avisa onde vai bater: sair dele evita o dano.
@@ -10,6 +11,7 @@ import {
   FRAGMENT_COLLECT_RANGE,
   FRAGMENT_POSITION,
   RUINS_HEIGHT,
+  RUINS_PORTAL_POSITION,
   RUINS_SHRINE_POSITION,
   RUINS_SPIDER_SPAWNS,
   RUINS_WIDTH,
@@ -17,8 +19,7 @@ import {
   SENTINEL_STATS,
 } from "../config";
 import { TEXTS } from "../i18n/texts";
-import { progress, saveProgress } from "../systems/progress";
-import { clearSave } from "../systems/saveGame";
+import { progress, reachedStage, saveProgress } from "../systems/progress";
 import { spawnEnemy } from "../systems/enemies";
 import {
   createBoss,
@@ -28,6 +29,7 @@ import {
   type Boss,
 } from "../systems/bosses";
 import { createRuinsWorld } from "../world/ruins";
+import { createPortal, openPortal, type AstralPortal } from "../world/portal";
 import {
   createAstralFragment,
   revealAstralFragment,
@@ -63,6 +65,7 @@ export class RuinsScene extends AreaScene {
 
   private sign!: Phaser.GameObjects.Text;
   private fragment!: AstralFragment;
+  private portal!: AstralPortal;
 
   private sentinelSprite!: SentinelSprite;
   private sentinel!: Boss;
@@ -93,6 +96,20 @@ export class RuinsScene extends AreaScene {
       FRAGMENT_POSITION.x,
       FRAGMENT_POSITION.y,
     );
+
+    // Portal atrás do altar: leva ao Pântano depois de pegar o fragmento.
+    const { x, y } = RUINS_PORTAL_POSITION;
+
+    this.portal = createPortal(this, x, y);
+
+    this.addExit({
+      x: x - 40,
+      y: y - 30,
+      width: 80,
+      height: 60,
+      target: "swampEntrance",
+      isOpen: () => reachedStage("portal"),
+    });
 
     // Borda de baixo: volta para a trilha ao norte da Floresta.
     this.addExit({
@@ -146,7 +163,11 @@ export class RuinsScene extends AreaScene {
 
   /** Deixa as Ruínas iguais ao progresso salvo. */
   protected restoreAreaState(): void {
-    if (progress.questStage === "fragment") {
+    if (reachedStage("portal")) {
+      // Fragmento já recuperado: Sentinela derrotada e portal aberto.
+      this.removeSentinel();
+      openPortal(this, this.portal, false);
+    } else if (progress.questStage === "fragment") {
       this.removeSentinel();
       revealAstralFragment(this, this.fragment, false);
     }
@@ -352,9 +373,9 @@ export class RuinsScene extends AreaScene {
     }
   }
 
-  /** Pegar o fragmento conclui o Capítulo 1. */
+  /** Pegar o fragmento conclui o Capítulo 1 e abre o portal para o Pântano. */
   private collectFragment(): void {
-    progress.questStage = "complete";
+    progress.questStage = "portal";
 
     const { x, y } = this.fragment.container;
 
@@ -365,10 +386,12 @@ export class RuinsScene extends AreaScene {
 
     this.cameras.main.flash(500, 255, 240, 200);
 
-    // Capítulo concluído: a próxima partida começa do zero.
-    clearSave();
+    openPortal(this, this.portal, true);
+    audio.play("shrine");
 
-    this.showGameOver(true);
     this.updateQuestDisplay();
+    this.statusText.setText(this.t(TEXTS.chapter2.portalOpened));
+
+    saveProgress();
   }
 }

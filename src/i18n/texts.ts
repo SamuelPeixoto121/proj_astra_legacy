@@ -15,9 +15,13 @@ export const TEXTS = {
       pt: "ASTRA LEGACY  •  CAPÍTULO 1",
       en: "ASTRA LEGACY  •  CHAPTER 1",
     },
+    chapter2Title: {
+      pt: "ASTRA LEGACY  •  CAPÍTULO 2",
+      en: "ASTRA LEGACY  •  CHAPTER 2",
+    },
     chapterComplete: {
-      pt: "CAPÍTULO 1 CONCLUÍDO",
-      en: "CHAPTER 1 COMPLETE",
+      pt: "CAPÍTULO 2 CONCLUÍDO",
+      en: "CHAPTER 2 COMPLETE",
     },
     victory: {
       pt: "FRAGMENTO RECUPERADO • VITÓRIA",
@@ -50,9 +54,21 @@ export const TEXTS = {
       pt: "MISSÃO: O PRIMEIRO FRAGMENTO\nPegue o Fragmento Astral no altar.",
       en: "QUEST: THE FIRST FRAGMENT\nTake the Astral Fragment from the altar.",
     },
+    portal: {
+      pt: "NOVO OBJETIVO: O PORTAL DE LUZ\nAtravesse o portal atrás do altar.",
+      en: "NEW OBJECTIVE: THE PORTAL OF LIGHT\nStep through the portal behind the altar.",
+    },
+    witch: {
+      pt: "MISSÃO: O SEGUNDO FRAGMENTO\nEncontre a feiticeira no coração do pântano.",
+      en: "QUEST: THE SECOND FRAGMENT\nFind the sorceress in the heart of the swamp.",
+    },
+    fragment2: {
+      pt: "MISSÃO: O SEGUNDO FRAGMENTO\nPegue o Fragmento Astral.",
+      en: "QUEST: THE SECOND FRAGMENT\nTake the Astral Fragment.",
+    },
     complete: {
-      pt: "CAPÍTULO 1 CONCLUÍDO!\nVocê recuperou o primeiro Fragmento Astral.",
-      en: "CHAPTER 1 COMPLETE!\nYou recovered the first Astral Fragment.",
+      pt: "CAPÍTULO 2 CONCLUÍDO!\nVocê recuperou o segundo Fragmento Astral.",
+      en: "CHAPTER 2 COMPLETE!\nYou recovered the second Astral Fragment.",
     },
   } satisfies Record<QuestStage, Localized>,
 
@@ -60,6 +76,19 @@ export const TEXTS = {
     trail: { pt: "TRILHA DA ALVORADA", en: "DAWNVALE TRAIL" },
     forest: { pt: "FLORESTA SUSSURRANTE", en: "WHISPERING FOREST" },
     ruins: { pt: "RUÍNAS DO SANTUÁRIO", en: "SANCTUARY RUINS" },
+    swamp: { pt: "PÂNTANO SOMBRIO", en: "SHADOW SWAMP" },
+  },
+
+  // Mensagens das áreas do Capítulo 2.
+  chapter2: {
+    portalOpened: {
+      pt: "FRAGMENTO RECUPERADO! UM PORTAL SE ABRIU ATRÁS DO ALTAR.",
+      en: "FRAGMENT RECOVERED! A PORTAL HAS OPENED BEHIND THE ALTAR.",
+    },
+    mud: {
+      pt: "A LAMA PRENDE SEUS PÉS... (ROLAR NÃO É AFETADO)",
+      en: "THE MUD GRIPS YOUR FEET... (ROLLING IS NOT AFFECTED)",
+    },
   },
 
   page: {
@@ -148,6 +177,16 @@ export const TEXTS = {
       en: [
         "You defeated Kael! But the corruption did not come from him... something was feeding it.",
         "I sense the light of an Astral Fragment in the Sanctuary Ruins to the north. Follow the trail beyond the clearing and recover it before the darkness consumes it.",
+      ],
+    },
+    firstFragment: {
+      pt: [
+        "Você recuperou um Fragmento Astral! Sinto a luz de Astra mais forte em você.",
+        "Mas outro fragmento chama além do portal, perdido nas águas escuras de um pântano. Alguém o guarda... alguém que conhece magia. Tenha cuidado, viajante.",
+      ],
+      en: [
+        "You recovered an Astral Fragment! I feel Astra's light stronger within you.",
+        "But another fragment calls from beyond the portal, lost in the dark waters of a swamp. Someone guards it... someone who knows magic. Be careful, traveler.",
       ],
     },
   } satisfies Record<string, Localized<string[]>>,

@@ -15,7 +15,7 @@ import {
   WORLD_WIDTH,
 } from "../config";
 import { TEXTS } from "../i18n/texts";
-import { progress, saveProgress } from "../systems/progress";
+import { progress, reachedStage, saveProgress } from "../systems/progress";
 import { spawnEnemy, type Enemy } from "../systems/enemies";
 import {
   createBoss,
@@ -235,6 +235,7 @@ export class ForestScene extends AreaScene {
     const dialogue = TEXTS.elderDialogue;
 
     if (!progress.elderTalked) return this.t(dialogue.intro);
+    if (reachedStage("portal")) return this.t(dialogue.firstFragment);
     if (progress.kaelDefeated) return this.t(dialogue.bossDefeated);
     if (progress.kaelUnlocked) return this.t(dialogue.bossAwake);
     if (progress.wolfDefeated) return this.t(dialogue.wolfDefeated);

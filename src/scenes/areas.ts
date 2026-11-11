@@ -16,6 +16,7 @@ export const PAUSE_SCENE_KEY = "PauseScene";
 export const AREA_SCENE_KEYS: Record<AreaId, string> = {
   forest: "ForestScene",
   ruins: "RuinsScene",
+  swamp: "SwampScene",
 };
 
 /**

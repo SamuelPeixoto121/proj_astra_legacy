@@ -16,11 +16,16 @@ import {
   SHRINE_ACTIVATION_RANGE,
   type CheckpointId,
 } from "../config";
-import { QUEST_STAGES, type AreaId } from "../types";
+import type { AreaId } from "../types";
 import { TEXTS, type Localized } from "../i18n/texts";
 import { LANGUAGE_CHANGED_EVENT } from "../i18n/page";
 import { clearSave } from "../systems/saveGame";
-import { progress, resetProgress, saveProgress } from "../systems/progress";
+import {
+  progress,
+  reachedStage,
+  resetProgress,
+  saveProgress,
+} from "../systems/progress";
 import { drawEnemyHealthBar, type Enemy } from "../systems/enemies";
 import { drawBossHealthBar, type Boss } from "../systems/bosses";
 import {
@@ -169,6 +174,14 @@ export abstract class AreaScene extends Phaser.Scene {
    * Chamado quando o golpe não acertou nenhum inimigo comum.
    * Devolve true se a área tratou o golpe (ex.: atacou o chefe).
    */
+  /**
+   * Multiplica a velocidade do herói andando (ex.: 0.5 na lama do pântano).
+   * Não afeta o rolamento.
+   */
+  protected getPlayerSpeedMultiplier(): number {
+    return 1;
+  }
+
   protected attackSpecialTarget(): boolean {
     return false;
   }
@@ -499,15 +512,14 @@ export abstract class AreaScene extends Phaser.Scene {
 
     this.questText.setText(this.t(TEXTS.quests[stage]));
 
-    // Depois de Kael (etapa "ruins" em diante), o jogo está no Capítulo 1.
-    const inChapterOne =
-      QUEST_STAGES.indexOf(stage) >= QUEST_STAGES.indexOf("ruins");
-
+    // Capítulo 1: depois de Kael ("ruins"). Capítulo 2: depois do portal.
     if (this.victory) {
       this.statusText.setText(this.t(TEXTS.hud.victory));
     } else if (stage === "complete") {
       this.statusText.setText(this.t(TEXTS.hud.chapterComplete));
-    } else if (inChapterOne) {
+    } else if (reachedStage("portal")) {
+      this.statusText.setText(this.t(TEXTS.hud.chapter2Title));
+    } else if (reachedStage("ruins")) {
       this.statusText.setText(this.t(TEXTS.hud.chapterTitle));
     } else {
       this.statusText.setText(this.t(TEXTS.hud.title));
@@ -1120,9 +1132,11 @@ export abstract class AreaScene extends Phaser.Scene {
       updatePlayerDirection(this.player, x, y);
     }
 
+    const speedMultiplier = this.getPlayerSpeedMultiplier();
+
     this.getPhysicsBody(this.player).setVelocity(
-      x * PLAYER_STATS.speed,
-      y * PLAYER_STATS.speed,
+      x * PLAYER_STATS.speed * speedMultiplier,
+      y * PLAYER_STATS.speed * speedMultiplier,
     );
 
     this.player.container.setPosition(this.player.body.x, this.player.body.y);

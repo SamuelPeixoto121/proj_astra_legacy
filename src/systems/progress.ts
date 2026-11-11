@@ -3,7 +3,7 @@
 // as cenas leem daqui em vez de guardar o progresso por conta própria.
 
 import type { CheckpointId } from "../config";
-import type { Language, QuestStage } from "../types";
+import { QUEST_STAGES, type Language, type QuestStage } from "../types";
 import { loadGame, saveGame } from "./saveGame";
 import { readLanguagePreference } from "./preferences";
 
@@ -52,6 +52,11 @@ export function loadProgress(): boolean {
   progress.language = readLanguagePreference() ?? save.language;
 
   return true;
+}
+
+/** true se a missão já chegou à etapa indicada (ou passou dela). */
+export function reachedStage(stage: QuestStage): boolean {
+  return QUEST_STAGES.indexOf(progress.questStage) >= QUEST_STAGES.indexOf(stage);
 }
 
 export function saveProgress(): void {
