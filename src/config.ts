@@ -22,12 +22,19 @@ export const AREA_FADE_TIME = 350;
 // quanto tempo fica totalmente visível (ms).
 export const AREA_BANNER = { fade: 700, hold: 1800 } as const;
 
+// Herói. Rolamento (Shift):
+// - rollSpeed/rollDuration: velocidade e duração (ms) do rolamento;
+// - rollCooldown: tempo mínimo (ms) entre o início de dois rolamentos.
+// Durante o rolamento o herói não recebe dano.
 export const PLAYER_STATS = {
   maxHealth: 100,
   speed: 220,
   attackDamage: 25,
   attackCooldown: 350,
   invulnerabilityTime: 850,
+  rollSpeed: 470,
+  rollDuration: 300,
+  rollCooldown: 750,
 } as const;
 
 // Inimigos comuns:

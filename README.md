@@ -23,6 +23,8 @@ O **prólogo** e o **Capítulo 1** estão completos e jogáveis:
 - **Movimentação em 8 direções** com colisão no cenário e câmera que acompanha o herói
 - **Combate corpo a corpo** com alcance e direção do golpe, efeitos de corte,
   impacto, números de dano e barras de vida
+- **Rolamento** (Shift) com invencibilidade: dá para rolar através da investida
+  de Kael ou para fora do golpe em área da Sentinela
 - **Inimigos com perseguição**: o Lobo Corrompido da missão e Aranhas Corrompidas
   espalhadas pelos mapas
 - **Dois chefes com estilos diferentes**: Kael persegue sem trégua; a Sentinela de
@@ -45,6 +47,7 @@ O **prólogo** e o **Capítulo 1** estão completos e jogáveis:
 |---|---|
 | `W` `A` `S` `D` / setas | Mover |
 | `J` | Atacar |
+| `Shift` | Rolar (invencível durante o rolamento) |
 | `E` | Conversar / avançar diálogo |
 | `L` | Trocar idioma (PT/EN) |
 | `R` | Voltar ao último checkpoint / jogar de novo |
@@ -158,4 +161,4 @@ in code.
 
 **[Play it in your browser](https://samuelpeixoto121.github.io/proj_astra_legacy/)**,
 or run it locally with `npm install` and `npm run dev`, then open http://localhost:5173.
-Controls: WASD/arrows to move, J to attack, E to interact, L to switch language.
+Controls: WASD/arrows to move, J to attack, Shift to roll, E to interact, L to switch language.

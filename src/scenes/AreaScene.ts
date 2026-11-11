@@ -88,6 +88,7 @@ export abstract class AreaScene extends Phaser.Scene {
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd!: Record<"W" | "A" | "S" | "D", Phaser.Input.Keyboard.Key>;
   private attackKey!: Phaser.Input.Keyboard.Key;
+  private rollKey!: Phaser.Input.Keyboard.Key;
   private interactKey!: Phaser.Input.Keyboard.Key;
   private languageKey!: Phaser.Input.Keyboard.Key;
   private restartKey!: Phaser.Input.Keyboard.Key;
@@ -109,6 +110,11 @@ export abstract class AreaScene extends Phaser.Scene {
   private lastAttackAt = -10000;
   private lastDamageAt = -10000;
   private victory = false;
+
+  /** Até quando (ms) o herói está rolando. */
+  private rollingUntil = 0;
+  private lastRollAt = -10000;
+  private rollDirection = { x: 0, y: 1 };
 
   private dialogueOpen = false;
   private dialogueSource?: DialogueSource;
@@ -235,6 +241,8 @@ export abstract class AreaScene extends Phaser.Scene {
     this.facingY = 1;
     this.lastAttackAt = -10000;
     this.lastDamageAt = -10000;
+    this.rollingUntil = 0;
+    this.lastRollAt = -10000;
 
     this.gameOver = false;
     this.victory = false;
@@ -282,6 +290,7 @@ export abstract class AreaScene extends Phaser.Scene {
     };
 
     this.attackKey = keyboard.addKey(KeyCodes.J);
+    this.rollKey = keyboard.addKey(KeyCodes.SHIFT);
     this.interactKey = keyboard.addKey(KeyCodes.E);
     this.languageKey = keyboard.addKey(KeyCodes.L);
     this.restartKey = keyboard.addKey(KeyCodes.R);
@@ -832,8 +841,10 @@ export abstract class AreaScene extends Phaser.Scene {
   }
 
   protected damagePlayer(amount: number): void {
+    // Rolando, o herói é invencível.
     if (
       this.gameOver ||
+      this.isRolling() ||
       this.time.now - this.lastDamageAt < PLAYER_STATS.invulnerabilityTime
     ) {
       return;
@@ -972,12 +983,19 @@ export abstract class AreaScene extends Phaser.Scene {
       return;
     }
 
-    this.updatePlayerMovement();
-    this.updateShrines();
+    if (this.isRolling()) {
+      this.updateRoll();
+    } else {
+      this.updatePlayerMovement();
 
-    if (Phaser.Input.Keyboard.JustDown(this.attackKey)) {
-      this.attack();
+      if (Phaser.Input.Keyboard.JustDown(this.rollKey)) {
+        this.startRoll();
+      } else if (Phaser.Input.Keyboard.JustDown(this.attackKey)) {
+        this.attack();
+      }
     }
+
+    this.updateShrines();
 
     for (const enemy of this.enemies) {
       if (enemy.defeated) continue;
@@ -1026,6 +1044,67 @@ export abstract class AreaScene extends Phaser.Scene {
   }
 
   /** Persegue o herói e ataca quando ele está ao alcance. */
+  // ---------------------------------------------------------------------------
+  // Rolamento (Shift)
+  // ---------------------------------------------------------------------------
+
+  private isRolling(): boolean {
+    return this.time.now < this.rollingUntil;
+  }
+
+  /**
+   * Rola na direção em que o herói está olhando (que é a direção das teclas
+   * apertadas, se ele estiver andando). Invencível até o fim do rolamento.
+   */
+  private startRoll(): void {
+    const now = this.time.now;
+
+    if (now - this.lastRollAt < PLAYER_STATS.rollCooldown) {
+      return;
+    }
+
+    this.lastRollAt = now;
+    this.rollingUntil = now + PLAYER_STATS.rollDuration;
+    this.rollDirection = { x: this.facingX, y: this.facingY };
+
+    const { container, body } = this.player;
+
+    animatePlayerWalk(this.player, false, now);
+
+    // Uma volta completa, girando para o lado em que rola.
+    const spin = this.facingX < 0 ? -360 : 360;
+
+    this.tweens.killTweensOf(container);
+    container.setAlpha(0.75);
+
+    this.tweens.add({
+      targets: container,
+      angle: { from: 0, to: spin },
+      duration: PLAYER_STATS.rollDuration,
+      ease: "Sine.InOut",
+      onComplete: () => {
+        container.setAngle(0);
+        container.setAlpha(1);
+      },
+    });
+
+    // Poeira na saída.
+    createImpactEffect(this, body.x, body.y + 10, 0x8a7a6a, 6, 18);
+  }
+
+  private updateRoll(): void {
+    const { container, body } = this.player;
+
+    // Velocidade constante na direção travada (árvores ainda bloqueiam).
+    this.getPhysicsBody(this.player).setVelocity(
+      this.rollDirection.x * PLAYER_STATS.rollSpeed,
+      this.rollDirection.y * PLAYER_STATS.rollSpeed,
+    );
+
+    container.setPosition(body.x, body.y);
+    container.setDepth(body.y + 50);
+  }
+
   /**
    * Inimigo comum: passeia perto de casa enquanto o herói está longe;
    * quando o herói chega perto, persegue e ataca ao alcance.

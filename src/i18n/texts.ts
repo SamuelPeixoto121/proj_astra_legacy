@@ -76,12 +76,14 @@ export const TEXTS = {
       pt: [
         ["WASD / setas", "mover"],
         ["J", "atacar"],
+        ["Shift", "rolar"],
         ["E", "interagir"],
         ["L", "idioma"],
       ],
       en: [
         ["WASD / arrows", "move"],
         ["J", "attack"],
+        ["Shift", "roll"],
         ["E", "interact"],
         ["L", "language"],
       ],
