@@ -96,7 +96,6 @@ export const TEXTS = {
       pt: "Astra Legacy — Os Fragmentos Astrais",
       en: "Astra Legacy — The Astral Fragments",
     },
-    eyebrow: { pt: "UM RPG DE FANTASIA SOMBRIA", en: "A DARK FANTASY RPG" },
     subtitle: {
       pt: "Em busca dos Fragmentos Astrais",
       en: "In search of the Astral Fragments",

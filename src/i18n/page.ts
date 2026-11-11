@@ -13,7 +13,6 @@ export function updatePageLanguage(language: Language): void {
   document.documentElement.lang = language === "pt" ? "pt-BR" : "en";
   document.title = page.title[language];
 
-  setText("page-eyebrow", page.eyebrow[language]);
   setText("page-subtitle", page.subtitle[language]);
   setText("page-tagline", page.tagline[language]);
 
