@@ -75,6 +75,7 @@ export const ARMOR_STATS = {
 
 export const AMULET_STATS = {
   swampAmulet: { potionHeal: 1.5, rollCooldown: 0.6 },
+  dragonHeart: { potionHeal: 1.25, rollCooldown: 0.4 },
 } as const satisfies Record<AmuletId, { potionHeal: number; rollCooldown: number }>;
 
 /** Sem arma, o herói luta no soco: fraco, mas muito rápido. */
@@ -731,6 +732,60 @@ export const SPECTRE_STATS = {
 
 /** Até que fração do raio da luz da tocha o Espectro fica visível e tangível. */
 export const SPECTRE_REVEAL_FACTOR = 0.85;
+
+// Cavaleiro Dracônico, o guardião do Cemitério. Um duelo:
+// - combo (combo*): comboHits golpes à frente, cada um com aviso curto; o
+//   último é mais lento e mais forte. Depois fica parado (comboRecover): a
+//   brecha para atacar;
+// - guarda (guard*): ergue a espada atravessada; golpeá-lo nessa hora faz
+//   ele aparar e contra-atacar na hora (counter*);
+// - salto (leap*): se o herói se afasta, salta até onde ele está.
+// Com enragedAt da vida, os avisos ficam mais curtos (enragedSpeedFactor).
+export const DRAGON_KNIGHT_STATS = {
+  maxHealth: 500,
+  hitRange: 95,
+  wakeRange: 300,
+  sightRange: 900,
+  speed: 85,
+  stopDistance: 55,
+  comboRange: 80,
+  comboCooldown: 1500,
+  comboHits: 3,
+  comboWindup: 380,
+  comboGap: 260,
+  comboFinisherWindup: 620,
+  comboReach: 85,
+  comboArc: 1.2,
+  comboDamage: 16,
+  finisherDamage: 26,
+  comboLunge: 22,
+  comboRecover: 1100,
+  guardChance: 0.3,
+  guardTime: 1300,
+  guardCooldown: 5000,
+  counterDamage: 22,
+  counterRange: 100,
+  leapMinRange: 220,
+  leapCooldown: 5000,
+  leapWindup: 600,
+  leapTime: 550,
+  leapRadius: 75,
+  leapDamage: 20,
+  leapRecover: 800,
+  enragedAt: 0.5,
+  enragedSpeedFactor: 0.75,
+} as const;
+
+export const DRAGON_KNIGHT_POSITION = { x: 300, y: 540 } as const;
+
+// Quinto Fragmento Astral: surge no centro da arena.
+export const GRAVEYARD_FRAGMENT_POSITION = { x: 330, y: 560 } as const;
+
+// Coração de Dragão (item do chefe): num canto da arena.
+export const DRAGON_KNIGHT_ITEM_POSITION = { x: 470, y: 690 } as const;
+
+/** Raio da luz que ilumina a arena quando o duelo começa. */
+export const ARENA_LIGHT_RADIUS = 300;
 
 export const GRAVEYARD_SPECTRE_SPAWNS = [
   { x: 1400, y: 770 },

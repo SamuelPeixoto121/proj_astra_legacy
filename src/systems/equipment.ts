@@ -48,6 +48,7 @@ export const ITEM_LOOKS: Record<
   stoneArmor: { icon: 0xa9a6b8, torso: 0x8f8c9c, cloak: 0x4f4d5a },
   emberMantle: { icon: 0xff8a3a, torso: 0x8a2a1a, cloak: 0xe0662a },
   swampAmulet: { icon: 0x7fffd4 },
+  dragonHeart: { icon: 0xff4a5a },
 };
 
 /** Raridade de cada item (cor da borda e do nome no inventário). */
@@ -59,6 +60,7 @@ export const ITEM_RARITY: Record<ItemId, Rarity> = {
   swampAmulet: "rare",
   glacialBlade: "veryRare",
   emberMantle: "veryRare",
+  dragonHeart: "veryRare",
 };
 
 export const RARITY_COLORS: Record<Rarity, number> = {

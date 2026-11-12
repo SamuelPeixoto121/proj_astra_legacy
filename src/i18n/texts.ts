@@ -361,6 +361,18 @@ export const TEXTS = {
         "The path lies west of the village, beyond an Astral Seal no one has crossed in centuries. With the light of four fragments, I can break it. Go, traveler. And bring light with you: there, the dead do not rest.",
       ],
     },
+    fifthFragment: {
+      pt: [
+        "Cinco fragmentos... O guardião do cemitério caiu, e os dragões mortos enfim descansam.",
+        "Eu senti o fragmento voltar à luz. E senti também Ignis se mexer, inquieto, no fundo do seu covil. Ele sabe que você está vindo.",
+        "Descanse, viajante. A luz de Astra está quase completa. O que vier agora será o desafio mais difícil de todos.",
+      ],
+      en: [
+        "Five fragments... The graveyard's guardian has fallen, and the dead dragons finally rest.",
+        "I felt the fragment return to the light. And I felt Ignis stir, restless, deep in his lair. He knows you are coming.",
+        "Rest, traveler. Astra's light is nearly whole. What comes next will be the hardest challenge of all.",
+      ],
+    },
     sealOpen: {
       pt: [
         "O selo está aberto. Siga a trilha a oeste até o Cemitério de Dragões.",
@@ -486,6 +498,13 @@ export const TEXTS = {
       description: {
         pt: "Feita dos restos da Sentinela. Reduz o dano, mas pesa.",
         en: "Made from the Sentinel's remains. Reduces damage, but is heavy.",
+      },
+    },
+    dragonHeart: {
+      name: { pt: "CORAÇÃO DE DRAGÃO", en: "DRAGON HEART" },
+      description: {
+        pt: "Pulsa como um coração vivo. Rolamentos quase sem espera.",
+        en: "It beats like a living heart. Rolls with almost no wait.",
       },
     },
     emberMantle: {
@@ -719,6 +738,45 @@ export const TEXTS = {
       defeated: {
         pt: "FEITICEIRA DERROTADA! O SEGUNDO FRAGMENTO FOI LIBERTADO.",
         en: "SORCERESS DEFEATED! THE SECOND FRAGMENT HAS BEEN RELEASED.",
+      },
+    },
+    dragonKnight: {
+      name: { pt: "CAVALEIRO DRACÔNICO", en: "DRAGON KNIGHT" },
+      appeared: {
+        pt: "O CAVALEIRO DRACÔNICO ERGUE A ESPADA! AS TOCHAS DA ARENA SE ACENDEM.",
+        en: "THE DRAGON KNIGHT RAISES HIS SWORD! THE ARENA TORCHES IGNITE.",
+      },
+      missed: {
+        pt: "APROXIME-SE E VIRE PARA O CAVALEIRO",
+        en: "GET CLOSER AND FACE THE KNIGHT",
+      },
+      hit: (damage: number): Localized => ({
+        pt: `CAVALEIRO ATINGIDO! DANO: ${damage}`,
+        en: `KNIGHT HIT! DAMAGE: ${damage}`,
+      }),
+      guard: {
+        pt: "O CAVALEIRO ESTÁ EM GUARDA! NÃO ATAQUE AGORA!",
+        en: "THE KNIGHT IS ON GUARD! DON'T ATTACK NOW!",
+      },
+      parried: {
+        pt: "APARADO! O CAVALEIRO CONTRA-ATACA!",
+        en: "PARRIED! THE KNIGHT COUNTERATTACKS!",
+      },
+      opening: {
+        pt: "BRECHA! ATAQUE AGORA!",
+        en: "OPENING! ATTACK NOW!",
+      },
+      leap: {
+        pt: "O CAVALEIRO VAI SALTAR! SAIA DO CÍRCULO!",
+        en: "THE KNIGHT IS ABOUT TO LEAP! GET OUT OF THE CIRCLE!",
+      },
+      enraged: {
+        pt: "O SANGUE DE DRAGÃO FERVE! O CAVALEIRO FICA MAIS RÁPIDO!",
+        en: "THE DRAGON BLOOD BOILS! THE KNIGHT GROWS FASTER!",
+      },
+      defeated: {
+        pt: "CAVALEIRO DRACÔNICO DERROTADO! O QUINTO FRAGMENTO FOI LIBERTADO.",
+        en: "DRAGON KNIGHT DEFEATED! THE FIFTH FRAGMENT HAS BEEN RELEASED.",
       },
     },
     herald: {

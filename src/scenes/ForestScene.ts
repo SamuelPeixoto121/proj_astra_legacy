@@ -304,6 +304,7 @@ export class ForestScene extends AreaScene {
     const dialogue = TEXTS.elderDialogue;
 
     if (!progress.elderTalked) return this.t(dialogue.intro);
+    if (reachedStage("complete")) return this.t(dialogue.fifthFragment);
     if (reachedStage("passage")) return this.t(dialogue.sealOpen);
     if (reachedStage("return")) return this.t(dialogue.fourthFragment);
     if (reachedStage("portal3")) return this.t(dialogue.thirdFragment);

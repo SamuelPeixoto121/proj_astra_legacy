@@ -54,7 +54,7 @@ export const WEAPON_IDS = [
   "glacialBlade",
 ] as const;
 export const ARMOR_IDS = ["travelerTunic", "stoneArmor", "emberMantle"] as const;
-export const AMULET_IDS = ["swampAmulet"] as const;
+export const AMULET_IDS = ["swampAmulet", "dragonHeart"] as const;
 export const ITEM_IDS = [...WEAPON_IDS, ...ARMOR_IDS, ...AMULET_IDS] as const;
 
 export type WeaponId = (typeof WEAPON_IDS)[number];
