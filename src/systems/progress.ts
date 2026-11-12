@@ -2,8 +2,19 @@
 // É isto que é salvo no navegador: ao trocar de área ou reiniciar,
 // as cenas leem daqui em vez de guardar o progresso por conta própria.
 
-import { POTION_STATS, type CheckpointId } from "../config";
-import { QUEST_STAGES, type Language, type QuestStage } from "../types";
+import {
+  POTION_STATS,
+  STARTING_ITEMS,
+  createStartingEquipment,
+  type CheckpointId,
+} from "../config";
+import {
+  QUEST_STAGES,
+  type EquippedItems,
+  type ItemId,
+  type Language,
+  type QuestStage,
+} from "../types";
 import { loadGame, saveGame } from "./saveGame";
 import { readLanguagePreference } from "./preferences";
 
@@ -17,6 +28,10 @@ export interface GameProgress {
   checkpointId: CheckpointId;
   /** Poções de cura que o herói carrega. */
   potions: number;
+  /** Itens que o herói já obteve. */
+  ownedItems: ItemId[];
+  /** Itens em uso (ver systems/equipment.ts). */
+  equipped: EquippedItems;
 }
 
 function createInitialProgress(): GameProgress {
@@ -30,6 +45,8 @@ function createInitialProgress(): GameProgress {
     kaelDefeated: false,
     checkpointId: "village",
     potions: POTION_STATS.start,
+    ownedItems: [...STARTING_ITEMS],
+    equipped: createStartingEquipment(),
   };
 }
 
@@ -63,5 +80,9 @@ export function reachedStage(stage: QuestStage): boolean {
 }
 
 export function saveProgress(): void {
-  saveGame({ ...progress });
+  saveGame({
+    ...progress,
+    ownedItems: [...progress.ownedItems],
+    equipped: { ...progress.equipped },
+  });
 }

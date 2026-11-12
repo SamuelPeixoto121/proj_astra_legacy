@@ -1,7 +1,7 @@
 // Todos os textos do jogo em português (pt) e inglês (en).
 // Para corrigir ou traduzir um texto, altere apenas este arquivo.
 
-import type { EnemyKind, Language, QuestStage } from "../types";
+import type { EnemyKind, ItemId, Language, QuestStage } from "../types";
 
 export type Localized<T = string> = Record<Language, T>;
 
@@ -235,6 +235,52 @@ export const TEXTS = {
     { hit: (damage: number) => Localized; defeated: Localized }
   >,
 
+  // Equipamentos: nome e descrição de cada item.
+  items: {
+    ironSword: {
+      name: { pt: "ESPADA DE FERRO", en: "IRON SWORD" },
+      description: {
+        pt: "Uma espada simples e confiável. Golpes rápidos.",
+        en: "A simple, reliable sword. Quick strikes.",
+      },
+    },
+    corruptedBlade: {
+      name: { pt: "LÂMINA CORROMPIDA", en: "CORRUPTED BLADE" },
+      description: {
+        pt: "A espada de Kael. Golpes mais fortes, porém mais lentos.",
+        en: "Kael's sword. Stronger but slower strikes.",
+      },
+    },
+    travelerTunic: {
+      name: { pt: "TÚNICA DE VIAJANTE", en: "TRAVELER'S TUNIC" },
+      description: {
+        pt: "Roupa leve de viagem. Não protege, mas não pesa.",
+        en: "Light travel clothes. No protection, but no weight.",
+      },
+    },
+    stoneArmor: {
+      name: { pt: "ARMADURA DE PEDRA", en: "STONE ARMOR" },
+      description: {
+        pt: "Feita dos restos da Sentinela. Reduz o dano, mas pesa.",
+        en: "Made from the Sentinel's remains. Reduces damage, but is heavy.",
+      },
+    },
+    swampAmulet: {
+      name: { pt: "AMULETO DO PÂNTANO", en: "SWAMP AMULET" },
+      description: {
+        pt: "Magia da feiticeira. Poções curam mais e o rolamento recarrega rápido.",
+        en: "The sorceress's magic. Potions heal more and rolls recharge faster.",
+      },
+    },
+  } satisfies Record<ItemId, { name: Localized; description: Localized }>,
+
+  equipment: {
+    obtained: (name: Localized): Localized => ({
+      pt: `ITEM OBTIDO E EQUIPADO: ${name.pt}`,
+      en: `ITEM OBTAINED AND EQUIPPED: ${name.en}`,
+    }),
+  },
+
   // Poções de cura.
   potions: {
     drank: (heal: number): Localized => ({
@@ -421,8 +467,8 @@ export const TEXTS = {
 
   endScreen: {
     victory: {
-      pt: "CAPÍTULO 2 CONCLUÍDO!\n\nVocê recuperou o segundo Fragmento Astral.\nA névoa do pântano começa a se dissipar.\n\nR  •  Jogar novamente\nEsc  •  Tela inicial",
-      en: "CHAPTER 2 COMPLETE!\n\nYou recovered the second Astral Fragment.\nThe swamp mist begins to fade.\n\nR  •  Play again\nEsc  •  Title screen",
+      pt: "CAPÍTULO 2 CONCLUÍDO!\n\nVocê recuperou o segundo Fragmento Astral.\nA névoa do pântano começa a se dissipar.\n\nEnter  •  Continuar explorando\nEsc  •  Tela inicial",
+      en: "CHAPTER 2 COMPLETE!\n\nYou recovered the second Astral Fragment.\nThe swamp mist begins to fade.\n\nEnter  •  Keep exploring\nEsc  •  Title screen",
     },
     defeat: {
       pt: "VOCÊ FOI DERROTADO\n\nR  •  Voltar ao último checkpoint\nN  •  Começar um novo jogo\nEsc  •  Tela inicial",

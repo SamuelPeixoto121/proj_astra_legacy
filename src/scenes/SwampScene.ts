@@ -23,13 +23,13 @@ import {
   SWAMP_SPIDER_SPAWNS,
   SWAMP_WISP_SPAWNS,
   SWAMP_WIDTH,
+  WITCH_ITEM_POSITION,
   WITCH_POSITION,
   WITCH_STATS,
   WITCH_TELEPORT_POINTS,
 } from "../config";
 import { TEXTS } from "../i18n/texts";
-import { progress, saveProgress } from "../systems/progress";
-import { clearSave } from "../systems/saveGame";
+import { progress, reachedStage, saveProgress } from "../systems/progress";
 import { spawnEnemy } from "../systems/enemies";
 import {
   createBoss,
@@ -176,8 +176,15 @@ export class SwampScene extends AreaScene {
 
   /** Deixa o Pântano igual ao progresso salvo. */
   protected restoreAreaState(): void {
+    if (!reachedStage("fragment2")) {
+      return;
+    }
+
+    // Feiticeira já derrotada. O fragmento só aparece se ainda não foi pego.
+    this.removeWitch();
+    this.placeWitchAmulet();
+
     if (progress.questStage === "fragment2") {
-      this.removeWitch();
       revealAstralFragment(this, this.fragment, false);
     }
   }
@@ -542,6 +549,7 @@ export class SwampScene extends AreaScene {
     this.removeWitch();
     // Um pouco abaixo, para não ficar em cima do fragmento.
     this.dropPotion(x, y + 50);
+    this.placeWitchAmulet();
 
     revealAstralFragment(this, this.fragment, true);
 
@@ -549,6 +557,15 @@ export class SwampScene extends AreaScene {
     this.statusText.setText(this.t(TEXTS.bosses.witch.defeated));
 
     saveProgress();
+  }
+
+  /** O amuleto aparece num canto da clareira até o herói pegá-lo. */
+  private placeWitchAmulet(): void {
+    this.placeItem(
+      "swampAmulet",
+      WITCH_ITEM_POSITION.x,
+      WITCH_ITEM_POSITION.y,
+    );
   }
 
   /** Tira a feiticeira do mapa (ao derrotá-la ou ao carregar um save). */
@@ -580,7 +597,10 @@ export class SwampScene extends AreaScene {
     }
   }
 
-  /** Pegar o segundo fragmento conclui o Capítulo 2. */
+  /**
+   * Pegar o segundo fragmento conclui o Capítulo 2. O save é mantido:
+   * na tela de vitória, Enter volta ao jogo para continuar explorando.
+   */
   private collectFragment(): void {
     progress.questStage = "complete";
 
@@ -593,8 +613,7 @@ export class SwampScene extends AreaScene {
 
     this.cameras.main.flash(500, 255, 240, 200);
 
-    // Capítulo concluído: a próxima partida começa do zero.
-    clearSave();
+    saveProgress();
 
     this.showGameOver(true);
     this.updateQuestDisplay();

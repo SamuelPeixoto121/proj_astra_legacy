@@ -23,3 +23,24 @@ export type AreaId = "forest" | "ruins" | "swamp";
 
 /** Tipos de inimigos comuns (os chefes são tratados à parte). */
 export type EnemyKind = "wolf" | "spider" | "wisp";
+
+// Equipamentos. Cada espaço (arma, armadura, amuleto) tem os seus itens.
+// Os números de cada item ficam em config.ts; nomes e descrições, em texts.ts.
+export const WEAPON_IDS = ["ironSword", "corruptedBlade"] as const;
+export const ARMOR_IDS = ["travelerTunic", "stoneArmor"] as const;
+export const AMULET_IDS = ["swampAmulet"] as const;
+export const ITEM_IDS = [...WEAPON_IDS, ...ARMOR_IDS, ...AMULET_IDS] as const;
+
+export type WeaponId = (typeof WEAPON_IDS)[number];
+export type ArmorId = (typeof ARMOR_IDS)[number];
+export type AmuletId = (typeof AMULET_IDS)[number];
+export type ItemId = (typeof ITEM_IDS)[number];
+
+export type EquipmentSlot = "weapon" | "armor" | "amulet";
+
+/** O que o herói está usando (amuleto: null = nenhum). */
+export interface EquippedItems {
+  weapon: WeaponId;
+  armor: ArmorId;
+  amulet: AmuletId | null;
+}

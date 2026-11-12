@@ -1,7 +1,14 @@
 // Números de balanceamento e tamanho do mundo.
 // Para ajustar a dificuldade do jogo, altere os valores aqui.
 
-import type { AreaId } from "./types";
+import type {
+  AmuletId,
+  AreaId,
+  ArmorId,
+  EquippedItems,
+  ItemId,
+  WeaponId,
+} from "./types";
 
 // Floresta Sussurrante
 export const WORLD_WIDTH = 1600;
@@ -30,16 +37,45 @@ export const AREA_BANNER = { fade: 700, hold: 1800 } as const;
 // - rollSpeed/rollDuration: velocidade e duração (ms) do rolamento;
 // - rollCooldown: tempo mínimo (ms) entre o início de dois rolamentos.
 // Durante o rolamento o herói não recebe dano.
+// O dano e a velocidade do golpe vêm da arma equipada (WEAPON_STATS).
 export const PLAYER_STATS = {
   maxHealth: 100,
   speed: 220,
-  attackDamage: 25,
-  attackCooldown: 350,
   invulnerabilityTime: 850,
   rollSpeed: 470,
   rollDuration: 300,
   rollCooldown: 750,
 } as const;
+
+// Equipamentos (cada chefe deixa um item ao ser derrotado):
+// - armas: attackDamage (dano do golpe) e attackCooldown (ms entre golpes);
+// - armaduras: damageTaken (fração do dano recebido: 0.7 = 30% a menos)
+//   e speed (fração da velocidade ao andar: 0.9 = 10% mais lento);
+// - amuletos: potionHeal (multiplica a cura das poções) e rollCooldown
+//   (multiplica a recarga do rolamento: 0.6 = recarrega mais rápido).
+export const WEAPON_STATS = {
+  ironSword: { attackDamage: 25, attackCooldown: 350 },
+  corruptedBlade: { attackDamage: 35, attackCooldown: 430 },
+} as const satisfies Record<WeaponId, { attackDamage: number; attackCooldown: number }>;
+
+export const ARMOR_STATS = {
+  travelerTunic: { damageTaken: 1, speed: 1 },
+  stoneArmor: { damageTaken: 0.65, speed: 0.9 },
+} as const satisfies Record<ArmorId, { damageTaken: number; speed: number }>;
+
+export const AMULET_STATS = {
+  swampAmulet: { potionHeal: 1.5, rollCooldown: 0.6 },
+} as const satisfies Record<AmuletId, { potionHeal: number; rollCooldown: number }>;
+
+/** Itens que o herói tem (e usa) desde o começo de um jogo novo. */
+export const STARTING_ITEMS: readonly ItemId[] = ["ironSword", "travelerTunic"];
+
+export function createStartingEquipment(): EquippedItems {
+  return { weapon: "ironSword", armor: "travelerTunic", amulet: null };
+}
+
+/** Distância para pegar um item do chão. */
+export const ITEM_PICKUP_RANGE = 40;
 
 // Poções de cura (tecla Q):
 // - max: quantas o herói consegue carregar; start: com quantas começa;
@@ -185,6 +221,9 @@ export const SENTINEL_STATS = {
   slamCooldown: 1500,
 } as const;
 
+/** Onde Kael aparece na Floresta. */
+export const KAEL_POSITION = { x: 850, y: 380 } as const;
+
 export const SENTINEL_POSITION = { x: 700, y: 300 } as const;
 
 // Fragmento Astral no altar das Ruínas.
@@ -289,6 +328,9 @@ export const WITCH_TELEPORT_POINTS = [
 
 // Segundo Fragmento Astral: surge no centro da clareira.
 export const SWAMP_FRAGMENT_POSITION = { x: 800, y: 180 } as const;
+
+// Amuleto da feiticeira: num canto da clareira, longe do fragmento.
+export const WITCH_ITEM_POSITION = { x: 680, y: 255 } as const;
 
 // Aranhas do Pântano.
 export const SWAMP_SPIDER_SPAWNS = [

@@ -219,3 +219,13 @@ export function animateSwordSwing(
     ease: "Cubic.Out",
   });
 }
+
+/** Muda as cores do herói conforme o equipamento (lâmina, peito e capa). */
+export function setPlayerLook(
+  player: PlayerSprite,
+  look: { blade: number; torso: number; cloak: number },
+): void {
+  player.parts.sword.setFillStyle(look.blade);
+  player.parts.torso.setFillStyle(look.torso);
+  player.parts.cloak.setFillStyle(look.cloak);
+}

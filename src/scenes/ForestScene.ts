@@ -7,6 +7,7 @@
 import type Phaser from "phaser";
 import {
   ELDER_TALK_RANGE,
+  KAEL_POSITION,
   KAEL_STATS,
   NORTH_BARRIER,
   SHRINE_POSITION,
@@ -121,7 +122,7 @@ export class ForestScene extends AreaScene {
 
     this.enemies.push(this.wolf, ...spiders);
 
-    this.kael = createBoss(this, createKael(this, 850, 380), KAEL_STATS, {
+    this.kael = createBoss(this, createKael(this, KAEL_POSITION.x, KAEL_POSITION.y), KAEL_STATS, {
       barWidth: 100,
       barOffsetY: 53,
       nameOffsetY: 76,
@@ -173,6 +174,8 @@ export class ForestScene extends AreaScene {
     if (progress.kaelDefeated) {
       this.removeKael();
       openCorruptionBarrier(this, this.northBarrier, false);
+      // A espada de Kael fica onde ele surgiu até o herói pegá-la.
+      this.placeItem("corruptedBlade", KAEL_POSITION.x, KAEL_POSITION.y);
     } else if (progress.kaelUnlocked) {
       this.revealKael();
     }
@@ -507,7 +510,8 @@ export class ForestScene extends AreaScene {
     createDeathBurst(this, x, y, this.kael.style.deathColor);
     audio.play("enemyDeath");
     this.removeKael();
-    this.dropPotion(x, y);
+    this.placeItem("corruptedBlade", x, y);
+    this.dropPotion(x + 40, y + 10);
 
     openCorruptionBarrier(this, this.northBarrier, true);
     audio.play("shrine");

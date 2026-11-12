@@ -1,8 +1,27 @@
 // Salvamento automático do progresso no navegador (localStorage).
 // O save sobrevive ao fechar a aba, mas fica só neste navegador.
 
-import { CHECKPOINTS, POTION_STATS, type CheckpointId } from "../config";
-import { QUEST_STAGES, type Language, type QuestStage } from "../types";
+import {
+  CHECKPOINTS,
+  POTION_STATS,
+  STARTING_ITEMS,
+  createStartingEquipment,
+  type CheckpointId,
+} from "../config";
+import {
+  AMULET_IDS,
+  ARMOR_IDS,
+  ITEM_IDS,
+  QUEST_STAGES,
+  WEAPON_IDS,
+  type AmuletId,
+  type ArmorId,
+  type EquippedItems,
+  type ItemId,
+  type Language,
+  type QuestStage,
+  type WeaponId,
+} from "../types";
 import type { GameProgress } from "./progress";
 
 const SAVE_KEY = "astra-legacy:save";
@@ -12,8 +31,11 @@ const SAVE_KEY = "astra-legacy:save";
 // Versão 2: áreas (Ruínas do Santuário) e kaelDefeated.
 // Versão 3: poções de cura (potions). Saves da versão 2 continuam valendo:
 // o herói recebe a quantidade inicial de poções.
-const SAVE_VERSION = 3;
-const COMPATIBLE_VERSIONS: readonly unknown[] = [2, SAVE_VERSION];
+// Versão 4: equipamentos (ownedItems, equipped). Saves das versões 2 e 3
+// continuam valendo: o herói fica com os itens iniciais (os itens dos
+// chefes já derrotados reaparecem no lugar onde cada chefe caiu).
+const SAVE_VERSION = 4;
+const COMPATIBLE_VERSIONS: readonly unknown[] = [2, 3, SAVE_VERSION];
 
 export type SaveData = GameProgress;
 
@@ -85,6 +107,7 @@ function parseSave(value: unknown): SaveData | null {
     kaelDefeated: save.kaelDefeated as boolean,
     checkpointId: save.checkpointId as CheckpointId,
     potions: parsePotions(save.potions),
+    ...parseEquipment(save.ownedItems, save.equipped),
   };
 }
 
@@ -95,4 +118,47 @@ function parsePotions(value: unknown): number {
   }
 
   return Math.min(POTION_STATS.max, Math.max(0, value));
+}
+
+/**
+ * Itens obtidos e equipados. Itens desconhecidos são descartados; um item
+ * equipado que o herói não tem volta ao item inicial daquele espaço.
+ */
+function parseEquipment(
+  ownedValue: unknown,
+  equippedValue: unknown,
+): { ownedItems: ItemId[]; equipped: EquippedItems } {
+  const owned = new Set<ItemId>(STARTING_ITEMS);
+
+  if (Array.isArray(ownedValue)) {
+    for (const id of ownedValue) {
+      if (ITEM_IDS.includes(id as ItemId)) {
+        owned.add(id as ItemId);
+      }
+    }
+  }
+
+  const ownedItems = [...owned];
+  const equipped = createStartingEquipment();
+  const saved = (
+    typeof equippedValue === "object" && equippedValue !== null
+      ? equippedValue
+      : {}
+  ) as Record<string, unknown>;
+
+  const isOwned = (id: unknown): boolean => owned.has(id as ItemId);
+
+  if (WEAPON_IDS.includes(saved.weapon as WeaponId) && isOwned(saved.weapon)) {
+    equipped.weapon = saved.weapon as WeaponId;
+  }
+
+  if (ARMOR_IDS.includes(saved.armor as ArmorId) && isOwned(saved.armor)) {
+    equipped.armor = saved.armor as ArmorId;
+  }
+
+  if (AMULET_IDS.includes(saved.amulet as AmuletId) && isOwned(saved.amulet)) {
+    equipped.amulet = saved.amulet as AmuletId;
+  }
+
+  return { ownedItems, equipped };
 }

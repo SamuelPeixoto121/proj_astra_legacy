@@ -12,12 +12,13 @@ import {
   AREA_FADE_TIME,
   CHECKPOINTS,
   ENEMY_WANDER,
+  ITEM_PICKUP_RANGE,
   PLAYER_STATS,
   POTION_STATS,
   SHRINE_ACTIVATION_RANGE,
   type CheckpointId,
 } from "../config";
-import type { AreaId } from "../types";
+import type { AreaId, ItemId } from "../types";
 import { TEXTS, type Localized } from "../i18n/texts";
 import { LANGUAGE_CHANGED_EVENT } from "../i18n/page";
 import { clearSave } from "../systems/saveGame";
@@ -44,6 +45,7 @@ import {
   animatePlayerWalk,
   animateSwordSwing,
   createPlayer,
+  setPlayerLook,
   updatePlayerDirection,
   type PlayerSprite,
 } from "../characters/player";
@@ -58,6 +60,14 @@ import {
   drawPotionIcon,
   type PotionPickup,
 } from "../world/potion";
+import { createItemPickup, type ItemPickup } from "../world/itemPickup";
+import {
+  ITEM_LOOKS,
+  getHeroLook,
+  getHeroStats,
+  grantItem,
+  ownsItem,
+} from "../systems/equipment";
 import {
   createDeathBurst,
   createImpactEffect,
@@ -134,6 +144,7 @@ export abstract class AreaScene extends Phaser.Scene {
   private restartKey!: Phaser.Input.Keyboard.Key;
   private muteKey!: Phaser.Input.Keyboard.Key;
   private titleKey!: Phaser.Input.Keyboard.Key;
+  private continueKey!: Phaser.Input.Keyboard.Key;
   private newGameKey!: Phaser.Input.Keyboard.Key;
 
   private hudGraphics!: Phaser.GameObjects.Graphics;
@@ -169,6 +180,8 @@ export abstract class AreaScene extends Phaser.Scene {
   private shrines: AreaShrine[] = [];
   /** Poções caídas no chão (somem ao sair da área). */
   private potionPickups: PotionPickup[] = [];
+  /** Itens de equipamento no chão (deixados pelos chefes). */
+  private itemPickups: ItemPickup[] = [];
   private transitioning = false;
   private areaBanner?: Phaser.GameObjects.Text;
 
@@ -234,6 +247,7 @@ export abstract class AreaScene extends Phaser.Scene {
     const spawn = this.getSpawnPoint();
 
     this.player = createPlayer(this, spawn.x, spawn.y);
+    setPlayerLook(this.player, getHeroLook());
     this.createActors();
 
     this.createInterface();
@@ -294,6 +308,7 @@ export abstract class AreaScene extends Phaser.Scene {
     this.exits = [];
     this.shrines = [];
     this.potionPickups = [];
+    this.itemPickups = [];
     this.transitioning = false;
     this.areaBanner = undefined;
 
@@ -360,6 +375,7 @@ export abstract class AreaScene extends Phaser.Scene {
     this.newGameKey = keyboard.addKey(KeyCodes.N);
     this.muteKey = keyboard.addKey(KeyCodes.M);
     this.titleKey = keyboard.addKey(KeyCodes.ESC);
+    this.continueKey = keyboard.addKey(KeyCodes.ENTER);
   }
 
   private setupPhysics(obstacles: Phaser.GameObjects.Rectangle[]): void {
@@ -787,7 +803,7 @@ export abstract class AreaScene extends Phaser.Scene {
     }
 
     const heal = Math.min(
-      POTION_STATS.heal,
+      getHeroStats().potionHeal,
       PLAYER_STATS.maxHealth - this.playerHealth,
     );
 
@@ -810,6 +826,44 @@ export abstract class AreaScene extends Phaser.Scene {
   /** Deixa uma poção no chão (inimigos têm uma chance; chefes, sempre). */
   protected dropPotion(x: number, y: number): void {
     this.potionPickups.push(createPotionPickup(this, x, y));
+  }
+
+  /**
+   * Coloca um item de equipamento no chão (ex.: ao derrotar um chefe).
+   * Se o herói já tem o item, nada acontece.
+   */
+  protected placeItem(itemId: ItemId, x: number, y: number): void {
+    if (ownsItem(itemId)) {
+      return;
+    }
+
+    this.itemPickups.push(
+      createItemPickup(this, itemId, x, y, ITEM_LOOKS[itemId].icon),
+    );
+  }
+
+  private updateItemPickups(): void {
+    this.itemPickups = this.itemPickups.filter((pickup) => {
+      const { x, y } = pickup.container;
+
+      if (this.distanceToPlayer(x, y) > ITEM_PICKUP_RANGE) {
+        return true;
+      }
+
+      grantItem(pickup.itemId);
+      saveProgress();
+      setPlayerLook(this.player, getHeroLook());
+
+      audio.play("fragment");
+      createImpactEffect(this, x, y - 14, ITEM_LOOKS[pickup.itemId].icon, 12, 36);
+      this.tweens.killTweensOf([pickup.container, ...pickup.container.list]);
+      pickup.container.destroy();
+
+      this.statusText.setText(
+        this.t(TEXTS.equipment.obtained(TEXTS.items[pickup.itemId].name)),
+      );
+      return false;
+    });
   }
 
   private updatePotionPickups(): void {
@@ -895,7 +949,7 @@ export abstract class AreaScene extends Phaser.Scene {
   private attack(): void {
     const now = this.time.now;
 
-    if (now - this.lastAttackAt < PLAYER_STATS.attackCooldown) {
+    if (now - this.lastAttackAt < getHeroStats().attackCooldown) {
       return;
     }
 
@@ -1053,7 +1107,7 @@ export abstract class AreaScene extends Phaser.Scene {
   private hitEnemy(enemy: Enemy): void {
     const { x, y } = enemy.sprite.body;
     const { colors } = enemy.definition;
-    const damage = PLAYER_STATS.attackDamage;
+    const damage = getHeroStats().attackDamage;
 
     enemy.health = Math.max(0, enemy.health - damage);
     audio.play("hit");
@@ -1094,7 +1148,7 @@ export abstract class AreaScene extends Phaser.Scene {
   ): boolean {
     const { x, y } = boss.sprite.body;
     const { style } = boss;
-    const damage = PLAYER_STATS.attackDamage;
+    const damage = getHeroStats().attackDamage;
 
     if (!this.isTargetInFront(x, y, boss.hitRange)) {
       this.statusText.setText(this.t(texts.missed));
@@ -1134,7 +1188,7 @@ export abstract class AreaScene extends Phaser.Scene {
     enemy.healthBar.destroy();
   }
 
-  protected damagePlayer(amount: number): void {
+  protected damagePlayer(rawAmount: number): void {
     // Rolando, o herói é invencível.
     if (
       this.gameOver ||
@@ -1146,6 +1200,12 @@ export abstract class AreaScene extends Phaser.Scene {
 
     this.lastDamageAt = this.time.now;
     audio.play("hurt");
+
+    // A armadura reduz o dano (mínimo de 1).
+    const amount = Math.max(
+      1,
+      Math.round(rawAmount * getHeroStats().damageTaken),
+    );
 
     const { container } = this.player;
 
@@ -1243,6 +1303,22 @@ export abstract class AreaScene extends Phaser.Scene {
       .setDepth(5001);
   }
 
+  /** Fecha a tela de vitória: o jogo continua de onde parou. */
+  private continueExploring(): void {
+    this.gameOver = false;
+    this.victory = false;
+
+    this.gameOverOverlay?.destroy();
+    this.gameOverText?.destroy();
+    this.gameOverOverlay = undefined;
+    this.gameOverText = undefined;
+
+    this.physics.world.resume();
+    audio.setMusic(this.musicTrack);
+
+    this.updateQuestDisplay();
+  }
+
   /** Pausa esta área e abre o menu de pausa por cima. */
   private openPauseMenu(): void {
     const data: PauseSceneData = { areaKey: this.scene.key };
@@ -1296,11 +1372,16 @@ export abstract class AreaScene extends Phaser.Scene {
     }
 
     if (this.gameOver) {
-      // R: volta ao último save (na vitória o save já foi apagado).
-      // N: apaga o save e começa do zero.
-      if (Phaser.Input.Keyboard.JustDown(this.newGameKey)) {
+      if (this.victory) {
+        // Enter: fecha a tela de vitória e continua explorando.
+        if (Phaser.Input.Keyboard.JustDown(this.continueKey)) {
+          this.continueExploring();
+        }
+      } else if (Phaser.Input.Keyboard.JustDown(this.newGameKey)) {
+        // N: apaga o save e começa do zero.
         this.startNewGame();
       } else if (Phaser.Input.Keyboard.JustDown(this.restartKey)) {
+        // R: volta ao último save.
         startFromSave(this);
       }
       return;
@@ -1337,6 +1418,7 @@ export abstract class AreaScene extends Phaser.Scene {
 
     this.updateShrines();
     this.updatePotionPickups();
+    this.updateItemPickups();
 
     for (const enemy of this.enemies) {
       if (enemy.defeated) continue;
@@ -1377,8 +1459,8 @@ export abstract class AreaScene extends Phaser.Scene {
     const speedMultiplier = this.getPlayerSpeedMultiplier();
 
     this.getPhysicsBody(this.player).setVelocity(
-      x * PLAYER_STATS.speed * speedMultiplier,
-      y * PLAYER_STATS.speed * speedMultiplier,
+      x * getHeroStats().speed * speedMultiplier,
+      y * getHeroStats().speed * speedMultiplier,
     );
 
     this.player.container.setPosition(this.player.body.x, this.player.body.y);
@@ -1403,7 +1485,7 @@ export abstract class AreaScene extends Phaser.Scene {
   private startRoll(): void {
     const now = this.time.now;
 
-    if (now - this.lastRollAt < PLAYER_STATS.rollCooldown) {
+    if (now - this.lastRollAt < getHeroStats().rollCooldown) {
       return;
     }
 

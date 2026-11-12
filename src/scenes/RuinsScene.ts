@@ -163,6 +163,11 @@ export class RuinsScene extends AreaScene {
 
   /** Deixa as Ruínas iguais ao progresso salvo. */
   protected restoreAreaState(): void {
+    // A armadura da Sentinela fica onde ela estava até o herói pegá-la.
+    if (reachedStage("fragment")) {
+      this.placeItem("stoneArmor", SENTINEL_POSITION.x, SENTINEL_POSITION.y);
+    }
+
     if (reachedStage("portal")) {
       // Fragmento já recuperado: Sentinela derrotada e portal aberto.
       this.removeSentinel();
@@ -336,7 +341,8 @@ export class RuinsScene extends AreaScene {
     createDeathBurst(this, x, y, this.sentinel.style.deathColor);
     audio.play("enemyDeath");
     this.removeSentinel();
-    this.dropPotion(x, y);
+    this.placeItem("stoneArmor", x, y);
+    this.dropPotion(x + 40, y + 10);
 
     revealAstralFragment(this, this.fragment, true);
 
