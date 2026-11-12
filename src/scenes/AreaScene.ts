@@ -225,6 +225,14 @@ export abstract class AreaScene extends Phaser.Scene {
     return 1;
   }
 
+  /**
+   * Aderência do chão (1 = normal). Menor que 1, o herói escorrega: demora
+   * para acelerar, frear e mudar de direção (ex.: gelo dos Picos).
+   */
+  protected getPlayerTraction(): number {
+    return 1;
+  }
+
   protected attackSpecialTarget(): boolean {
     return false;
   }
@@ -585,6 +593,8 @@ export abstract class AreaScene extends Phaser.Scene {
       this.statusText.setText(this.t(TEXTS.hud.victory));
     } else if (stage === "complete") {
       this.statusText.setText(this.t(TEXTS.hud.chapterComplete));
+    } else if (reachedStage("portal2")) {
+      this.statusText.setText(this.t(TEXTS.hud.chapter3Title));
     } else if (reachedStage("portal")) {
       this.statusText.setText(this.t(TEXTS.hud.chapter2Title));
     } else if (reachedStage("ruins")) {
@@ -1482,12 +1492,22 @@ export abstract class AreaScene extends Phaser.Scene {
       updatePlayerDirection(this.player, x, y);
     }
 
-    const speedMultiplier = this.getPlayerSpeedMultiplier();
+    const speed = getHeroStats().speed * this.getPlayerSpeedMultiplier();
+    const body = this.getPhysicsBody(this.player);
+    const traction = this.getPlayerTraction();
 
-    this.getPhysicsBody(this.player).setVelocity(
-      x * getHeroStats().speed * speedMultiplier,
-      y * getHeroStats().speed * speedMultiplier,
-    );
+    if (traction >= 1) {
+      body.setVelocity(x * speed, y * speed);
+    } else {
+      // Escorregando: a velocidade vai mudando aos poucos até a desejada.
+      // A conta usa o tempo do quadro para escorregar igual em qualquer FPS.
+      const blend = 1 - Math.pow(1 - traction, this.game.loop.delta / (1000 / 60));
+
+      body.setVelocity(
+        body.velocity.x + (x * speed - body.velocity.x) * blend,
+        body.velocity.y + (y * speed - body.velocity.y) * blend,
+      );
+    }
 
     this.player.container.setPosition(this.player.body.x, this.player.body.y);
     this.player.container.setDepth(this.player.body.y + 50);

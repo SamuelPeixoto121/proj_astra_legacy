@@ -23,6 +23,10 @@ export const RUINS_HEIGHT = 1000;
 export const SWAMP_WIDTH = 1600;
 export const SWAMP_HEIGHT = 1200;
 
+// Picos Congelados
+export const PEAKS_WIDTH = 1600;
+export const PEAKS_HEIGHT = 1400;
+
 // Barreira de corrupção que fecha a trilha ao norte até Kael ser derrotado.
 export const NORTH_BARRIER = { x: 850, y: 240, width: 200 } as const;
 
@@ -329,6 +333,9 @@ export const WITCH_TELEPORT_POINTS = [
 // Segundo Fragmento Astral: surge no centro da clareira.
 export const SWAMP_FRAGMENT_POSITION = { x: 800, y: 180 } as const;
 
+// Portal gelado na clareira (abre ao pegar o segundo fragmento).
+export const SWAMP_PORTAL_POSITION = { x: 800, y: 80 } as const;
+
 // Amuleto da feiticeira: num canto da clareira, longe do fragmento.
 export const WITCH_ITEM_POSITION = { x: 680, y: 255 } as const;
 
@@ -356,6 +363,51 @@ export const CHECKPOINTS = {
   ruinsPortal: { area: "ruins", x: 700, y: 112 },
   swampEntrance: { area: "swamp", x: 800, y: 1060 },
   swampShrine: { area: "swamp", x: 770, y: 705 },
+  swampPortal: { area: "swamp", x: 800, y: 150 },
+  peaksEntrance: { area: "peaks", x: 800, y: 1260 },
+  peaksShrine: { area: "peaks", x: 745, y: 800 },
 } as const satisfies Record<string, { area: AreaId; x: number; y: number }>;
 
 export type CheckpointId = keyof typeof CHECKPOINTS;
+
+// Picos Congelados.
+// Trilha (pontos em ordem, de baixo para cima) até o platô do topo, onde
+// fica o chefe. Placas de gelo: o herói escorrega (ver PEAKS_ICE_TRACTION).
+export const PEAKS_PATH = [
+  { x: 800, y: 1400 },
+  { x: 720, y: 1150 },
+  { x: 900, y: 950 },
+  { x: 760, y: 780 },
+  { x: 640, y: 600 },
+  { x: 820, y: 450 },
+  { x: 800, y: 260 },
+] as const;
+
+/** Platô do topo (arena do chefe): elipse sem árvores nem pedras. */
+export const PEAKS_SUMMIT = { x: 800, y: 240, rx: 300, ry: 170 } as const;
+
+export const PEAKS_ICE_PATCHES = [
+  { x: 840, y: 1060, rx: 120, ry: 60 },
+  { x: 700, y: 690, rx: 140, ry: 70 },
+  { x: 420, y: 900, rx: 160, ry: 80 },
+  { x: 1150, y: 700, rx: 150, ry: 80 },
+  { x: 1100, y: 1170, rx: 130, ry: 60 },
+  { x: 740, y: 525, rx: 110, ry: 55 },
+] as const;
+
+/**
+ * Aderência no gelo: quanto da velocidade desejada o herói alcança a cada
+ * quadro (1 = normal, sem escorregar; perto de 0 = escorrega muito).
+ */
+export const PEAKS_ICE_TRACTION = 0.04;
+
+export const PEAKS_RETURN_PORTAL_POSITION = { x: 800, y: 1350 } as const;
+export const PEAKS_SHRINE_POSITION = { x: 690, y: 790 } as const;
+
+// Lobos dos Picos (o Cavaleiro de Gelo entra na próxima etapa).
+export const PEAKS_WOLF_SPAWNS = [
+  { x: 520, y: 1100 },
+  { x: 1100, y: 920 },
+  { x: 560, y: 560 },
+  { x: 1050, y: 470 },
+] as const;

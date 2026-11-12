@@ -36,9 +36,13 @@ export const TEXTS = {
       pt: "ASTRA LEGACY  •  CAPÍTULO 2",
       en: "ASTRA LEGACY  •  CHAPTER 2",
     },
+    chapter3Title: {
+      pt: "ASTRA LEGACY  •  CAPÍTULO 3",
+      en: "ASTRA LEGACY  •  CHAPTER 3",
+    },
     chapterComplete: {
-      pt: "CAPÍTULO 2 CONCLUÍDO",
-      en: "CHAPTER 2 COMPLETE",
+      pt: "CAPÍTULO 3 CONCLUÍDO",
+      en: "CHAPTER 3 COMPLETE",
     },
     victory: {
       pt: "SEGUNDO FRAGMENTO RECUPERADO • VITÓRIA",
@@ -83,9 +87,21 @@ export const TEXTS = {
       pt: "MISSÃO: O SEGUNDO FRAGMENTO\nPegue o Fragmento Astral.",
       en: "QUEST: THE SECOND FRAGMENT\nTake the Astral Fragment.",
     },
+    portal2: {
+      pt: "NOVO OBJETIVO: O PORTAL GELADO\nAtravesse o portal na clareira do pântano.",
+      en: "NEW OBJECTIVE: THE FROZEN PORTAL\nStep through the portal in the swamp clearing.",
+    },
+    winter: {
+      pt: "MISSÃO: O TERCEIRO FRAGMENTO\nSuba até o topo dos Picos Congelados.",
+      en: "QUEST: THE THIRD FRAGMENT\nClimb to the top of the Frozen Peaks.",
+    },
+    fragment3: {
+      pt: "MISSÃO: O TERCEIRO FRAGMENTO\nPegue o Fragmento Astral.",
+      en: "QUEST: THE THIRD FRAGMENT\nTake the Astral Fragment.",
+    },
     complete: {
-      pt: "CAPÍTULO 2 CONCLUÍDO!\nVocê recuperou o segundo Fragmento Astral.",
-      en: "CHAPTER 2 COMPLETE!\nYou recovered the second Astral Fragment.",
+      pt: "CAPÍTULO 3 CONCLUÍDO!\nVocê recuperou o terceiro Fragmento Astral.",
+      en: "CHAPTER 3 COMPLETE!\nYou recovered the third Astral Fragment.",
     },
   } satisfies Record<QuestStage, Localized>,
 
@@ -94,6 +110,7 @@ export const TEXTS = {
     forest: { pt: "FLORESTA SUSSURRANTE", en: "WHISPERING FOREST" },
     ruins: { pt: "RUÍNAS DO SANTUÁRIO", en: "SANCTUARY RUINS" },
     swamp: { pt: "PÂNTANO SOMBRIO", en: "SHADOW SWAMP" },
+    peaks: { pt: "PICOS CONGELADOS", en: "FROZEN PEAKS" },
   },
 
   // Mensagens das áreas do Capítulo 2.
@@ -105,6 +122,18 @@ export const TEXTS = {
     mud: {
       pt: "A LAMA PRENDE SEUS PÉS... (ROLAR NÃO É AFETADO)",
       en: "THE MUD GRIPS YOUR FEET... (ROLLING IS NOT AFFECTED)",
+    },
+  },
+
+  // Mensagens das áreas do Capítulo 3.
+  chapter3: {
+    portalOpened: {
+      pt: "FRAGMENTO RECUPERADO! UM PORTAL GELADO SE ABRIU NA CLAREIRA.",
+      en: "FRAGMENT RECOVERED! A FROZEN PORTAL HAS OPENED IN THE CLEARING.",
+    },
+    ice: {
+      pt: "GELO! VOCÊ ESCORREGA AO ANDAR (ROLAR AINDA FUNCIONA).",
+      en: "ICE! YOU SLIDE AS YOU WALK (ROLLING STILL WORKS).",
     },
   },
 
@@ -207,6 +236,16 @@ export const TEXTS = {
       en: [
         "You recovered an Astral Fragment! I feel Astra's light stronger within you.",
         "But another fragment calls from beyond the portal, lost in the dark waters of a swamp. Someone guards it... someone who knows magic. Be careful, traveler.",
+      ],
+    },
+    secondFragment: {
+      pt: [
+        "Dois fragmentos! A luz de Astra volta a aquecer estas terras.",
+        "O próximo está no alto dos Picos Congelados, onde o inverno nunca termina. Dizem que algo antigo desperta no topo... algo que muda de forma quando ferido.",
+      ],
+      en: [
+        "Two fragments! Astra's light is warming these lands again.",
+        "The next one lies atop the Frozen Peaks, where winter never ends. They say something ancient awakens at the summit... something that changes form when wounded.",
       ],
     },
   } satisfies Record<string, Localized<string[]>>,

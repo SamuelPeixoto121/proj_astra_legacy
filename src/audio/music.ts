@@ -3,7 +3,7 @@
 // escala — por isso a música nunca se repete exatamente igual.
 // Nas lutas contra chefes, uma batida de tambor entra por cima.
 
-export type MusicTrackId = "forest" | "ruins" | "swamp";
+export type MusicTrackId = "forest" | "ruins" | "swamp" | "peaks";
 
 interface MusicTrack {
   /** Duração de um compasso (s). */
@@ -55,6 +55,24 @@ export const MUSIC_TRACKS: Record<MusicTrackId, MusicTrack> = {
     padFilter: 800,
     padGain: 0.045,
     bassGain: 0.06,
+    melodyGain: 0.03,
+  },
+  // Picos: si menor com sétima maior no topo (Bm – G – Em – F#), notas
+  // agudas e espaçadas, como cristais de gelo.
+  peaks: {
+    barSeconds: 4.8,
+    chords: [
+      [47, 50, 54],
+      [43, 47, 50],
+      [40, 43, 47],
+      [42, 46, 49],
+    ],
+    melodyScale: [71, 74, 76, 78, 81, 83, 86],
+    melodyChance: 0.45,
+    padType: "sine",
+    padFilter: 1400,
+    padGain: 0.04,
+    bassGain: 0.045,
     melodyGain: 0.03,
   },
   // Ruínas: ré menor (Dm – Sib – Gm – Lá), mais grave e lenta.

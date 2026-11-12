@@ -34,8 +34,11 @@ const SAVE_KEY = "astra-legacy:save";
 // Versão 4: equipamentos (ownedItems, equipped). Saves das versões 2 e 3
 // continuam valendo: o herói fica com os itens iniciais (os itens dos
 // chefes já derrotados reaparecem no lugar onde cada chefe caiu).
-const SAVE_VERSION = 4;
-const COMPATIBLE_VERSIONS: readonly unknown[] = [2, 3, SAVE_VERSION];
+// Versão 5: Capítulo 3. Antes, "complete" era o fim do Capítulo 2; agora
+// é o fim do Capítulo 3, então saves antigos com "complete" passam para
+// "portal2" (atravessar o portal da clareira do pântano).
+const SAVE_VERSION = 5;
+const COMPATIBLE_VERSIONS: readonly unknown[] = [2, 3, 4, SAVE_VERSION];
 
 export type SaveData = GameProgress;
 
@@ -100,7 +103,10 @@ function parseSave(value: unknown): SaveData | null {
 
   return {
     language: save.language as Language,
-    questStage: save.questStage as QuestStage,
+    questStage: migrateQuestStage(
+      save.questStage as QuestStage,
+      save.version as number,
+    ),
     elderTalked: save.elderTalked as boolean,
     wolfDefeated: save.wolfDefeated as boolean,
     kaelUnlocked: save.kaelUnlocked as boolean,
@@ -161,4 +167,9 @@ function parseEquipment(
   }
 
   return { ownedItems, equipped };
+}
+
+/** Ajusta a etapa da missão de saves de versões antigas. */
+function migrateQuestStage(stage: QuestStage, version: number): QuestStage {
+  return version < 5 && stage === "complete" ? "portal2" : stage;
 }

@@ -13,13 +13,16 @@ export const QUEST_STAGES = [
   "portal", // atravessar o portal atrás do altar (início do Capítulo 2)
   "witch", // derrotar a feiticeira do Pântano Sombrio
   "fragment2", // pegar o segundo Fragmento Astral
-  "complete", // capítulo concluído
+  "portal2", // atravessar o portal da clareira (início do Capítulo 3)
+  "winter", // derrotar o chefe dos Picos Congelados
+  "fragment3", // pegar o terceiro Fragmento Astral
+  "complete", // Capítulo 3 concluído
 ] as const;
 
 export type QuestStage = (typeof QUEST_STAGES)[number];
 
 /** Áreas (mapas) do jogo. Cada área é uma cena do Phaser. */
-export type AreaId = "forest" | "ruins" | "swamp";
+export type AreaId = "forest" | "ruins" | "swamp" | "peaks";
 
 /** Tipos de inimigos comuns (os chefes são tratados à parte). */
 export type EnemyKind = "wolf" | "spider" | "wisp";

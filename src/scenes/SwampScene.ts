@@ -11,6 +11,9 @@
 //   explodem depois de um tempo.
 // Enquanto conjura ela não consegue se teleportar: é a hora de atacar.
 // Com metade da vida ela fica furiosa: mais projéteis e ataques mais rápidos.
+//
+// Pegar o fragmento abre um portal gelado na clareira, que leva aos Picos
+// Congelados (Capítulo 3).
 
 import Phaser from "phaser";
 import {
@@ -18,6 +21,7 @@ import {
   SWAMP_FRAGMENT_POSITION,
   SWAMP_HEIGHT,
   SWAMP_MUD_SPEED,
+  SWAMP_PORTAL_POSITION,
   SWAMP_RETURN_PORTAL_POSITION,
   SWAMP_SHRINE_POSITION,
   SWAMP_SPIDER_SPAWNS,
@@ -39,7 +43,7 @@ import {
   type Boss,
 } from "../systems/bosses";
 import { createSwampWorld, isInMud } from "../world/swamp";
-import { createPortal, openPortal } from "../world/portal";
+import { createPortal, openPortal, type AstralPortal } from "../world/portal";
 import {
   createAstralFragment,
   revealAstralFragment,
@@ -88,6 +92,7 @@ export class SwampScene extends AreaScene {
   /** A dica sobre a lama aparece só na primeira vez em cada visita. */
   private mudHintShown = false;
   private fragment!: AstralFragment;
+  private northPortal!: AstralPortal;
 
   private witchSprite!: WitchSprite;
   private witch!: Boss;
@@ -122,6 +127,22 @@ export class SwampScene extends AreaScene {
       SWAMP_FRAGMENT_POSITION.x,
       SWAMP_FRAGMENT_POSITION.y,
     );
+
+    // Portal gelado na clareira: leva aos Picos depois de pegar o fragmento.
+    this.northPortal = createPortal(
+      this,
+      SWAMP_PORTAL_POSITION.x,
+      SWAMP_PORTAL_POSITION.y,
+    );
+
+    this.addExit({
+      x: SWAMP_PORTAL_POSITION.x - 40,
+      y: SWAMP_PORTAL_POSITION.y - 30,
+      width: 80,
+      height: 60,
+      target: "peaksEntrance",
+      isOpen: () => reachedStage("portal2"),
+    });
 
     // Portal de volta para as Ruínas (sempre aberto).
     const { x, y } = SWAMP_RETURN_PORTAL_POSITION;
@@ -186,6 +207,9 @@ export class SwampScene extends AreaScene {
 
     if (progress.questStage === "fragment2") {
       revealAstralFragment(this, this.fragment, false);
+    } else {
+      // Fragmento já recuperado: o portal gelado está aberto.
+      openPortal(this, this.northPortal, false);
     }
   }
 
@@ -597,12 +621,9 @@ export class SwampScene extends AreaScene {
     }
   }
 
-  /**
-   * Pegar o segundo fragmento conclui o Capítulo 2. O save é mantido:
-   * na tela de vitória, Enter volta ao jogo para continuar explorando.
-   */
+  /** Pegar o segundo fragmento abre o portal gelado para os Picos. */
   private collectFragment(): void {
-    progress.questStage = "complete";
+    progress.questStage = "portal2";
 
     const { x, y } = this.fragment.container;
 
@@ -613,9 +634,12 @@ export class SwampScene extends AreaScene {
 
     this.cameras.main.flash(500, 255, 240, 200);
 
-    saveProgress();
+    openPortal(this, this.northPortal, true);
+    audio.play("shrine");
 
-    this.showGameOver(true);
     this.updateQuestDisplay();
+    this.statusText.setText(this.t(TEXTS.chapter3.portalOpened));
+
+    saveProgress();
   }
 }
