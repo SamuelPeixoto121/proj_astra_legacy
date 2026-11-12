@@ -19,6 +19,7 @@ export interface PortalColors {
 export const PORTAL_COLORS = {
   light: { outer: 0xfff0b0, middle: 0xb9a2ff, core: 0xfffbe8 },
   fire: { outer: 0xffa04a, middle: 0xff4a2a, core: 0xffe2b0 },
+  astral: { outer: 0xffd76a, middle: 0xffffff, core: 0xfff6d0 },
 } as const satisfies Record<string, PortalColors>;
 
 export function createPortal(

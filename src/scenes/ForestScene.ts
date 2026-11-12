@@ -6,10 +6,14 @@
 // Selo Astral a oeste, abrindo a trilha para o Cemitério de Dragões. O
 // portal da vila leva de volta à cratera das Terras Vulcânicas.
 //
+// Capítulo 6: com os cinco fragmentos, o Ancião faz uma cerimônia e abre o
+// Portal Astral dourado a leste da vila, que leva à Cidadela em Ruínas.
+//
 // Herói, HUD, combate, checkpoints e saídas ficam na cena-base (AreaScene).
 
 import type Phaser from "phaser";
 import {
+  ASTRAL_GATE_POSITION,
   ASTRAL_SEAL,
   ELDER_TALK_RANGE,
   KAEL_POSITION,
@@ -42,7 +46,13 @@ import {
   openAstralSeal,
   type AstralSeal,
 } from "../world/astralSeal";
-import { createPortal, openPortal, type AstralPortal } from "../world/portal";
+import {
+  PORTAL_COLORS,
+  createPortal,
+  openPortal,
+  type AstralPortal,
+} from "../world/portal";
+import { playFragmentCeremony } from "../world/fragmentCeremony";
 import { createElder, type ElderSprite } from "../characters/elder";
 import { createKael } from "../characters/kael";
 import {
@@ -80,6 +90,7 @@ export class ForestScene extends AreaScene {
   private astralSeal!: AstralSeal;
   private sealSign!: Phaser.GameObjects.Text;
   private villagePortal!: AstralPortal;
+  private astralGate!: AstralPortal;
   private elder!: ElderSprite;
   /** O lobo da missão: derrotá-lo avança a história. */
   private wolf!: Enemy;
@@ -159,6 +170,20 @@ export class ForestScene extends AreaScene {
       height: 60,
       target: "volcanoCrater",
       isOpen: () => reachedStage("return"),
+    });
+
+    // Portal Astral dourado: leva à Cidadela em Ruínas (Capítulo 6).
+    const gate = ASTRAL_GATE_POSITION;
+
+    this.astralGate = createPortal(this, gate.x, gate.y, PORTAL_COLORS.astral);
+
+    this.addExit({
+      x: gate.x - 40,
+      y: gate.y - 30,
+      width: 80,
+      height: 60,
+      target: "citadelEntrance",
+      isOpen: () => reachedStage("citadel"),
     });
 
     return [
@@ -244,6 +269,10 @@ export class ForestScene extends AreaScene {
     if (reachedStage("passage")) {
       openAstralSeal(this, this.astralSeal, false);
     }
+
+    if (reachedStage("citadel")) {
+      openPortal(this, this.astralGate, false);
+    }
   }
 
   protected applyAreaLanguage(): void {
@@ -304,7 +333,8 @@ export class ForestScene extends AreaScene {
     const dialogue = TEXTS.elderDialogue;
 
     if (!progress.elderTalked) return this.t(dialogue.intro);
-    if (reachedStage("complete")) return this.t(dialogue.fifthFragment);
+    if (reachedStage("citadel")) return this.t(dialogue.gateOpen);
+    if (reachedStage("return2")) return this.t(dialogue.fifthFragment);
     if (reachedStage("passage")) return this.t(dialogue.sealOpen);
     if (reachedStage("return")) return this.t(dialogue.fourthFragment);
     if (reachedStage("portal3")) return this.t(dialogue.thirdFragment);
@@ -326,7 +356,31 @@ export class ForestScene extends AreaScene {
     this.unlockKaelIfReady();
     this.updateQuestDisplay();
     this.breakSealIfReady();
+    this.openAstralGateIfReady();
     saveProgress();
+  }
+
+  /**
+   * Depois da conversa com os cinco fragmentos (Capítulo 6), o Ancião faz a
+   * cerimônia e abre o Portal Astral.
+   */
+  private openAstralGateIfReady(): void {
+    if (progress.questStage !== "return2") {
+      return;
+    }
+
+    progress.questStage = "citadel";
+
+    const { x, y } = this.elder.body;
+
+    audio.play("fragment");
+
+    playFragmentCeremony(this, x, y, ASTRAL_GATE_POSITION, () => {
+      openPortal(this, this.astralGate, true);
+      audio.play("shrine");
+      this.updateQuestDisplay();
+      this.statusText.setText(this.t(TEXTS.chapter6.gateOpened));
+    });
   }
 
   /** Depois da conversa da volta (Capítulo 5), o Ancião rompe o selo. */

@@ -9,7 +9,8 @@ export type MusicTrackId =
   | "swamp"
   | "peaks"
   | "volcano"
-  | "graveyard";
+  | "graveyard"
+  | "citadel";
 
 interface MusicTrack {
   /** Duração de um compasso (s). */
@@ -115,6 +116,24 @@ export const MUSIC_TRACKS: Record<MusicTrackId, MusicTrack> = {
     padFilter: 800,
     padGain: 0.04,
     bassGain: 0.05,
+    melodyGain: 0.035,
+  },
+  // Cidadela em Ruínas: fá sustenido menor (F#m – D – E – C#), mais
+  // rápida e épica: a música da batalha final.
+  citadel: {
+    barSeconds: 3.2,
+    chords: [
+      [42, 45, 49],
+      [38, 42, 45],
+      [40, 44, 47],
+      [37, 41, 44],
+    ],
+    melodyScale: [66, 69, 71, 73, 76, 78, 81],
+    melodyChance: 0.5,
+    padType: "sawtooth",
+    padFilter: 900,
+    padGain: 0.035,
+    bassGain: 0.06,
     melodyGain: 0.035,
   },
   // Ruínas: ré menor (Dm – Sib – Gm – Lá), mais grave e lenta.

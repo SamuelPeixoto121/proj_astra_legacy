@@ -71,9 +71,6 @@ import { audio } from "../audio/engine";
 import { AREA_SCENE_KEYS } from "./areas";
 import { AreaScene } from "./AreaScene";
 
-/** Intervalo (ms) entre as chamas nos pés do herói quando pisa no fogo. */
-const BURN_EFFECT_INTERVAL = 140;
-
 /**
  * Estados do Arauto:
  * dormant (esperando) → idle (flutua e decide o próximo ataque)
@@ -106,9 +103,6 @@ export class VolcanoScene extends AreaScene {
   protected readonly musicTrack = "volcano";
 
   private sign!: Phaser.GameObjects.Text;
-  /** A dica sobre a lava aparece só na primeira vez em cada visita. */
-  private lavaHintShown = false;
-  private lastBurnEffectAt = 0;
   private fragment!: AstralFragment;
   private homePortal!: AstralPortal;
   private firePools: FirePool[] = [];
@@ -135,7 +129,6 @@ export class VolcanoScene extends AreaScene {
     const { obstacles, sign } = createVolcanoWorld(this);
 
     this.sign = sign;
-    this.lavaHintShown = false;
     this.firePools = [];
 
     this.addShrine(
@@ -275,25 +268,8 @@ export class VolcanoScene extends AreaScene {
   private updateBurning(): void {
     const { x, y } = this.player.body;
 
-    if (this.isRolling() || !(isOnLava(x, y) || this.isInFirePool(x, y))) {
-      return;
-    }
-
-    // Chamas nos pés enquanto estiver no fogo.
-    const now = this.time.now;
-
-    if (now - this.lastBurnEffectAt >= BURN_EFFECT_INTERVAL) {
-      this.lastBurnEffectAt = now;
-      createImpactEffect(this, x, y + 8, FIRE_COLOR, 5, 16);
-    }
-
-    // O próprio damagePlayer espera o tempo de invencibilidade entre danos.
-    this.damagePlayer(VOLCANO_LAVA_DAMAGE);
-
-    // Depois do dano, para a dica não ser trocada pela mensagem de dano.
-    if (!this.lavaHintShown) {
-      this.lavaHintShown = true;
-      this.statusText.setText(this.t(TEXTS.chapter4.lava));
+    if (isOnLava(x, y) || this.isInFirePool(x, y)) {
+      this.burnPlayer(VOLCANO_LAVA_DAMAGE, TEXTS.chapter4.lava);
     }
   }
 

@@ -2,6 +2,7 @@
 
 import Phaser from "phaser";
 import {
+  ASTRAL_GATE_POSITION,
   FOREST_WEST_TRAIL,
   TILE_SIZE,
   VILLAGE_PORTAL_POSITION,
@@ -130,7 +131,14 @@ function createTrees(scene: Phaser.Scene): Phaser.GameObjects.Rectangle[] {
         y,
         VILLAGE_PORTAL_POSITION.x,
         VILLAGE_PORTAL_POSITION.y,
-      ) < 80
+      ) < 80 ||
+      // E o Portal Astral (Capítulo 6), a leste da vila.
+      Phaser.Math.Distance.Between(
+        x,
+        y,
+        ASTRAL_GATE_POSITION.x,
+        ASTRAL_GATE_POSITION.y,
+      ) < 110
     ) {
       continue;
     }

@@ -30,6 +30,8 @@ export const VOLCANO_WIDTH = 2000;
 export const VOLCANO_HEIGHT = 1200;
 export const GRAVEYARD_WIDTH = 1800;
 export const GRAVEYARD_HEIGHT = 1200;
+export const CITADEL_WIDTH = 1600;
+export const CITADEL_HEIGHT = 1600;
 
 // Barreira de corrupção que fecha a trilha ao norte até Kael ser derrotado.
 export const NORTH_BARRIER = { x: 850, y: 240, width: 200 } as const;
@@ -414,6 +416,10 @@ export const CHECKPOINTS = {
   forestWest: { area: "forest", x: 110, y: 905 },
   graveyardEntrance: { area: "graveyard", x: 1680, y: 700 },
   graveyardShrine: { area: "graveyard", x: 1055, y: 640 },
+  graveyardArena: { area: "graveyard", x: 300, y: 470 },
+  villageGate: { area: "forest", x: 1000, y: 990 },
+  citadelEntrance: { area: "citadel", x: 800, y: 1460 },
+  citadelShrine: { area: "citadel", x: 895, y: 1070 },
 } as const satisfies Record<string, { area: AreaId; x: number; y: number }>;
 
 export type CheckpointId = keyof typeof CHECKPOINTS;
@@ -786,6 +792,66 @@ export const DRAGON_KNIGHT_ITEM_POSITION = { x: 470, y: 690 } as const;
 
 /** Raio da luz que ilumina a arena quando o duelo começa. */
 export const ARENA_LIGHT_RADIUS = 300;
+
+// Portal de luz na arena do Cemitério (abre ao pegar o quinto fragmento):
+// leva de volta à vila, onde o Ancião une os cinco fragmentos.
+export const GRAVEYARD_HOME_PORTAL_POSITION = { x: 200, y: 470 } as const;
+
+// Portal Astral dourado na vila (Capítulo 6): leva à Cidadela em Ruínas.
+export const ASTRAL_GATE_POSITION = { x: 1000, y: 1060 } as const;
+
+// Cidadela em Ruínas (Capítulo 6): a antiga capital de Astra, queimada por
+// Ignis. Trilha de baixo (portal) para cima, até o pátio do castelo, onde
+// fica o dragão. Fogo nos escombros queima ao pisar (rolar é seguro).
+export const CITADEL_PATH = [
+  { x: 800, y: 1600 },
+  { x: 800, y: 1350 },
+  { x: 600, y: 1150 },
+  { x: 900, y: 950 },
+  { x: 700, y: 700 },
+  { x: 800, y: 450 },
+  { x: 800, y: 300 },
+] as const;
+
+/** Pátio do castelo (arena de Ignis): elipse sem casas nem escombros. */
+export const CITADEL_COURTYARD = { x: 800, y: 300, rx: 360, ry: 190 } as const;
+
+/** Fogo nos escombros (elipses): queima ao pisar. */
+export const CITADEL_FIRES = [
+  { x: 560, y: 1300, rx: 70, ry: 40 },
+  { x: 1060, y: 1160, rx: 80, ry: 45 },
+  { x: 760, y: 1060, rx: 55, ry: 32 },
+  { x: 430, y: 900, rx: 70, ry: 40 },
+  { x: 1120, y: 790, rx: 80, ry: 40 },
+  { x: 760, y: 820, rx: 60, ry: 35 },
+  { x: 540, y: 560, rx: 70, ry: 40 },
+  { x: 1070, y: 540, rx: 70, ry: 40 },
+] as const;
+
+/** Dano de pisar no fogo dos escombros (a cada invencibilidade). */
+export const CITADEL_FIRE_DAMAGE = 8;
+
+export const CITADEL_RETURN_PORTAL_POSITION = { x: 800, y: 1540 } as const;
+export const CITADEL_SHRINE_POSITION = { x: 840, y: 1060 } as const;
+
+// Inimigos da Cidadela (os servos de Ignis que ainda guardam as ruínas).
+export const CITADEL_EMBER_SPAWNS = [
+  { x: 430, y: 1130 },
+  { x: 960, y: 1080 },
+  { x: 600, y: 790 },
+  { x: 1000, y: 640 },
+] as const;
+
+export const CITADEL_WISP_SPAWNS = [
+  { x: 400, y: 1120 },
+  { x: 1200, y: 920 },
+  { x: 430, y: 640 },
+] as const;
+
+export const CITADEL_WOLF_SPAWNS = [
+  { x: 1180, y: 1240 },
+  { x: 900, y: 720 },
+] as const;
 
 export const GRAVEYARD_SPECTRE_SPAWNS = [
   { x: 1400, y: 770 },

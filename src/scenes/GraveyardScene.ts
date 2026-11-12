@@ -1,8 +1,8 @@
 // Cemitério de Dragões: Capítulo 5.
 // Chega-se aqui pela trilha a oeste da vila, depois que o Ancião rompe o
 // Selo Astral. Missão: atravessar o cemitério até a arena, a oeste, derrotar
-// o Cavaleiro Dracônico e pegar o quinto Fragmento Astral, o que conclui o
-// Capítulo 5.
+// o Cavaleiro Dracônico e pegar o quinto Fragmento Astral, o que abre um
+// portal de luz na arena de volta à vila (Capítulo 6 começa com o Ancião).
 //
 // Está escuro: o herói enxerga só ao redor de si e das tochas que acende
 // (E). Cada tocha acesa clareia um pouco o cemitério inteiro; com todas
@@ -30,11 +30,11 @@ import {
   GRAVEYARD_ARENA,
   GRAVEYARD_FRAGMENT_POSITION,
   GRAVEYARD_HEIGHT,
+  GRAVEYARD_HOME_PORTAL_POSITION,
   GRAVEYARD_SHRINE_POSITION,
   GRAVEYARD_SPECTRE_SPAWNS,
   GRAVEYARD_TORCHES,
   GRAVEYARD_WIDTH,
-  IGNIS_SHADOW,
   SPECTRE_REVEAL_FACTOR,
   TORCH_STATS,
 } from "../config";
@@ -51,7 +51,11 @@ import {
 import { createGraveyardWorld } from "../world/graveyard";
 import { createDarkness, type Darkness } from "../world/darkness";
 import { createTorch, lightTorch, type Torch } from "../world/torch";
-import { flyIgnisShadow } from "../world/ignisShadow";
+import {
+  scheduleIgnisShadow,
+  type IgnisShadowSchedule,
+} from "../world/ignisShadow";
+import { createPortal, openPortal, type AstralPortal } from "../world/portal";
 import { isInEllipse } from "../world/geometry";
 import {
   createAstralFragment,
@@ -120,8 +124,9 @@ export class GraveyardScene extends AreaScene {
    * continuam acesas ao voltar do checkpoint (até recarregar a página).
    */
   private readonly litTorches = new Set<number>();
-  private nextShadowAt = 0;
+  private ignisShadow!: IgnisShadowSchedule;
   private shadowHintShown = false;
+  private homePortal!: AstralPortal;
   /** true quando a arena está iluminada (duelo começou ou já acabou). */
   private arenaLit = false;
   private fragment!: AstralFragment;
@@ -151,8 +156,7 @@ export class GraveyardScene extends AreaScene {
     this.sign = sign;
     this.shadowHintShown = false;
     this.arenaLit = false;
-    // O relógio da cena só começa a contar no primeiro quadro (ver update).
-    this.nextShadowAt = 0;
+    this.ignisShadow = scheduleIgnisShadow(this);
 
     this.addShrine(
       GRAVEYARD_SHRINE_POSITION.x,
@@ -177,6 +181,20 @@ export class GraveyardScene extends AreaScene {
     );
 
     this.darkness = createDarkness(this, this.getTargetDarkness());
+
+    // Portal de luz na arena: volta para a vila depois do fragmento.
+    const home = GRAVEYARD_HOME_PORTAL_POSITION;
+
+    this.homePortal = createPortal(this, home.x, home.y);
+
+    this.addExit({
+      x: home.x - 40,
+      y: home.y - 30,
+      width: 80,
+      height: 60,
+      target: "villagePortal",
+      isOpen: () => reachedStage("return2"),
+    });
 
     // Borda leste: volta para a trilha a oeste da Floresta.
     this.addExit({
@@ -241,6 +259,9 @@ export class GraveyardScene extends AreaScene {
 
     if (progress.questStage === "fragment5") {
       revealAstralFragment(this, this.fragment, false);
+    } else {
+      // Fragmento já recuperado: o portal de luz está aberto.
+      openPortal(this, this.homePortal, false);
     }
   }
 
@@ -395,29 +416,8 @@ export class GraveyardScene extends AreaScene {
   // ---------------------------------------------------------------------------
 
   private updateIgnisShadow(): void {
-    const now = this.time.now;
-
-    // Primeiro quadro na área: marca quando a sombra passa pela primeira vez.
-    if (this.nextShadowAt === 0) {
-      this.nextShadowAt = now + IGNIS_SHADOW.firstDelay;
-      return;
-    }
-
-    if (now < this.nextShadowAt) {
-      return;
-    }
-
-    this.nextShadowAt =
-      now +
-      IGNIS_SHADOW.duration +
-      Phaser.Math.Between(IGNIS_SHADOW.minDelay, IGNIS_SHADOW.maxDelay);
-
-    flyIgnisShadow(this, IGNIS_SHADOW.duration);
-    audio.play("roar");
-    this.cameras.main.shake(IGNIS_SHADOW.duration * 0.6, 0.002);
-
     // A mensagem aparece só na primeira passagem de cada visita.
-    if (!this.shadowHintShown) {
+    if (this.ignisShadow.update() && !this.shadowHintShown) {
       this.shadowHintShown = true;
       this.statusText.setText(this.t(TEXTS.chapter5.ignisShadow));
     }
@@ -897,12 +897,9 @@ export class GraveyardScene extends AreaScene {
     }
   }
 
-  /**
-   * Pegar o quinto fragmento conclui o Capítulo 5. O save é mantido:
-   * na tela de vitória, Enter volta ao jogo para continuar explorando.
-   */
+  /** Pegar o quinto fragmento abre o portal de luz de volta à vila. */
   private collectFragment(): void {
-    progress.questStage = "complete";
+    progress.questStage = "return2";
 
     const { x, y } = this.fragment.container;
 
@@ -913,9 +910,12 @@ export class GraveyardScene extends AreaScene {
 
     this.cameras.main.flash(500, 255, 240, 200);
 
-    this.updateQuestDisplay();
-    saveProgress();
+    openPortal(this, this.homePortal, true);
+    audio.play("shrine");
 
-    this.showGameOver(true);
+    this.updateQuestDisplay();
+    this.statusText.setText(this.t(TEXTS.chapter5.portalHome));
+
+    saveProgress();
   }
 }

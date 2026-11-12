@@ -49,6 +49,10 @@ export const TEXTS = {
       pt: "ASTRA LEGACY  •  CAPÍTULO 5",
       en: "ASTRA LEGACY  •  CHAPTER 5",
     },
+    chapter6Title: {
+      pt: "ASTRA LEGACY  •  CAPÍTULO 6",
+      en: "ASTRA LEGACY  •  CHAPTER 6",
+    },
     chapterComplete: {
       pt: "CAPÍTULO 5 CONCLUÍDO",
       en: "CHAPTER 5 COMPLETE",
@@ -136,6 +140,18 @@ export const TEXTS = {
       pt: "MISSÃO: O QUINTO FRAGMENTO\nPegue o Fragmento Astral.",
       en: "QUEST: THE FIFTH FRAGMENT\nTake the Astral Fragment.",
     },
+    return2: {
+      pt: "NOVO OBJETIVO: OS CINCO FRAGMENTOS\nAtravesse o portal de luz e fale com o Ancião.",
+      en: "NEW OBJECTIVE: THE FIVE FRAGMENTS\nStep through the portal of light and talk to the Elder.",
+    },
+    citadel: {
+      pt: "NOVO OBJETIVO: O PORTAL ASTRAL\nAtravesse o portal dourado na vila.",
+      en: "NEW OBJECTIVE: THE ASTRAL GATE\nStep through the golden portal in the village.",
+    },
+    ignis: {
+      pt: "MISSÃO FINAL: IGNIS\nSuba até o topo do castelo e enfrente o dragão.",
+      en: "FINAL QUEST: IGNIS\nClimb to the top of the castle and face the dragon.",
+    },
     complete: {
       pt: "CAPÍTULO 5 CONCLUÍDO!\nVocê recuperou o quinto Fragmento Astral.",
       en: "CHAPTER 5 COMPLETE!\nYou recovered the fifth Astral Fragment.",
@@ -150,6 +166,7 @@ export const TEXTS = {
     peaks: { pt: "PICOS CONGELADOS", en: "FROZEN PEAKS" },
     volcano: { pt: "TERRAS VULCÂNICAS", en: "VOLCANIC LANDS" },
     graveyard: { pt: "CEMITÉRIO DE DRAGÕES", en: "DRAGON GRAVEYARD" },
+    citadel: { pt: "CIDADELA EM RUÍNAS", en: "RUINED CITADEL" },
     seal: { pt: "SELO ASTRAL", en: "ASTRAL SEAL" },
   },
 
@@ -174,6 +191,18 @@ export const TEXTS = {
     ice: {
       pt: "GELO! VOCÊ ESCORREGA AO ANDAR (ROLAR AINDA FUNCIONA).",
       en: "ICE! YOU SLIDE AS YOU WALK (ROLLING STILL WORKS).",
+    },
+  },
+
+  // Mensagens das áreas do Capítulo 6.
+  chapter6: {
+    gateOpened: {
+      pt: "OS CINCO FRAGMENTOS SE UNIRAM! UM PORTAL ASTRAL SE ABRIU NA VILA.",
+      en: "THE FIVE FRAGMENTS HAVE JOINED! AN ASTRAL GATE HAS OPENED IN THE VILLAGE.",
+    },
+    fire: {
+      pt: "FOGO NOS ESCOMBROS! ELE QUEIMA AO PISAR (ROLE POR CIMA PARA PASSAR SEM DANO).",
+      en: "FIRE IN THE RUBBLE! IT BURNS TO WALK ON (ROLL ACROSS TO TAKE NO DAMAGE).",
     },
   },
 
@@ -364,13 +393,23 @@ export const TEXTS = {
     fifthFragment: {
       pt: [
         "Cinco fragmentos... O guardião do cemitério caiu, e os dragões mortos enfim descansam.",
-        "Eu senti o fragmento voltar à luz. E senti também Ignis se mexer, inquieto, no fundo do seu covil. Ele sabe que você está vindo.",
-        "Descanse, viajante. A luz de Astra está quase completa. O que vier agora será o desafio mais difícil de todos.",
+        "Eu senti Ignis se mexer, inquieto. Ele voltou para onde tudo começou: a antiga capital de Astra, a cidadela onde destruiu o Fragmento Central.",
+        "Com os cinco fragmentos unidos, posso abrir um caminho até lá. Este é o fim da jornada, viajante. Que a luz de Astra esteja com você.",
       ],
       en: [
         "Five fragments... The graveyard's guardian has fallen, and the dead dragons finally rest.",
-        "I felt the fragment return to the light. And I felt Ignis stir, restless, deep in his lair. He knows you are coming.",
-        "Rest, traveler. Astra's light is nearly whole. What comes next will be the hardest challenge of all.",
+        "I felt Ignis stir, restless. He has returned to where it all began: the old capital of Astra, the citadel where he shattered the Central Fragment.",
+        "With the five fragments united, I can open a way there. This is the end of the journey, traveler. May Astra's light be with you.",
+      ],
+    },
+    gateOpen: {
+      pt: [
+        "O Portal Astral está aberto, ali na vila. Ele leva à Cidadela em Ruínas.",
+        "Ignis espera no topo do castelo. Cuidado com o fogo nas ruas: a cidade ainda arde desde aquela noite.",
+      ],
+      en: [
+        "The Astral Gate is open, right here in the village. It leads to the Ruined Citadel.",
+        "Ignis waits at the top of the castle. Beware the fire in the streets: the city still burns from that night.",
       ],
     },
     sealOpen: {

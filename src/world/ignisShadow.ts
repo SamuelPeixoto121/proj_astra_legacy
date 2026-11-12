@@ -1,9 +1,49 @@
 // A sombra de Ignis: a silhueta enorme de um dragão que cruza a tela,
-// escurecendo tudo por onde passa (presságio do Capítulo 6).
+// escurecendo tudo por onde passa (presságio do confronto final).
 // Segue a tela (não o mapa) e se destrói ao terminar a passagem.
+// scheduleIgnisShadow() faz ela passar de tempos em tempos, com rugido.
 
-import type Phaser from "phaser";
+import Phaser from "phaser";
+import { IGNIS_SHADOW } from "../config";
+import { audio } from "../audio/engine";
 import { addTriangle } from "../utils/shapes";
+
+export interface IgnisShadowSchedule {
+  /** Chame a cada quadro. Devolve true no quadro em que a sombra passa. */
+  update: () => boolean;
+}
+
+/** A sombra passa a cada IGNIS_SHADOW.minDelay–maxDelay ms, com rugido. */
+export function scheduleIgnisShadow(scene: Phaser.Scene): IgnisShadowSchedule {
+  // O relógio da cena só vale no primeiro quadro (não na criação).
+  let nextAt = 0;
+
+  return {
+    update: () => {
+      const now = scene.time.now;
+
+      if (nextAt === 0) {
+        nextAt = now + IGNIS_SHADOW.firstDelay;
+        return false;
+      }
+
+      if (now < nextAt) {
+        return false;
+      }
+
+      nextAt =
+        now +
+        IGNIS_SHADOW.duration +
+        Phaser.Math.Between(IGNIS_SHADOW.minDelay, IGNIS_SHADOW.maxDelay);
+
+      flyIgnisShadow(scene, IGNIS_SHADOW.duration);
+      audio.play("roar");
+      scene.cameras.main.shake(IGNIS_SHADOW.duration * 0.6, 0.002);
+
+      return true;
+    },
+  };
+}
 
 export function flyIgnisShadow(scene: Phaser.Scene, duration: number): void {
   const { width, height } = scene.scale;

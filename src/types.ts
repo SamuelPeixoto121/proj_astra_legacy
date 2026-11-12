@@ -23,7 +23,10 @@ export const QUEST_STAGES = [
   "passage", // atravessar o Selo Astral a oeste da vila
   "knight", // derrotar o guardião do Cemitério de Dragões
   "fragment5", // pegar o quinto Fragmento Astral
-  "complete", // Capítulo 5 concluído
+  "return2", // voltar à vila com os cinco fragmentos (início do Capítulo 6)
+  "citadel", // atravessar o Portal Astral até a Cidadela em Ruínas
+  "ignis", // derrotar Ignis no topo do castelo
+  "complete", // Ignis derrotado: fim da jornada
 ] as const;
 
 export type QuestStage = (typeof QUEST_STAGES)[number];
@@ -35,7 +38,8 @@ export type AreaId =
   | "swamp"
   | "peaks"
   | "volcano"
-  | "graveyard";
+  | "graveyard"
+  | "citadel";
 
 /** Tipos de inimigos comuns (os chefes são tratados à parte). */
 export type EnemyKind =

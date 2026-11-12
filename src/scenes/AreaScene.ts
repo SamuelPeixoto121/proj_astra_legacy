@@ -119,6 +119,10 @@ interface AreaShrine {
 /** Conteúdo de um diálogo. É uma função para poder ser traduzido na hora. */
 type DialogueSource = () => { name: string; lines: string[] };
 
+/** Intervalo (ms) entre as chamas nos pés do herói quando pisa em fogo. */
+const BURN_EFFECT_INTERVAL = 140;
+const BURN_COLOR = 0xff7a2a;
+
 export abstract class AreaScene extends Phaser.Scene {
   protected abstract readonly areaId: AreaId;
   protected abstract readonly worldWidth: number;
@@ -170,6 +174,9 @@ export abstract class AreaScene extends Phaser.Scene {
 
   private playerHealth: number = PLAYER_STATS.maxHealth;
   private lastAttackAt = -10000;
+  /** Queimadura de terreno (ver burnPlayer). */
+  private lastBurnEffectAt = 0;
+  private burnHintShown = false;
   /** Mão do próximo soco (alterna entre 1 e -1). */
   private punchSide: 1 | -1 = 1;
   private lastDamageAt = -10000;
@@ -329,6 +336,8 @@ export abstract class AreaScene extends Phaser.Scene {
 
   /** Volta o estado da cena ao inicial (a cena é reaproveitada ao reabrir). */
   private resetSceneState(): void {
+    this.lastBurnEffectAt = 0;
+    this.burnHintShown = false;
     this.enemies = [];
     this.projectiles = [];
     this.obstacles = [];
@@ -609,6 +618,8 @@ export abstract class AreaScene extends Phaser.Scene {
       this.statusText.setText(this.t(TEXTS.hud.victory));
     } else if (stage === "complete") {
       this.statusText.setText(this.t(TEXTS.hud.chapterComplete));
+    } else if (reachedStage("return2")) {
+      this.statusText.setText(this.t(TEXTS.hud.chapter6Title));
     } else if (reachedStage("return")) {
       this.statusText.setText(this.t(TEXTS.hud.chapter5Title));
     } else if (reachedStage("portal3")) {
@@ -1567,6 +1578,33 @@ export abstract class AreaScene extends Phaser.Scene {
   // ---------------------------------------------------------------------------
   // Rolamento (Shift)
   // ---------------------------------------------------------------------------
+
+  /**
+   * O herói está pisando em fogo (lava, brasas...): chamas nos pés, dano
+   * (o damagePlayer já espera a invencibilidade entre um dano e outro) e,
+   * na primeira vez em cada visita, a dica `hint`. Rolando, não queima.
+   */
+  protected burnPlayer(damage: number, hint: Localized): void {
+    if (this.isRolling()) {
+      return;
+    }
+
+    const { x, y } = this.player.body;
+    const now = this.time.now;
+
+    if (now - this.lastBurnEffectAt >= BURN_EFFECT_INTERVAL) {
+      this.lastBurnEffectAt = now;
+      createImpactEffect(this, x, y + 8, BURN_COLOR, 5, 16);
+    }
+
+    this.damagePlayer(damage);
+
+    // Depois do dano, para a dica não ser trocada pela mensagem de dano.
+    if (!this.burnHintShown) {
+      this.burnHintShown = true;
+      this.statusText.setText(this.t(hint));
+    }
+  }
 
   /** true durante o rolamento (o herói fica invencível). */
   protected isRolling(): boolean {
