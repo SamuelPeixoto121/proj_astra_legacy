@@ -9,6 +9,7 @@ import {
   SWAMP_WIDTH,
   TILE_SIZE,
 } from "../config";
+import { createSeededRandom, distanceToLine, isInEllipse } from "./geometry";
 
 export interface SwampWorld {
   /** Obstáculos das árvores mortas, usados pela cena para as colisões. */
@@ -32,11 +33,7 @@ export function createSwampWorld(scene: Phaser.Scene): SwampWorld {
 
 /** true se o ponto está dentro de alguma poça de lama. */
 export function isInMud(x: number, y: number): boolean {
-  return SWAMP_MUD_POOLS.some((pool) => {
-    const dx = (x - pool.x) / pool.rx;
-    const dy = (y - pool.y) / pool.ry;
-    return dx * dx + dy * dy <= 1;
-  });
+  return SWAMP_MUD_POOLS.some((pool) => isInEllipse(x, y, pool));
 }
 
 function drawGround(scene: Phaser.Scene): void {
@@ -120,42 +117,11 @@ function drawMudPools(scene: Phaser.Scene): void {
   }
 }
 
-/** Distância de um ponto até a trilha (segmento mais próximo). */
-function distanceToPath(x: number, y: number): number {
-  let best = Infinity;
-
-  for (let i = 0; i < SWAMP_PATH.length - 1; i++) {
-    const a = SWAMP_PATH[i];
-    const b = SWAMP_PATH[i + 1];
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-
-    // Posição (0 a 1) do ponto mais próximo ao longo do segmento a→b.
-    const t = Phaser.Math.Clamp(
-      ((x - a.x) * dx + (y - a.y) * dy) / (dx * dx + dy * dy),
-      0,
-      1,
-    );
-
-    best = Math.min(
-      best,
-      Phaser.Math.Distance.Between(x, y, a.x + dx * t, a.y + dy * t),
-    );
-  }
-
-  return best;
-}
-
 function createDeadTrees(scene: Phaser.Scene): Phaser.GameObjects.Rectangle[] {
   const obstacles: Phaser.GameObjects.Rectangle[] = [];
 
   // Sorteio com semente fixa: o pântano é sempre igual.
-  let seed = 9173;
-
-  const random = (max: number): number => {
-    seed = (seed * 16807) % 2147483647;
-    return ((seed % 10000) / 10000) * max;
-  };
+  const random = createSeededRandom(9173);
 
   for (let i = 0; i < 80; i++) {
     const x = 40 + random(SWAMP_WIDTH - 80);
@@ -163,7 +129,7 @@ function createDeadTrees(scene: Phaser.Scene): Phaser.GameObjects.Rectangle[] {
     const size = 0.8 + random(0.5);
 
     const blocked =
-      distanceToPath(x, y) < 95 || // trilha livre
+      distanceToLine(x, y, SWAMP_PATH) < 95 || // trilha livre
       isInMud(x, y) || // nada de árvore dentro da lama
       Phaser.Math.Distance.Between(x, y, 800, 200) < 240; // clareira da feiticeira
 

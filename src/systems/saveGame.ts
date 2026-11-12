@@ -39,8 +39,10 @@ const SAVE_KEY = "astra-legacy:save";
 // "portal2" (atravessar o portal da clareira do pântano).
 // Versão 6: arma e armadura podem ficar vazias (null = soco / sem armadura).
 // Saves antigos continuam valendo (neles os dois espaços sempre têm item).
-const SAVE_VERSION = 6;
-const COMPATIBLE_VERSIONS: readonly unknown[] = [2, 3, 4, 5, SAVE_VERSION];
+// Versão 7: Capítulo 4. "complete" agora é o fim do Capítulo 4, então saves
+// antigos com "complete" passam para "portal3" (atravessar o portal de fogo).
+const SAVE_VERSION = 7;
+const COMPATIBLE_VERSIONS: readonly unknown[] = [2, 3, 4, 5, 6, SAVE_VERSION];
 
 export type SaveData = GameProgress;
 
@@ -184,5 +186,12 @@ function parseEquipment(
 
 /** Ajusta a etapa da missão de saves de versões antigas. */
 function migrateQuestStage(stage: QuestStage, version: number): QuestStage {
-  return version < 5 && stage === "complete" ? "portal2" : stage;
+  if (stage !== "complete") {
+    return stage;
+  }
+
+  // Cada versão nova de capítulo mudou o que "complete" significa.
+  if (version < 5) return "portal2";
+  if (version < 7) return "portal3";
+  return stage;
 }

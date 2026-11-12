@@ -11,6 +11,7 @@ import {
   PEAKS_WIDTH,
   TILE_SIZE,
 } from "../config";
+import { createSeededRandom, distanceToLine, isInEllipse } from "./geometry";
 
 export interface PeaksWorld {
   /** Obstáculos (pinheiros e pedras), usados pela cena para as colisões. */
@@ -38,11 +39,7 @@ export function createPeaksWorld(scene: Phaser.Scene): PeaksWorld {
 
 /** true se o ponto está sobre uma placa de gelo. */
 export function isOnIce(x: number, y: number): boolean {
-  return PEAKS_ICE_PATCHES.some((patch) => {
-    const dx = (x - patch.x) / patch.rx;
-    const dy = (y - patch.y) / patch.ry;
-    return dx * dx + dy * dy <= 1;
-  });
+  return PEAKS_ICE_PATCHES.some((patch) => isInEllipse(x, y, patch));
 }
 
 function drawGround(scene: Phaser.Scene): void {
@@ -148,48 +145,11 @@ function drawIcePatches(scene: Phaser.Scene): void {
   }
 }
 
-/** Distância de um ponto até a trilha (segmento mais próximo). */
-function distanceToPath(x: number, y: number): number {
-  let best = Infinity;
-
-  for (let i = 0; i < PEAKS_PATH.length - 1; i++) {
-    const a = PEAKS_PATH[i];
-    const b = PEAKS_PATH[i + 1];
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-
-    // Posição (0 a 1) do ponto mais próximo ao longo do segmento a→b.
-    const t = Phaser.Math.Clamp(
-      ((x - a.x) * dx + (y - a.y) * dy) / (dx * dx + dy * dy),
-      0,
-      1,
-    );
-
-    best = Math.min(
-      best,
-      Phaser.Math.Distance.Between(x, y, a.x + dx * t, a.y + dy * t),
-    );
-  }
-
-  return best;
-}
-
-function isOnSummit(x: number, y: number, margin: number): boolean {
-  const dx = (x - PEAKS_SUMMIT.x) / (PEAKS_SUMMIT.rx + margin);
-  const dy = (y - PEAKS_SUMMIT.y) / (PEAKS_SUMMIT.ry + margin);
-  return dx * dx + dy * dy <= 1;
-}
-
 function createObstacles(scene: Phaser.Scene): Phaser.GameObjects.Rectangle[] {
   const obstacles: Phaser.GameObjects.Rectangle[] = [];
 
   // Sorteio com semente fixa: os Picos são sempre iguais.
-  let seed = 4421;
-
-  const random = (max: number): number => {
-    seed = (seed * 16807) % 2147483647;
-    return ((seed % 10000) / 10000) * max;
-  };
+  const random = createSeededRandom(4421);
 
   for (let i = 0; i < 90; i++) {
     const x = 40 + random(PEAKS_WIDTH - 80);
@@ -198,9 +158,9 @@ function createObstacles(scene: Phaser.Scene): Phaser.GameObjects.Rectangle[] {
     const isRock = random(1) < 0.3;
 
     const blocked =
-      distanceToPath(x, y) < 95 || // trilha livre
+      distanceToLine(x, y, PEAKS_PATH) < 95 || // trilha livre
       isOnIce(x, y) || // nada em cima do gelo
-      isOnSummit(x, y, 60); // platô do chefe livre
+      isInEllipse(x, y, PEAKS_SUMMIT, 60); // platô do chefe livre
 
     if (!blocked) {
       obstacles.push(

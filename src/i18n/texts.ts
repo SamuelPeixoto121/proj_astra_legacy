@@ -41,13 +41,17 @@ export const TEXTS = {
       pt: "ASTRA LEGACY  •  CAPÍTULO 3",
       en: "ASTRA LEGACY  •  CHAPTER 3",
     },
+    chapter4Title: {
+      pt: "ASTRA LEGACY  •  CAPÍTULO 4",
+      en: "ASTRA LEGACY  •  CHAPTER 4",
+    },
     chapterComplete: {
-      pt: "CAPÍTULO 3 CONCLUÍDO",
-      en: "CHAPTER 3 COMPLETE",
+      pt: "CAPÍTULO 4 CONCLUÍDO",
+      en: "CHAPTER 4 COMPLETE",
     },
     victory: {
-      pt: "TERCEIRO FRAGMENTO RECUPERADO • VITÓRIA",
-      en: "THIRD FRAGMENT RECOVERED • VICTORY",
+      pt: "QUARTO FRAGMENTO RECUPERADO • VITÓRIA",
+      en: "FOURTH FRAGMENT RECOVERED • VICTORY",
     },
   },
 
@@ -100,9 +104,21 @@ export const TEXTS = {
       pt: "MISSÃO: O TERCEIRO FRAGMENTO\nPegue o Fragmento Astral.",
       en: "QUEST: THE THIRD FRAGMENT\nTake the Astral Fragment.",
     },
+    portal3: {
+      pt: "NOVO OBJETIVO: O PORTAL DE FOGO\nAtravesse o portal no topo dos Picos.",
+      en: "NEW OBJECTIVE: THE FIRE PORTAL\nStep through the portal atop the Peaks.",
+    },
+    herald: {
+      pt: "MISSÃO: O QUARTO FRAGMENTO\nAtravesse a lava até a cratera, a leste.",
+      en: "QUEST: THE FOURTH FRAGMENT\nCross the lava to the crater in the east.",
+    },
+    fragment4: {
+      pt: "MISSÃO: O QUARTO FRAGMENTO\nPegue o Fragmento Astral.",
+      en: "QUEST: THE FOURTH FRAGMENT\nTake the Astral Fragment.",
+    },
     complete: {
-      pt: "CAPÍTULO 3 CONCLUÍDO!\nVocê recuperou o terceiro Fragmento Astral.",
-      en: "CHAPTER 3 COMPLETE!\nYou recovered the third Astral Fragment.",
+      pt: "CAPÍTULO 4 CONCLUÍDO!\nVocê recuperou o quarto Fragmento Astral.",
+      en: "CHAPTER 4 COMPLETE!\nYou recovered the fourth Astral Fragment.",
     },
   } satisfies Record<QuestStage, Localized>,
 
@@ -112,6 +128,7 @@ export const TEXTS = {
     ruins: { pt: "RUÍNAS DO SANTUÁRIO", en: "SANCTUARY RUINS" },
     swamp: { pt: "PÂNTANO SOMBRIO", en: "SHADOW SWAMP" },
     peaks: { pt: "PICOS CONGELADOS", en: "FROZEN PEAKS" },
+    volcano: { pt: "TERRAS VULCÂNICAS", en: "VOLCANIC LANDS" },
   },
 
   // Mensagens das áreas do Capítulo 2.
@@ -135,6 +152,18 @@ export const TEXTS = {
     ice: {
       pt: "GELO! VOCÊ ESCORREGA AO ANDAR (ROLAR AINDA FUNCIONA).",
       en: "ICE! YOU SLIDE AS YOU WALK (ROLLING STILL WORKS).",
+    },
+  },
+
+  // Mensagens das áreas do Capítulo 4.
+  chapter4: {
+    portalOpened: {
+      pt: "FRAGMENTO RECUPERADO! UM PORTAL DE FOGO SE ABRIU NO TOPO DOS PICOS.",
+      en: "FRAGMENT RECOVERED! A FIRE PORTAL HAS OPENED ATOP THE PEAKS.",
+    },
+    lava: {
+      pt: "LAVA! ELA QUEIMA AO PISAR (ROLE POR CIMA PARA ATRAVESSAR SEM DANO).",
+      en: "LAVA! IT BURNS TO WALK ON (ROLL ACROSS TO TAKE NO DAMAGE).",
     },
   },
 
@@ -253,12 +282,12 @@ export const TEXTS = {
       pt: [
         "Três fragmentos... Eu mal posso acreditar. A nevasca dos Picos se acalmou no instante em que você tocou o fragmento. Até daqui eu senti.",
         "Mas cuidado, viajante: quanto mais a luz de Astra se reúne, mais Ignis a percebe. Esta noite o céu ao longe ardeu em vermelho, como brasa sob as cinzas.",
-        "Descanse e fique mais forte. Quando o próximo fragmento chamar, eu sentirei. E então você não estará enfrentando apenas os servos do dragão.",
+        "E agora um portal de fogo se abriu no topo dos Picos. Ele leva às Terras Vulcânicas, onde o próximo fragmento chama. Os servos do dragão estarão à sua espera. Tome cuidado, viajante.",
       ],
       en: [
         "Three fragments... I can hardly believe it. The blizzard on the Peaks calmed the moment you touched the fragment. I felt it even from here.",
         "But beware, traveler: the more Astra's light gathers, the more Ignis senses it. Tonight the distant sky burned red, like embers beneath the ashes.",
-        "Rest and grow stronger. When the next fragment calls, I will feel it. And then you will not be facing only the dragon's servants.",
+        "And now a fire portal has opened atop the Peaks. It leads to the Volcanic Lands, where the next fragment calls. The dragon's servants will be waiting for you. Be careful, traveler.",
       ],
     },
   } satisfies Record<string, Localized<string[]>>,
@@ -680,8 +709,8 @@ export const TEXTS = {
 
   endScreen: {
     victory: {
-      pt: "CAPÍTULO 3 CONCLUÍDO!\n\nVocê recuperou o terceiro Fragmento Astral.\nA nevasca se acalma sobre os Picos.\n\nEnter  •  Continuar explorando\nEsc  •  Tela inicial",
-      en: "CHAPTER 3 COMPLETE!\n\nYou recovered the third Astral Fragment.\nThe blizzard calms over the Peaks.\n\nEnter  •  Keep exploring\nEsc  •  Title screen",
+      pt: "CAPÍTULO 4 CONCLUÍDO!\n\nVocê recuperou o quarto Fragmento Astral.\nO fogo das Terras Vulcânicas começa a se apagar.\n\nEnter  •  Continuar explorando\nEsc  •  Tela inicial",
+      en: "CHAPTER 4 COMPLETE!\n\nYou recovered the fourth Astral Fragment.\nThe fires of the Volcanic Lands begin to fade.\n\nEnter  •  Keep exploring\nEsc  •  Title screen",
     },
     defeat: {
       pt: "VOCÊ FOI DERROTADO\n\nR  •  Voltar ao último checkpoint\nN  •  Começar um novo jogo\nEsc  •  Tela inicial",

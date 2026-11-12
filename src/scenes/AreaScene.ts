@@ -598,6 +598,8 @@ export abstract class AreaScene extends Phaser.Scene {
       this.statusText.setText(this.t(TEXTS.hud.victory));
     } else if (stage === "complete") {
       this.statusText.setText(this.t(TEXTS.hud.chapterComplete));
+    } else if (reachedStage("portal3")) {
+      this.statusText.setText(this.t(TEXTS.hud.chapter4Title));
     } else if (reachedStage("portal2")) {
       this.statusText.setText(this.t(TEXTS.hud.chapter3Title));
     } else if (reachedStage("portal")) {
@@ -1545,7 +1547,8 @@ export abstract class AreaScene extends Phaser.Scene {
   // Rolamento (Shift)
   // ---------------------------------------------------------------------------
 
-  private isRolling(): boolean {
+  /** true durante o rolamento (o herói fica invencível). */
+  protected isRolling(): boolean {
     return this.time.now < this.rollingUntil;
   }
 

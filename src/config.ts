@@ -26,6 +26,8 @@ export const SWAMP_HEIGHT = 1200;
 // Picos Congelados
 export const PEAKS_WIDTH = 1600;
 export const PEAKS_HEIGHT = 1400;
+export const VOLCANO_WIDTH = 2000;
+export const VOLCANO_HEIGHT = 1200;
 
 // Barreira de corrupção que fecha a trilha ao norte até Kael ser derrotado.
 export const NORTH_BARRIER = { x: 850, y: 240, width: 200 } as const;
@@ -400,6 +402,9 @@ export const CHECKPOINTS = {
   swampPortal: { area: "swamp", x: 800, y: 150 },
   peaksEntrance: { area: "peaks", x: 800, y: 1260 },
   peaksShrine: { area: "peaks", x: 745, y: 800 },
+  peaksPortal: { area: "peaks", x: 800, y: 190 },
+  volcanoEntrance: { area: "volcano", x: 230, y: 900 },
+  volcanoShrine: { area: "volcano", x: 875, y: 790 },
 } as const satisfies Record<string, { area: AreaId; x: number; y: number }>;
 
 export type CheckpointId = keyof typeof CHECKPOINTS;
@@ -507,3 +512,72 @@ export const PEAKS_FRAGMENT_POSITION = { x: 800, y: 220 } as const;
 
 // Lâmina Glacial (item do chefe): num canto do platô, longe do fragmento.
 export const FROST_BOSS_ITEM_POSITION = { x: 960, y: 300 } as const;
+
+// Portal de fogo no topo do platô (abre ao pegar o terceiro fragmento).
+export const PEAKS_FIRE_PORTAL_POSITION = { x: 800, y: 110 } as const;
+
+// Terras Vulcânicas (Capítulo 4).
+// Trilha da esquerda (portal de volta) para a direita, até a cratera onde
+// fica o chefe. Rios de lava cruzam a trilha: pisar queima (rolar por cima
+// é seguro, porque o herói fica invencível durante o rolamento).
+export const VOLCANO_PATH = [
+  { x: 60, y: 900 },
+  { x: 400, y: 860 },
+  { x: 620, y: 700 },
+  { x: 900, y: 760 },
+  { x: 1150, y: 560 },
+  { x: 1400, y: 600 },
+  { x: 1620, y: 500 },
+] as const;
+
+/** Cratera (arena do chefe): elipse sem pedras nem lava. */
+export const VOLCANO_CRATER = { x: 1640, y: 500, rx: 290, ry: 200 } as const;
+
+/** Rios de lava: linhas (pontos em ordem) com uma largura. */
+export const VOLCANO_LAVA_RIVERS = [
+  {
+    width: 64,
+    points: [
+      { x: 520, y: 0 },
+      { x: 570, y: 300 },
+      { x: 500, y: 620 },
+      { x: 560, y: 900 },
+      { x: 520, y: 1200 },
+    ],
+  },
+  {
+    width: 72,
+    points: [
+      { x: 1060, y: 0 },
+      { x: 1000, y: 330 },
+      { x: 1070, y: 680 },
+      { x: 1010, y: 1200 },
+    ],
+  },
+] as const;
+
+/** Poças de lava (elipses) espalhadas pelo mapa. */
+export const VOLCANO_LAVA_POOLS = [
+  { x: 280, y: 330, rx: 120, ry: 70 },
+  { x: 790, y: 1060, rx: 140, ry: 70 },
+  { x: 1330, y: 1000, rx: 130, ry: 70 },
+  { x: 780, y: 330, rx: 110, ry: 60 },
+] as const;
+
+/** Dano de pisar na lava (a cada PLAYER_STATS.invulnerabilityTime ms). */
+export const VOLCANO_LAVA_DAMAGE = 10;
+
+export const VOLCANO_RETURN_PORTAL_POSITION = { x: 110, y: 900 } as const;
+export const VOLCANO_SHRINE_POSITION = { x: 820, y: 780 } as const;
+
+// Inimigos das Terras Vulcânicas (por enquanto, os já conhecidos).
+export const VOLCANO_SPIDER_SPAWNS = [
+  { x: 300, y: 650 },
+  { x: 760, y: 560 },
+  { x: 1300, y: 760 },
+] as const;
+
+export const VOLCANO_WOLF_SPAWNS = [
+  { x: 820, y: 940 },
+  { x: 1250, y: 420 },
+] as const;

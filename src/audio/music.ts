@@ -3,7 +3,7 @@
 // escala — por isso a música nunca se repete exatamente igual.
 // Nas lutas contra chefes, uma batida de tambor entra por cima.
 
-export type MusicTrackId = "forest" | "ruins" | "swamp" | "peaks";
+export type MusicTrackId = "forest" | "ruins" | "swamp" | "peaks" | "volcano";
 
 interface MusicTrack {
   /** Duração de um compasso (s). */
@@ -73,6 +73,24 @@ export const MUSIC_TRACKS: Record<MusicTrackId, MusicTrack> = {
     padFilter: 1400,
     padGain: 0.04,
     bassGain: 0.045,
+    melodyGain: 0.03,
+  },
+  // Terras Vulcânicas: mi frígio (Em – F – Dm – Mi), grave e tenso, com o
+  // semitom mi–fá dando a sensação de ameaça.
+  volcano: {
+    barSeconds: 4.2,
+    chords: [
+      [40, 43, 47],
+      [41, 45, 48],
+      [38, 41, 45],
+      [40, 44, 47],
+    ],
+    melodyScale: [64, 65, 67, 69, 71, 72, 76],
+    melodyChance: 0.3,
+    padType: "sawtooth",
+    padFilter: 520,
+    padGain: 0.035,
+    bassGain: 0.06,
     melodyGain: 0.03,
   },
   // Ruínas: ré menor (Dm – Sib – Gm – Lá), mais grave e lenta.

@@ -8,20 +8,35 @@ export interface AstralPortal {
   open: boolean;
 }
 
-const LIGHT = 0xfff0b0;
-const VIOLET = 0xb9a2ff;
+/** Cores de um portal: anel de fora (e brilho), anel do meio e centro. */
+export interface PortalColors {
+  outer: number;
+  middle: number;
+  core: number;
+}
+
+/** Portal de luz (padrão) e portal de fogo (para as Terras Vulcânicas). */
+export const PORTAL_COLORS = {
+  light: { outer: 0xfff0b0, middle: 0xb9a2ff, core: 0xfffbe8 },
+  fire: { outer: 0xffa04a, middle: 0xff4a2a, core: 0xffe2b0 },
+} as const satisfies Record<string, PortalColors>;
 
 export function createPortal(
   scene: Phaser.Scene,
   x: number,
   y: number,
+  colors: PortalColors = PORTAL_COLORS.light,
 ): AstralPortal {
   const container = scene.add.container(x, y);
 
-  const glow = scene.add.ellipse(0, 0, 110, 140, LIGHT, 0.12);
-  const outer = scene.add.ellipse(0, 0, 70, 96).setStrokeStyle(4, LIGHT, 0.9);
-  const middle = scene.add.ellipse(0, 0, 50, 74).setStrokeStyle(3, VIOLET, 0.8);
-  const core = scene.add.ellipse(0, 0, 30, 48, 0xfffbe8, 0.55);
+  const glow = scene.add.ellipse(0, 0, 110, 140, colors.outer, 0.12);
+  const outer = scene.add
+    .ellipse(0, 0, 70, 96)
+    .setStrokeStyle(4, colors.outer, 0.9);
+  const middle = scene.add
+    .ellipse(0, 0, 50, 74)
+    .setStrokeStyle(3, colors.middle, 0.8);
+  const core = scene.add.ellipse(0, 0, 30, 48, colors.core, 0.55);
 
   container.add([
     scene.add.ellipse(0, 46, 90, 22, 0x0d0c12, 0.45), // sombra

@@ -2,7 +2,8 @@
 // Chega-se aqui pelo portal gelado na clareira do Pântano Sombrio.
 // Lobos e Cavaleiros de Gelo (bloqueiam golpes de frente com o escudo).
 // Missão: subir até o platô do topo, derrotar o chefe e pegar o terceiro
-// Fragmento Astral, o que conclui o Capítulo 3.
+// Fragmento Astral, o que abre um portal de fogo no topo do platô: ele leva
+// às Terras Vulcânicas (Capítulo 4).
 //
 // Placas de gelo fazem o herói escorregar (demora para frear e virar);
 // a nevasca deixa as bordas da tela esbranquiçadas.
@@ -20,6 +21,7 @@ import {
   FROST_BOSS_ITEM_POSITION,
   FROST_BOSS_POSITION,
   FROST_BOSS_STATS,
+  PEAKS_FIRE_PORTAL_POSITION,
   PEAKS_FRAGMENT_POSITION,
   PEAKS_HEIGHT,
   PEAKS_ICE_TRACTION,
@@ -40,7 +42,12 @@ import {
   type Boss,
 } from "../systems/bosses";
 import { createPeaksWorld, isOnIce } from "../world/peaks";
-import { createPortal, openPortal } from "../world/portal";
+import {
+  PORTAL_COLORS,
+  createPortal,
+  openPortal,
+  type AstralPortal,
+} from "../world/portal";
 import {
   createAstralFragment,
   revealAstralFragment,
@@ -99,6 +106,7 @@ export class PeaksScene extends AreaScene {
   /** A dica sobre o gelo aparece só na primeira vez em cada visita. */
   private iceHintShown = false;
   private fragment!: AstralFragment;
+  private firePortal!: AstralPortal;
 
   private colossusSprite!: FrostColossusSprite;
   private colossus!: Boss;
@@ -136,6 +144,23 @@ export class PeaksScene extends AreaScene {
       PEAKS_FRAGMENT_POSITION.x,
       PEAKS_FRAGMENT_POSITION.y,
     );
+
+    // Portal de fogo no topo: leva às Terras Vulcânicas depois do fragmento.
+    this.firePortal = createPortal(
+      this,
+      PEAKS_FIRE_PORTAL_POSITION.x,
+      PEAKS_FIRE_PORTAL_POSITION.y,
+      PORTAL_COLORS.fire,
+    );
+
+    this.addExit({
+      x: PEAKS_FIRE_PORTAL_POSITION.x - 40,
+      y: PEAKS_FIRE_PORTAL_POSITION.y - 30,
+      width: 80,
+      height: 60,
+      target: "volcanoEntrance",
+      isOpen: () => reachedStage("portal3"),
+    });
 
     // Portal de volta para o Pântano (sempre aberto).
     const { x, y } = PEAKS_RETURN_PORTAL_POSITION;
@@ -207,6 +232,9 @@ export class PeaksScene extends AreaScene {
 
     if (progress.questStage === "fragment3") {
       revealAstralFragment(this, this.fragment, false);
+    } else {
+      // Fragmento já recuperado: o portal de fogo está aberto.
+      openPortal(this, this.firePortal, false);
     }
   }
 
@@ -780,12 +808,9 @@ export class PeaksScene extends AreaScene {
     }
   }
 
-  /**
-   * Pegar o terceiro fragmento conclui o Capítulo 3. O save é mantido:
-   * na tela de vitória, Enter volta ao jogo para continuar explorando.
-   */
+  /** Pegar o terceiro fragmento abre o portal de fogo no topo do platô. */
   private collectFragment(): void {
-    progress.questStage = "complete";
+    progress.questStage = "portal3";
 
     const { x, y } = this.fragment.container;
 
@@ -796,9 +821,12 @@ export class PeaksScene extends AreaScene {
 
     this.cameras.main.flash(500, 255, 240, 200);
 
-    this.updateQuestDisplay();
-    saveProgress();
+    openPortal(this, this.firePortal, true);
+    audio.play("shrine");
 
-    this.showGameOver(true);
+    this.updateQuestDisplay();
+    this.statusText.setText(this.t(TEXTS.chapter4.portalOpened));
+
+    saveProgress();
   }
 }

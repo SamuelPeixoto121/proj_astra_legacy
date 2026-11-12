@@ -7,6 +7,7 @@ import { ForestScene } from "./scenes/ForestScene";
 import { RuinsScene } from "./scenes/RuinsScene";
 import { SwampScene } from "./scenes/SwampScene";
 import { PeaksScene } from "./scenes/PeaksScene";
+import { VolcanoScene } from "./scenes/VolcanoScene";
 import { PauseScene } from "./scenes/PauseScene";
 import { EquipmentScene } from "./scenes/EquipmentScene";
 import { LANGUAGE_CHANGED_EVENT, updatePageLanguage } from "./i18n/page";
@@ -32,7 +33,7 @@ const game = new Phaser.Game({
   },
   // A tela inicial abre primeiro; dela se continua o save ou começa um jogo novo.
   // A pausa vem por último para ser desenhada por cima das áreas.
-  scene: [TitleScene, ForestScene, RuinsScene, SwampScene, PeaksScene, PauseScene, EquipmentScene],
+  scene: [TitleScene, ForestScene, RuinsScene, SwampScene, PeaksScene, VolcanoScene, PauseScene, EquipmentScene],
 });
 
 // A cena avisa quando o idioma muda; aqui traduzimos a página ao redor do jogo.

@@ -16,13 +16,16 @@ export const QUEST_STAGES = [
   "portal2", // atravessar o portal da clareira (início do Capítulo 3)
   "winter", // derrotar o chefe dos Picos Congelados
   "fragment3", // pegar o terceiro Fragmento Astral
-  "complete", // Capítulo 3 concluído
+  "portal3", // atravessar o portal de fogo no topo dos Picos (início do Capítulo 4)
+  "herald", // derrotar o Arauto de Ignis nas Terras Vulcânicas
+  "fragment4", // pegar o quarto Fragmento Astral
+  "complete", // Capítulo 4 concluído
 ] as const;
 
 export type QuestStage = (typeof QUEST_STAGES)[number];
 
 /** Áreas (mapas) do jogo. Cada área é uma cena do Phaser. */
-export type AreaId = "forest" | "ruins" | "swamp" | "peaks";
+export type AreaId = "forest" | "ruins" | "swamp" | "peaks" | "volcano";
 
 /** Tipos de inimigos comuns (os chefes são tratados à parte). */
 export type EnemyKind = "wolf" | "spider" | "wisp" | "iceKnight";
