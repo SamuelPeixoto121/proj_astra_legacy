@@ -1,5 +1,5 @@
 // Efeitos visuais de combate: corte da espada, impacto,
-// números de dano e explosão ao derrotar um inimigo.
+// números de dano, explosão ao derrotar um inimigo e espinhos de gelo.
 // Todos os efeitos se destroem sozinhos ao terminar a animação.
 
 import Phaser from "phaser";
@@ -241,4 +241,39 @@ export function createDeathBurst(
       onComplete: () => particle.destroy(),
     });
   }
+}
+
+/** Espinho de gelo que brota do chão e se desfaz (ataque do Colosso). */
+export function createIceSpike(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  radius: number,
+): void {
+  const spike = scene.add.container(x, y).setDepth(y + 40);
+
+  spike.add([
+    scene.add.ellipse(0, 4, radius * 1.8, radius * 0.7, 0x8fc4e8, 0.6),
+    scene.add.triangle(-9, 0, -7, 4, 7, 4, 0, -34, 0x9fd8ff),
+    scene.add.triangle(9, 2, -6, 4, 6, 4, 0, -26, 0xbfe6ff),
+    scene.add.triangle(0, -2, -8, 4, 8, 4, 0, -46, 0xe8f7ff),
+  ]);
+
+  spike.setScale(1, 0);
+
+  scene.tweens.add({
+    targets: spike,
+    scaleY: 1,
+    duration: 90,
+    ease: "Back.Out",
+    onComplete: () => {
+      scene.tweens.add({
+        targets: spike,
+        alpha: 0,
+        delay: 350,
+        duration: 300,
+        onComplete: () => spike.destroy(),
+      });
+    },
+  });
 }

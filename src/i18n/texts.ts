@@ -45,8 +45,8 @@ export const TEXTS = {
       en: "CHAPTER 3 COMPLETE",
     },
     victory: {
-      pt: "SEGUNDO FRAGMENTO RECUPERADO • VITÓRIA",
-      en: "SECOND FRAGMENT RECOVERED • VICTORY",
+      pt: "TERCEIRO FRAGMENTO RECUPERADO • VITÓRIA",
+      en: "THIRD FRAGMENT RECOVERED • VICTORY",
     },
   },
 
@@ -324,6 +324,13 @@ export const TEXTS = {
         en: "Kael's sword. Stronger but slower strikes.",
       },
     },
+    glacialBlade: {
+      name: { pt: "LÂMINA GLACIAL", en: "GLACIAL BLADE" },
+      description: {
+        pt: "Forjada no coração do Colosso. Forte e rápida.",
+        en: "Forged from the Colossus's heart. Strong and swift.",
+      },
+    },
     travelerTunic: {
       name: { pt: "TÚNICA DE VIAJANTE", en: "TRAVELER'S TUNIC" },
       description: {
@@ -531,6 +538,42 @@ export const TEXTS = {
         en: "SORCERESS DEFEATED! THE SECOND FRAGMENT HAS BEEN RELEASED.",
       },
     },
+    colossus: {
+      name: { pt: "COLOSSO DE GELO", en: "FROST COLOSSUS" },
+      spiritName: { pt: "ESPÍRITO DO INVERNO", en: "WINTER SPIRIT" },
+      appeared: {
+        pt: "O COLOSSO DE GELO DESPERTOU!",
+        en: "THE FROST COLOSSUS HAS AWAKENED!",
+      },
+      missed: {
+        pt: "APROXIME-SE E VIRE PARA O CHEFE",
+        en: "GET CLOSER AND FACE THE BOSS",
+      },
+      hit: (damage: number): Localized => ({
+        pt: `CHEFE ATINGIDO! DANO: ${damage}`,
+        en: `BOSS HIT! DAMAGE: ${damage}`,
+      }),
+      spikes: {
+        pt: "ESPINHOS DE GELO! SAIA DA LINHA!",
+        en: "ICE SPIKES! GET OUT OF THE LINE!",
+      },
+      transformed: {
+        pt: "A ARMADURA SE PARTIU! O ESPÍRITO DO INVERNO SE LIBERTOU!",
+        en: "THE ARMOR SHATTERED! THE WINTER SPIRIT BROKE FREE!",
+      },
+      dashing: {
+        pt: "O ESPÍRITO VAI AVANÇAR! SAIA DO CAMINHO!",
+        en: "THE SPIRIT IS ABOUT TO CHARGE! GET OUT OF THE WAY!",
+      },
+      dizzy: {
+        pt: "O ESPÍRITO ESTÁ TONTO! ATAQUE AGORA!",
+        en: "THE SPIRIT IS DAZED! ATTACK NOW!",
+      },
+      defeated: {
+        pt: "ESPÍRITO DO INVERNO DERROTADO! O TERCEIRO FRAGMENTO FOI LIBERTADO.",
+        en: "WINTER SPIRIT DEFEATED! THE THIRD FRAGMENT HAS BEEN RELEASED.",
+      },
+    },
   },
 
   // Tela inicial.
@@ -591,8 +634,8 @@ export const TEXTS = {
 
   endScreen: {
     victory: {
-      pt: "CAPÍTULO 2 CONCLUÍDO!\n\nVocê recuperou o segundo Fragmento Astral.\nA névoa do pântano começa a se dissipar.\n\nEnter  •  Continuar explorando\nEsc  •  Tela inicial",
-      en: "CHAPTER 2 COMPLETE!\n\nYou recovered the second Astral Fragment.\nThe swamp mist begins to fade.\n\nEnter  •  Keep exploring\nEsc  •  Title screen",
+      pt: "CAPÍTULO 3 CONCLUÍDO!\n\nVocê recuperou o terceiro Fragmento Astral.\nA nevasca se acalma sobre os Picos.\n\nEnter  •  Continuar explorando\nEsc  •  Tela inicial",
+      en: "CHAPTER 3 COMPLETE!\n\nYou recovered the third Astral Fragment.\nThe blizzard calms over the Peaks.\n\nEnter  •  Keep exploring\nEsc  •  Title screen",
     },
     defeat: {
       pt: "VOCÊ FOI DERROTADO\n\nR  •  Voltar ao último checkpoint\nN  •  Começar um novo jogo\nEsc  •  Tela inicial",

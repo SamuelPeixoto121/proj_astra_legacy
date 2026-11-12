@@ -29,7 +29,11 @@ export type EnemyKind = "wolf" | "spider" | "wisp" | "iceKnight";
 
 // Equipamentos. Cada espaço (arma, armadura, amuleto) tem os seus itens.
 // Os números de cada item ficam em config.ts; nomes e descrições, em texts.ts.
-export const WEAPON_IDS = ["ironSword", "corruptedBlade"] as const;
+export const WEAPON_IDS = [
+  "ironSword",
+  "corruptedBlade",
+  "glacialBlade",
+] as const;
 export const ARMOR_IDS = ["travelerTunic", "stoneArmor"] as const;
 export const AMULET_IDS = ["swampAmulet"] as const;
 export const ITEM_IDS = [...WEAPON_IDS, ...ARMOR_IDS, ...AMULET_IDS] as const;

@@ -19,6 +19,7 @@ export type SfxName =
   | "potion" // beber poção
   | "pickup" // pegar item do chão
   | "block" // golpe bloqueado por escudo
+  | "shatter" // gelo se partindo (espinhos, armadura do Colosso)
   | "fragment" // Fragmento Astral
   | "victory"
   | "defeat";
@@ -289,6 +290,27 @@ export function playSfx(
         gain: 0.12,
         filter: "highpass",
         freq: 3500,
+      });
+      return;
+
+    case "shatter":
+      // Vidro quebrando: estalos agudos e um chiado que cai.
+      [2600, 3400, 2200].forEach((freq, index) => {
+        tone(ctx, out, {
+          freq,
+          to: freq * 0.7,
+          duration: 0.07,
+          type: "triangle",
+          gain: 0.05,
+          delay: index * 0.04,
+        });
+      });
+      noise(ctx, out, noiseBuffer, {
+        duration: 0.3,
+        gain: 0.12,
+        filter: "highpass",
+        freq: 5000,
+        to: 1800,
       });
       return;
 

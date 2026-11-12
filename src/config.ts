@@ -60,6 +60,7 @@ export const PLAYER_STATS = {
 export const WEAPON_STATS = {
   ironSword: { attackDamage: 25, attackCooldown: 350 },
   corruptedBlade: { attackDamage: 35, attackCooldown: 430 },
+  glacialBlade: { attackDamage: 30, attackCooldown: 300 },
 } as const satisfies Record<WeaponId, { attackDamage: number; attackCooldown: number }>;
 
 export const ARMOR_STATS = {
@@ -442,3 +443,61 @@ export const PEAKS_KNIGHT_SPAWNS = [
   { x: 560, y: 560 },
   { x: 880, y: 640 },
 ] as const;
+
+// Colosso de Gelo, o chefe dos Picos. Tem duas fases:
+// 1) Colosso (lento): golpe no chão quando o herói está perto (slam*) e
+//    linha de espinhos de gelo quando está longe (spike*);
+// 2) com phaseTwoAt da vida, a armadura se parte (transformTime ms sem
+//    levar dano) e sobra o Espírito do Inverno (rápido): rajada de
+//    estilhaços em círculo (burst*) e investida (dash*). Depois da
+//    investida ele fica tonto por dashRecover ms.
+export const FROST_BOSS_STATS = {
+  maxHealth: 400,
+  hitRange: 100,
+  wakeRange: 320,
+  sightRange: 900,
+  // Fase 1
+  speed: 55,
+  stopDistance: 60,
+  slamTriggerRange: 95,
+  slamWindup: 850,
+  slamRadius: 100,
+  slamDamage: 26,
+  slamCooldown: 1800,
+  spikeMinRange: 160,
+  spikeCooldown: 4000,
+  spikeWindup: 800,
+  spikeCount: 7,
+  spikeSpacing: 55,
+  spikeInterval: 80,
+  spikeRadius: 32,
+  spikeDamage: 20,
+  // Transformação
+  phaseTwoAt: 0.5,
+  transformTime: 1800,
+  // Fase 2
+  spiritSpeed: 115,
+  spiritStopDistance: 140,
+  burstCooldown: 2600,
+  burstWindup: 600,
+  burstCount: 10,
+  shardSpeed: 220,
+  shardRange: 520,
+  shardDamage: 14,
+  dashMinRange: 120,
+  dashCooldown: 4500,
+  dashWindup: 700,
+  dashSpeed: 560,
+  dashDuration: 420,
+  dashDamage: 24,
+  dashHitRange: 42,
+  dashRecover: 1300,
+} as const;
+
+export const FROST_BOSS_POSITION = { x: 800, y: 250 } as const;
+
+// Terceiro Fragmento Astral: surge no centro do platô.
+export const PEAKS_FRAGMENT_POSITION = { x: 800, y: 220 } as const;
+
+// Lâmina Glacial (item do chefe): num canto do platô, longe do fragmento.
+export const FROST_BOSS_ITEM_POSITION = { x: 960, y: 300 } as const;

@@ -1910,10 +1910,18 @@ export abstract class AreaScene extends Phaser.Scene {
       body.setVelocity(0, 0);
     }
 
-    character.container.setPosition(character.body.x, character.body.y);
-    character.container.setDepth(character.body.y + depthOffset);
+    this.syncCharacter(character, depthOffset);
 
     return distance;
+  }
+
+  /** Mantém o desenho do personagem junto do corpo físico. */
+  protected syncCharacter(
+    character: CharacterSprite,
+    depthOffset: number,
+  ): void {
+    character.container.setPosition(character.body.x, character.body.y);
+    character.container.setDepth(character.body.y + depthOffset);
   }
 
   protected getPhysicsBody(
