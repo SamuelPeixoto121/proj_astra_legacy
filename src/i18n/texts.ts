@@ -249,6 +249,18 @@ export const TEXTS = {
         "The next one lies atop the Frozen Peaks, where winter never ends. They say something ancient awakens at the summit... something that changes form when wounded.",
       ],
     },
+    thirdFragment: {
+      pt: [
+        "Três fragmentos... Eu mal posso acreditar. A nevasca dos Picos se acalmou no instante em que você tocou o fragmento. Até daqui eu senti.",
+        "Mas cuidado, viajante: quanto mais a luz de Astra se reúne, mais Ignis a percebe. Esta noite o céu ao longe ardeu em vermelho, como brasa sob as cinzas.",
+        "Descanse e fique mais forte. Quando o próximo fragmento chamar, eu sentirei. E então você não estará enfrentando apenas os servos do dragão.",
+      ],
+      en: [
+        "Three fragments... I can hardly believe it. The blizzard on the Peaks calmed the moment you touched the fragment. I felt it even from here.",
+        "But beware, traveler: the more Astra's light gathers, the more Ignis senses it. Tonight the distant sky burned red, like embers beneath the ashes.",
+        "Rest and grow stronger. When the next fragment calls, I will feel it. And then you will not be facing only the dragon's servants.",
+      ],
+    },
   } satisfies Record<string, Localized<string[]>>,
 
   hints: {
