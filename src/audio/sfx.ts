@@ -4,6 +4,7 @@
 
 export type SfxName =
   | "swing" // golpe de espada
+  | "punch" // soco (herói sem arma)
   | "hit" // golpe acertou
   | "enemyDeath" // inimigo ou chefe derrotado
   | "hurt" // herói recebeu dano
@@ -145,6 +146,18 @@ export function playSfx(
         freq: 1600,
         to: 4200,
         q: 1.5,
+      });
+      return;
+
+    case "punch":
+      // "Tum" abafado: um tom grave curto e um sopro rápido.
+      tone(ctx, out, { freq: 140, to: 60, duration: 0.09, type: "sine", gain: 0.22 });
+      noise(ctx, out, noiseBuffer, {
+        duration: 0.08,
+        gain: 0.14,
+        filter: "lowpass",
+        freq: 900,
+        to: 300,
       });
       return;
 

@@ -85,6 +85,7 @@ const POSES: Record<PoseName, PlayerPose> = {
 };
 
 const SWORD_REST_ANGLE = -25;
+const SKIN = 0xe2bd91;
 const EYE_Y = -15;
 
 export function createPlayer(
@@ -120,7 +121,7 @@ export function createPlayerFigure(
     shadow: scene.add.ellipse(0, 13, 35, 16, 0x101810, 0.6),
     cloak: scene.add.triangle(0, 3, -12, -12, 12, -12, 0, 15, 0x762e36),
     torso: scene.add.rectangle(0, -1, 19, 23, 0xb6a47b),
-    head: scene.add.circle(0, -15, 8, 0xe2bd91),
+    head: scene.add.circle(0, -15, 8, SKIN),
     leftEye: scene.add.circle(-3, EYE_Y, 1.4, 0x2a1d1a),
     rightEye: scene.add.circle(3, EYE_Y, 1.4, 0x2a1d1a),
     hair: scene.add.ellipse(0, -21, 17, 8, 0x302b2a),
@@ -238,6 +239,40 @@ export function animateSwordSwing(
     duration: 110,
     yoyo: true,
     ease: "Cubic.Out",
+  });
+}
+
+/**
+ * Soco (herói sem arma): um punho sai do corpo na direção (facingX,
+ * facingY) e volta. `side` (1 ou -1) escolhe a mão: alternar dá a
+ * sensação de uma sequência de socos.
+ */
+export function animatePunch(
+  scene: Phaser.Scene,
+  player: PlayerSprite,
+  facingX: number,
+  facingY: number,
+  side: 1 | -1,
+): void {
+  const { x, y } = player.body;
+  // A mão fica um pouco para o lado (perpendicular à direção do soco).
+  const handX = x - facingY * 7 * side;
+  const handY = y - 4 + facingX * 7 * side;
+
+  const fist = scene.add
+    .circle(handX, handY, 5, SKIN)
+    .setStrokeStyle(2, 0x8a6a4a)
+    // Olhando para cima, o braço fica atrás do corpo.
+    .setDepth(facingY < 0 ? y + 40 : y + 60);
+
+  scene.tweens.add({
+    targets: fist,
+    x: handX + facingX * 24,
+    y: handY + facingY * 24,
+    duration: 70,
+    yoyo: true,
+    ease: "Quad.Out",
+    onComplete: () => fist.destroy(),
   });
 }
 

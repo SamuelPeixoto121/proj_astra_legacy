@@ -44,6 +44,7 @@ import {
 import { drawBossHealthBar, type Boss } from "../systems/bosses";
 import {
   animatePlayerWalk,
+  animatePunch,
   animateSwordSwing,
   createPlayer,
   setPlayerLook,
@@ -72,6 +73,7 @@ import {
 import {
   createDeathBurst,
   createImpactEffect,
+  createPunchEffect,
   createSlashEffect,
   showDamageNumber,
 } from "../effects/combatEffects";
@@ -165,6 +167,8 @@ export abstract class AreaScene extends Phaser.Scene {
 
   private playerHealth: number = PLAYER_STATS.maxHealth;
   private lastAttackAt = -10000;
+  /** Mão do próximo soco (alterna entre 1 e -1). */
+  private punchSide: 1 | -1 = 1;
   private lastDamageAt = -10000;
   private lastDrinkAt = -10000;
   private victory = false;
@@ -973,16 +977,7 @@ export abstract class AreaScene extends Phaser.Scene {
     }
 
     this.lastAttackAt = now;
-
-    animateSwordSwing(this, this.player);
-    audio.play("swing");
-    createSlashEffect(
-      this,
-      this.player.body.x,
-      this.player.body.y,
-      this.facingX,
-      this.facingY,
-    );
+    this.playAttackAnimation();
 
     const deflected = this.deflectProjectiles();
     const target = this.findEnemyInFront();
@@ -996,6 +991,24 @@ export abstract class AreaScene extends Phaser.Scene {
     if (deflected) {
       this.statusText.setText(this.t(TEXTS.combat.deflected));
     }
+  }
+
+  /** Golpe de espada ou, sem arma, soco (alternando as mãos). */
+  private playAttackAnimation(): void {
+    const { x, y } = this.player.body;
+    const { facingX, facingY } = this;
+
+    if (progress.equipped.weapon === null) {
+      animatePunch(this, this.player, facingX, facingY, this.punchSide);
+      this.punchSide = this.punchSide === 1 ? -1 : 1;
+      audio.play("punch");
+      createPunchEffect(this, x, y, facingX, facingY);
+      return;
+    }
+
+    animateSwordSwing(this, this.player);
+    audio.play("swing");
+    createSlashEffect(this, x, y, facingX, facingY);
   }
 
   // ---------------------------------------------------------------------------

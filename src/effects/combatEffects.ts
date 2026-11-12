@@ -1,4 +1,4 @@
-// Efeitos visuais de combate: corte da espada, impacto,
+// Efeitos visuais de combate: corte da espada, soco, impacto,
 // números de dano, explosão ao derrotar um inimigo e espinhos de gelo.
 // Todos os efeitos se destroem sozinhos ao terminar a animação.
 
@@ -40,6 +40,60 @@ export function createSlashEffect(
     ease: "Cubic.Out",
     onComplete: () => slash.destroy(),
   });
+}
+
+/**
+ * Impacto do soco na frente do herói: um anel pequeno que se abre e
+ * linhas de velocidade na direção do golpe.
+ */
+export function createPunchEffect(
+  scene: Phaser.Scene,
+  originX: number,
+  originY: number,
+  facingX: number,
+  facingY: number,
+): void {
+  const x = originX + facingX * 30;
+  const y = originY - 4 + facingY * 30;
+  const angle = Math.atan2(facingY, facingX);
+
+  const ring = scene.add
+    .circle(x, y, 9)
+    .setStrokeStyle(3, 0xfff1c4, 0.95)
+    .setDepth(originY + 120);
+
+  scene.tweens.add({
+    targets: ring,
+    scale: 1.9,
+    alpha: 0,
+    duration: 160,
+    ease: "Cubic.Out",
+    onComplete: () => ring.destroy(),
+  });
+
+  // Três riscos atrás do anel, na direção do soco.
+  for (const offset of [-7, 0, 7]) {
+    const line = scene.add
+      .rectangle(
+        x - facingX * 12 - facingY * offset,
+        y - facingY * 12 + facingX * offset,
+        offset === 0 ? 16 : 10,
+        2,
+        0xfff1c4,
+        0.85,
+      )
+      .setRotation(angle)
+      .setDepth(originY + 120);
+
+    scene.tweens.add({
+      targets: line,
+      x: line.x + facingX * 10,
+      y: line.y + facingY * 10,
+      alpha: 0,
+      duration: 140,
+      onComplete: () => line.destroy(),
+    });
+  }
 }
 
 /** Clarão com partículas no ponto de impacto. */
