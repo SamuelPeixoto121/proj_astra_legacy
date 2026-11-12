@@ -36,16 +36,16 @@ O **prólogo** e os **Capítulos 1 a 5** estão completos e jogáveis:
 
 | | |
 |---|---|
-| ![Terras Vulcânicas com rios de lava e o portal de fogo](docs/volcano-lava.png) | ![Brasa Viva com o pavio aceso e o círculo da explosão](docs/ember.png) |
-| **Terras Vulcânicas:** rios de lava queimam quem pisa (rolar por cima é seguro) | **Brasa Viva:** acende o pavio e explode; dá para apagá-la antes |
-| ![Arauto de Ignis com uma coluna de fogo e poças queimando](docs/herald.png) | ![Picos Congelados com gelo, nevasca e Cavaleiros de Gelo](docs/peaks.png) |
-| **Arauto de Ignis:** colunas de fogo deixam poças que queimam | **Picos Congelados:** gelo escorregadio, nevasca e Cavaleiros de Gelo |
-| ![Colosso de Gelo soltando uma linha de espinhos](docs/boss-spikes.png) | ![Espírito do Inverno lançando estilhaços em círculo](docs/boss-spirit.png) |
-| **Colosso de Gelo:** a linha de espinhos brota em direção ao herói | **Segunda fase:** a armadura se parte e surge o Espírito do Inverno |
-
-![Inventário com atributos, herói e mochila](docs/inventory.png)
-
-**Inventário (Tab):** raridades, arrastar e soltar e comparação de atributos.
+| ![Cemitério de Dragões no escuro, com tochas acesas e Espectros](docs/graveyard-torches.png) | ![Espectros sólidos na luz de uma tocha](docs/spectres.png) |
+| **Cemitério de Dragões:** o herói enxerga só perto de si e das tochas que acende | **Espectros:** intangíveis no escuro, só podem ser atingidos na luz das tochas |
+| ![Cavaleiro Dracônico erguendo a espada enquanto a sombra de Ignis passa](docs/dragon-knight.png) | ![Terras Vulcânicas com rios de lava e o portal de fogo](docs/volcano-lava.png) |
+| **Cavaleiro Dracônico:** um duelo, enquanto a sombra de Ignis cruza o céu | **Terras Vulcânicas:** rios de lava queimam quem pisa (rolar por cima é seguro) |
+| ![Brasa Viva com o pavio aceso e o círculo da explosão](docs/ember.png) | ![Arauto de Ignis com uma coluna de fogo e poças queimando](docs/herald.png) |
+| **Brasa Viva:** acende o pavio e explode; dá para apagá-la antes | **Arauto de Ignis:** colunas de fogo deixam poças que queimam |
+| ![Picos Congelados com gelo, nevasca e Cavaleiros de Gelo](docs/peaks.png) | ![Colosso de Gelo soltando uma linha de espinhos](docs/boss-spikes.png) |
+| **Picos Congelados:** gelo escorregadio, nevasca e Cavaleiros de Gelo | **Colosso de Gelo:** a linha de espinhos brota em direção ao herói |
+| ![Espírito do Inverno lançando estilhaços em círculo](docs/boss-spirit.png) | ![Inventário com atributos, herói e mochila](docs/inventory.png) |
+| **Segunda fase:** a armadura se parte e surge o Espírito do Inverno | **Inventário (Tab):** raridades, arrastar e soltar e comparação de atributos |
 
 ## Funcionalidades
 
