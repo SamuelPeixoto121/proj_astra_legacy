@@ -336,6 +336,7 @@ export class RuinsScene extends AreaScene {
     createDeathBurst(this, x, y, this.sentinel.style.deathColor);
     audio.play("enemyDeath");
     this.removeSentinel();
+    this.dropPotion(x, y);
 
     revealAstralFragment(this, this.fragment, true);
 

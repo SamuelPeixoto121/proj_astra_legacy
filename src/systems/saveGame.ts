@@ -1,7 +1,7 @@
 // Salvamento automático do progresso no navegador (localStorage).
 // O save sobrevive ao fechar a aba, mas fica só neste navegador.
 
-import { CHECKPOINTS, type CheckpointId } from "../config";
+import { CHECKPOINTS, POTION_STATS, type CheckpointId } from "../config";
 import { QUEST_STAGES, type Language, type QuestStage } from "../types";
 import type { GameProgress } from "./progress";
 
@@ -10,7 +10,10 @@ const SAVE_KEY = "astra-legacy:save";
 // Aumente este número se o formato do save mudar no futuro.
 // Saves de versões antigas são ignorados em vez de quebrar o jogo.
 // Versão 2: áreas (Ruínas do Santuário) e kaelDefeated.
-const SAVE_VERSION = 2;
+// Versão 3: poções de cura (potions). Saves da versão 2 continuam valendo:
+// o herói recebe a quantidade inicial de poções.
+const SAVE_VERSION = 3;
+const COMPATIBLE_VERSIONS: readonly unknown[] = [2, SAVE_VERSION];
 
 export type SaveData = GameProgress;
 
@@ -59,7 +62,7 @@ function parseSave(value: unknown): SaveData | null {
   const save = value as Record<string, unknown>;
 
   const isValid =
-    save.version === SAVE_VERSION &&
+    COMPATIBLE_VERSIONS.includes(save.version) &&
     LANGUAGES.includes(save.language as Language) &&
     QUEST_STAGES.includes(save.questStage as QuestStage) &&
     typeof save.elderTalked === "boolean" &&
@@ -81,5 +84,15 @@ function parseSave(value: unknown): SaveData | null {
     kaelUnlocked: save.kaelUnlocked as boolean,
     kaelDefeated: save.kaelDefeated as boolean,
     checkpointId: save.checkpointId as CheckpointId,
+    potions: parsePotions(save.potions),
   };
+}
+
+/** Quantidade de poções válida (entre 0 e o máximo); padrão: a inicial. */
+function parsePotions(value: unknown): number {
+  if (typeof value !== "number" || !Number.isInteger(value)) {
+    return POTION_STATS.start;
+  }
+
+  return Math.min(POTION_STATS.max, Math.max(0, value));
 }

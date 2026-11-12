@@ -13,6 +13,7 @@ import {
   CHECKPOINTS,
   ENEMY_WANDER,
   PLAYER_STATS,
+  POTION_STATS,
   SHRINE_ACTIVATION_RANGE,
   type CheckpointId,
 } from "../config";
@@ -53,6 +54,11 @@ import {
   type CheckpointShrine,
 } from "../world/checkpointShrine";
 import {
+  createPotionPickup,
+  drawPotionIcon,
+  type PotionPickup,
+} from "../world/potion";
+import {
   createDeathBurst,
   createImpactEffect,
   createSlashEffect,
@@ -88,6 +94,8 @@ interface AreaExit {
 interface AreaShrine {
   sprite: CheckpointShrine;
   checkpointId: CheckpointId;
+  /** true enquanto o herói está perto (tocar de novo recarrega as poções). */
+  playerNear: boolean;
 }
 
 /** Conteúdo de um diálogo. É uma função para poder ser traduzido na hora. */
@@ -120,6 +128,7 @@ export abstract class AreaScene extends Phaser.Scene {
   private wasd!: Record<"W" | "A" | "S" | "D", Phaser.Input.Keyboard.Key>;
   private attackKey!: Phaser.Input.Keyboard.Key;
   private rollKey!: Phaser.Input.Keyboard.Key;
+  private potionKey!: Phaser.Input.Keyboard.Key;
   private interactKey!: Phaser.Input.Keyboard.Key;
   private languageKey!: Phaser.Input.Keyboard.Key;
   private restartKey!: Phaser.Input.Keyboard.Key;
@@ -142,6 +151,7 @@ export abstract class AreaScene extends Phaser.Scene {
   private playerHealth: number = PLAYER_STATS.maxHealth;
   private lastAttackAt = -10000;
   private lastDamageAt = -10000;
+  private lastDrinkAt = -10000;
   private victory = false;
 
   /** Até quando (ms) o herói está rolando. */
@@ -157,6 +167,8 @@ export abstract class AreaScene extends Phaser.Scene {
 
   private exits: AreaExit[] = [];
   private shrines: AreaShrine[] = [];
+  /** Poções caídas no chão (somem ao sair da área). */
+  private potionPickups: PotionPickup[] = [];
   private transitioning = false;
   private areaBanner?: Phaser.GameObjects.Text;
 
@@ -281,6 +293,7 @@ export abstract class AreaScene extends Phaser.Scene {
     this.obstacles = [];
     this.exits = [];
     this.shrines = [];
+    this.potionPickups = [];
     this.transitioning = false;
     this.areaBanner = undefined;
 
@@ -289,6 +302,7 @@ export abstract class AreaScene extends Phaser.Scene {
     this.facingY = 1;
     this.lastAttackAt = -10000;
     this.lastDamageAt = -10000;
+    this.lastDrinkAt = -10000;
     this.rollingUntil = 0;
     this.lastRollAt = -10000;
 
@@ -339,6 +353,7 @@ export abstract class AreaScene extends Phaser.Scene {
 
     this.attackKey = keyboard.addKey(KeyCodes.J);
     this.rollKey = keyboard.addKey(KeyCodes.SHIFT);
+    this.potionKey = keyboard.addKey(KeyCodes.Q);
     this.interactKey = keyboard.addKey(KeyCodes.E);
     this.languageKey = keyboard.addKey(KeyCodes.L);
     this.restartKey = keyboard.addKey(KeyCodes.R);
@@ -526,6 +541,14 @@ export abstract class AreaScene extends Phaser.Scene {
       this.hudGraphics.fillStyle(0xb83e48, 1);
       this.hudGraphics.fillRect(24, 58, healthWidth, 16);
     }
+
+    // Poções ao lado da barra de vida (cheias e vazias).
+    this.hudGraphics.fillStyle(0x111710, 0.9);
+    this.hudGraphics.fillRoundedRect(250, 54, POTION_STATS.max * 22 + 6, 24, 5);
+
+    for (let i = 0; i < POTION_STATS.max; i++) {
+      drawPotionIcon(this.hudGraphics, 264 + i * 22, 66, i < progress.potions);
+    }
   }
 
   protected updateQuestDisplay(): void {
@@ -685,6 +708,7 @@ export abstract class AreaScene extends Phaser.Scene {
     this.shrines.push({
       sprite: createCheckpointShrine(this, x, y),
       checkpointId,
+      playerNear: false,
     });
   }
 
@@ -696,24 +720,130 @@ export abstract class AreaScene extends Phaser.Scene {
     }
   }
 
+  /**
+   * Tocar numa Pedra Astral: a primeira vez ativa o checkpoint; toda vez
+   * que o herói chega perto, as poções são recarregadas.
+   */
   private updateShrines(): void {
     for (const shrine of this.shrines) {
       const { container } = shrine.sprite;
+      const near =
+        this.distanceToPlayer(container.x, container.y) <=
+        SHRINE_ACTIVATION_RANGE;
+      const justArrived = near && !shrine.playerNear;
 
-      if (
-        shrine.sprite.active ||
-        this.distanceToPlayer(container.x, container.y) > SHRINE_ACTIVATION_RANGE
-      ) {
-        continue;
+      shrine.playerNear = near;
+
+      if (justArrived) {
+        this.touchShrine(shrine);
+      }
+    }
+  }
+
+  private touchShrine(shrine: AreaShrine): void {
+    const activated = !shrine.sprite.active;
+    const refilled = progress.potions < POTION_STATS.max;
+
+    if (!activated && !refilled) {
+      return;
+    }
+
+    if (activated) {
+      activateShrine(this, shrine.sprite, true);
+      progress.checkpointId = shrine.checkpointId;
+    }
+
+    progress.potions = POTION_STATS.max;
+    audio.play("shrine");
+    saveProgress();
+
+    if (activated && refilled) {
+      this.statusText.setText(this.t(TEXTS.potions.checkpointRefilled));
+    } else if (activated) {
+      this.statusText.setText(this.t(TEXTS.save.checkpointSaved));
+    } else {
+      this.statusText.setText(this.t(TEXTS.potions.refilled));
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Poções de cura
+  // ---------------------------------------------------------------------------
+
+  /** Bebe uma poção (tecla Q). */
+  private drinkPotion(): void {
+    if (this.time.now - this.lastDrinkAt < POTION_STATS.drinkCooldown) {
+      return;
+    }
+
+    if (progress.potions <= 0) {
+      this.statusText.setText(this.t(TEXTS.potions.none));
+      return;
+    }
+
+    if (this.playerHealth >= PLAYER_STATS.maxHealth) {
+      this.statusText.setText(this.t(TEXTS.potions.fullHealth));
+      return;
+    }
+
+    const heal = Math.min(
+      POTION_STATS.heal,
+      PLAYER_STATS.maxHealth - this.playerHealth,
+    );
+
+    this.lastDrinkAt = this.time.now;
+    progress.potions -= 1;
+    this.playerHealth += heal;
+    saveProgress();
+
+    audio.play("potion");
+
+    const { container } = this.player;
+
+    createImpactEffect(this, container.x, container.y - 10, 0x7dff9a, 10, 30);
+    showDamageNumber(this, container.x, container.y - 15, heal, "#7dff9a", "+");
+
+    this.statusText.setText(this.t(TEXTS.potions.drank(heal)));
+    this.drawHud();
+  }
+
+  /** Deixa uma poção no chão (inimigos têm uma chance; chefes, sempre). */
+  protected dropPotion(x: number, y: number): void {
+    this.potionPickups.push(createPotionPickup(this, x, y));
+  }
+
+  private updatePotionPickups(): void {
+    this.potionPickups = this.potionPickups.filter((pickup) => {
+      const { x, y } = pickup.container;
+
+      if (this.distanceToPlayer(x, y) > POTION_STATS.pickupRange) {
+        pickup.fullHintShown = false;
+        return true;
       }
 
-      activateShrine(this, shrine.sprite, true);
-      audio.play("shrine");
-      progress.checkpointId = shrine.checkpointId;
+      // Bolsa cheia: a poção fica no chão para depois.
+      if (progress.potions >= POTION_STATS.max) {
+        if (!pickup.fullHintShown) {
+          pickup.fullHintShown = true;
+          this.statusText.setText(this.t(TEXTS.potions.bagFull));
+        }
+        return true;
+      }
+
+      progress.potions += 1;
       saveProgress();
 
-      this.statusText.setText(this.t(TEXTS.save.checkpointSaved));
-    }
+      audio.play("pickup");
+      createImpactEffect(this, x, y - 10, 0xff8a96, 8, 22);
+      // Para as animações do frasco e do brilho antes de apagar.
+      this.tweens.killTweensOf([pickup.container, ...pickup.container.list]);
+      pickup.container.destroy();
+
+      this.statusText.setText(
+        this.t(TEXTS.potions.picked(progress.potions, POTION_STATS.max)),
+      );
+      return false;
+    });
   }
 
   /** Cria uma saída: ao entrar no retângulo, o herói vai para outra área. */
@@ -947,6 +1077,10 @@ export abstract class AreaScene extends Phaser.Scene {
     audio.play("enemyDeath");
     this.removeEnemy(enemy);
 
+    if (Math.random() < POTION_STATS.dropChance) {
+      this.dropPotion(x, y);
+    }
+
     this.onEnemyDefeated(enemy);
   }
 
@@ -1039,6 +1173,9 @@ export abstract class AreaScene extends Phaser.Scene {
     }
 
     if (this.playerHealth <= 0) {
+      // Ao voltar ao checkpoint, o herói tem as poções recarregadas.
+      progress.potions = POTION_STATS.max;
+      saveProgress();
       this.showGameOver(false);
     }
   }
@@ -1193,10 +1330,13 @@ export abstract class AreaScene extends Phaser.Scene {
         this.startRoll();
       } else if (Phaser.Input.Keyboard.JustDown(this.attackKey)) {
         this.attack();
+      } else if (Phaser.Input.Keyboard.JustDown(this.potionKey)) {
+        this.drinkPotion();
       }
     }
 
     this.updateShrines();
+    this.updatePotionPickups();
 
     for (const enemy of this.enemies) {
       if (enemy.defeated) continue;

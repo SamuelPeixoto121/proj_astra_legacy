@@ -507,6 +507,7 @@ export class ForestScene extends AreaScene {
     createDeathBurst(this, x, y, this.kael.style.deathColor);
     audio.play("enemyDeath");
     this.removeKael();
+    this.dropPotion(x, y);
 
     openCorruptionBarrier(this, this.northBarrier, true);
     audio.play("shrine");

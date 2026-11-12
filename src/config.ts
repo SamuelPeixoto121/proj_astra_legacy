@@ -41,6 +41,24 @@ export const PLAYER_STATS = {
   rollCooldown: 750,
 } as const;
 
+// Poções de cura (tecla Q):
+// - max: quantas o herói consegue carregar; start: com quantas começa;
+// - heal: quanto de vida cada uma recupera;
+// - drinkCooldown: tempo mínimo (ms) entre dois goles;
+// - dropChance: chance (0 a 1) de um inimigo comum deixar cair uma poção
+//   (chefes sempre deixam);
+// - pickupRange: distância para pegar uma poção do chão.
+// Tocar numa Pedra Astral (ou voltar ao checkpoint após uma derrota)
+// recarrega as poções até o máximo.
+export const POTION_STATS = {
+  max: 3,
+  start: 1,
+  heal: 40,
+  drinkCooldown: 800,
+  dropChance: 0.3,
+  pickupRange: 32,
+} as const;
+
 // Inimigos comuns:
 // - hitRange: distância máxima para a espada do herói acertá-los;
 // - sightRange: a partir de que distância eles começam a perseguir o herói;

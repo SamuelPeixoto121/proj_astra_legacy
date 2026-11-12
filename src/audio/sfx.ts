@@ -16,6 +16,8 @@ export type SfxName =
   | "shoot" // projétil disparado
   | "deflect" // projétil rebatido pela espada
   | "teleport" // chefe some e reaparece
+  | "potion" // beber poção
+  | "pickup" // pegar item do chão
   | "fragment" // Fragmento Astral
   | "victory"
   | "defeat";
@@ -256,6 +258,25 @@ export function playSfx(
         to: 600,
         q: 3,
       });
+      return;
+
+    case "potion":
+      // Goles borbulhando e um brilho subindo no fim.
+      [300, 360, 330].forEach((freq, index) => {
+        tone(ctx, out, {
+          freq,
+          to: freq * 1.6,
+          duration: 0.09,
+          type: "sine",
+          gain: 0.09,
+          delay: index * 0.11,
+        });
+      });
+      chime(ctx, out, [784, 1175], 0.07, { gain: 0.06, duration: 0.5, delay: 0.36 });
+      return;
+
+    case "pickup":
+      chime(ctx, out, [988, 1319], 0.06, { gain: 0.08, duration: 0.35 });
       return;
 
     case "fragment":

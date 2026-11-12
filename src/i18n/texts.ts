@@ -105,6 +105,7 @@ export const TEXTS = {
         ["WASD / setas", "mover"],
         ["J", "atacar"],
         ["Shift", "rolar"],
+        ["Q", "poção"],
         ["E", "interagir"],
         ["L", "idioma"],
         ["M", "som"],
@@ -114,6 +115,7 @@ export const TEXTS = {
         ["WASD / arrows", "move"],
         ["J", "attack"],
         ["Shift", "roll"],
+        ["Q", "potion"],
         ["E", "interact"],
         ["L", "language"],
         ["M", "sound"],
@@ -232,6 +234,38 @@ export const TEXTS = {
     EnemyKind,
     { hit: (damage: number) => Localized; defeated: Localized }
   >,
+
+  // Poções de cura.
+  potions: {
+    drank: (heal: number): Localized => ({
+      pt: `POÇÃO BEBIDA! +${heal} DE VIDA`,
+      en: `POTION USED! +${heal} HEALTH`,
+    }),
+    none: {
+      pt: "VOCÊ NÃO TEM POÇÕES",
+      en: "YOU HAVE NO POTIONS",
+    },
+    fullHealth: {
+      pt: "SUA VIDA JÁ ESTÁ CHEIA",
+      en: "YOUR HEALTH IS ALREADY FULL",
+    },
+    picked: (count: number, max: number): Localized => ({
+      pt: `POÇÃO OBTIDA! (${count}/${max})`,
+      en: `POTION FOUND! (${count}/${max})`,
+    }),
+    bagFull: {
+      pt: "VOCÊ JÁ CARREGA O MÁXIMO DE POÇÕES",
+      en: "YOU ARE ALREADY CARRYING THE MAXIMUM POTIONS",
+    },
+    refilled: {
+      pt: "PEDRA ASTRAL: POÇÕES RECARREGADAS",
+      en: "ASTRAL STONE: POTIONS REFILLED",
+    },
+    checkpointRefilled: {
+      pt: "CHECKPOINT SALVO • POÇÕES RECARREGADAS",
+      en: "CHECKPOINT SAVED • POTIONS REFILLED",
+    },
+  },
 
   combat: {
     deflected: {

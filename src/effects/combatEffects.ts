@@ -85,15 +85,18 @@ export function createImpactEffect(
   }
 }
 
-/** Número de dano que sobe e desaparece. */
+/**
+ * Número que sobe e desaparece: dano ("-25") ou cura ("+40", com sign "+").
+ */
 export function showDamageNumber(
   scene: Phaser.Scene,
   x: number,
   y: number,
   amount: number,
   color: string,
+  sign: "-" | "+" = "-",
 ): void {
-  const damageText = scene.add.text(x, y - 24, `-${amount}`, {
+  const damageText = scene.add.text(x, y - 24, `${sign}${amount}`, {
     fontFamily: "Georgia, serif",
     fontSize: "17px",
     fontStyle: "bold",

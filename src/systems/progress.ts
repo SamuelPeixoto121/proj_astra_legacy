@@ -2,7 +2,7 @@
 // É isto que é salvo no navegador: ao trocar de área ou reiniciar,
 // as cenas leem daqui em vez de guardar o progresso por conta própria.
 
-import type { CheckpointId } from "../config";
+import { POTION_STATS, type CheckpointId } from "../config";
 import { QUEST_STAGES, type Language, type QuestStage } from "../types";
 import { loadGame, saveGame } from "./saveGame";
 import { readLanguagePreference } from "./preferences";
@@ -15,6 +15,8 @@ export interface GameProgress {
   kaelUnlocked: boolean;
   kaelDefeated: boolean;
   checkpointId: CheckpointId;
+  /** Poções de cura que o herói carrega. */
+  potions: number;
 }
 
 function createInitialProgress(): GameProgress {
@@ -27,6 +29,7 @@ function createInitialProgress(): GameProgress {
     kaelUnlocked: false,
     kaelDefeated: false,
     checkpointId: "village",
+    potions: POTION_STATS.start,
   };
 }
 

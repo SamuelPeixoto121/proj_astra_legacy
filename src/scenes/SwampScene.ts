@@ -540,6 +540,8 @@ export class SwampScene extends AreaScene {
     createDeathBurst(this, x, y, this.witch.style.deathColor);
     audio.play("enemyDeath");
     this.removeWitch();
+    // Um pouco abaixo, para não ficar em cima do fragmento.
+    this.dropPotion(x, y + 50);
 
     revealAstralFragment(this, this.fragment, true);
 

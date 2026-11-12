@@ -38,6 +38,8 @@ O **prólogo** e os **Capítulos 1 e 2** estão completos e jogáveis:
   de longe com **rajadas em leque**, **teleporta** quando o herói se aproxima,
   lança **marcas sombrias** no chão e fica furiosa com metade da vida
 - **Terreno que interfere**: poças de lama no pântano deixam o herói mais lento
+- **Poções de cura** (Q): inimigos às vezes deixam cair uma, chefes sempre
+  deixam; o herói carrega até 3, e tocar numa Pedra Astral recarrega todas
 - **Várias áreas** ligadas por passagens, com transição de tela e o nome da área
   aparecendo ao entrar
 - **Tela inicial** com Continuar / Novo jogo (com confirmação antes de apagar o
@@ -62,6 +64,7 @@ O **prólogo** e os **Capítulos 1 e 2** estão completos e jogáveis:
 | `W` `A` `S` `D` / setas | Mover |
 | `J` | Atacar |
 | `Shift` | Rolar (invencível durante o rolamento) |
+| `Q` | Beber uma poção de cura |
 | `E` | Conversar / avançar diálogo |
 | `L` | Trocar idioma (PT/EN) |
 | `M` | Ligar/desligar o som |
@@ -190,4 +193,4 @@ music are generated procedurally in code (Web Audio API) — no image or audio f
 
 **[Play it in your browser](https://samuelpeixoto121.github.io/proj_astra_legacy/)**,
 or run it locally with `npm install` and `npm run dev`, then open http://localhost:5173.
-Controls: WASD/arrows to move, J to attack, Shift to roll, E to interact, L to switch language, M to toggle sound, Esc for the pause menu.
+Controls: WASD/arrows to move, J to attack, Shift to roll, Q to drink a potion, E to interact, L to switch language, M to toggle sound, Esc for the pause menu.
