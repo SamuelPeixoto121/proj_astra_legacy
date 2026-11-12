@@ -10,7 +10,7 @@
 > Central de Astra. Você chega ao Vilarejo da Alvorada no momento em que uma
 > corrupção antiga começa a consumir a Floresta Sussurrante.
 
-O **prólogo** e os **Capítulos 1 a 4** estão completos e jogáveis:
+O **prólogo** e os **Capítulos 1 a 5** estão completos e jogáveis:
 
 - **Prólogo — A Floresta Sussurrante:** converse com o Ancião da Alvorada,
   derrote o Lobo Corrompido e enfrente Kael, o Senhor da Corrupção.
@@ -27,6 +27,10 @@ O **prólogo** e os **Capítulos 1 a 4** estão completos e jogáveis:
 - **Capítulo 4 — O Quarto Fragmento:** atravesse o portal de fogo até as Terras
   Vulcânicas, cruze os rios de lava rolando, cuidado com as Brasas Vivas que
   explodem, e derrote o Arauto de Ignis para recuperar o quarto Fragmento Astral.
+- **Capítulo 5 — O Quinto Fragmento:** volte ao Ancião, que rompe o Selo Astral
+  a oeste da vila, e atravesse o escuro Cemitério de Dragões acendendo tochas,
+  enquanto a sombra de Ignis cruza o céu. Vença os Espectros e o Cavaleiro
+  Dracônico num duelo para recuperar o quinto Fragmento Astral.
 
 ## Capturas
 
@@ -61,7 +65,11 @@ O **prólogo** e os **Capítulos 1 a 4** estão completos e jogáveis:
 - **Inimigos que explodem**: as Brasas Vivas correm até o herói, acendem o
   pavio e explodem; dá para apagá-las antes ou usar a explosão contra os
   outros inimigos
-- **Cinco chefes com estilos diferentes**: Kael faz **investidas** com aviso; a
+- **Inimigos intangíveis**: no escuro, os Espectros são atravessados pelos
+  golpes; é preciso atraí-los para a luz de uma tocha acesa
+- **Escuridão e tochas**: no Cemitério de Dragões o herói enxerga só em volta
+  de si e das tochas que acende; cada tocha acesa clareia um pouco o mapa
+- **Seis chefes com estilos diferentes**: Kael faz **investidas** com aviso; a
   Sentinela de Pedra **golpeia o chão em área**; a Feiticeira do Pântano ataca
   de longe com **rajadas em leque**, **teleporta** quando o herói se aproxima,
   lança **marcas sombrias** no chão e fica furiosa com metade da vida; o
@@ -70,7 +78,8 @@ O **prólogo** e os **Capítulos 1 a 4** estão completos e jogáveis:
   que lança estilhaços em círculo e avança em linha reta; o **Arauto de
   Ignis** ergue **colunas de fogo** que deixam poças queimando (a arena vai
   ficando perigosa), explode em chamas quando o herói chega perto e invoca
-  Brasas Vivas
+  Brasas Vivas; o **Cavaleiro Dracônico** é um duelo: combo de três golpes
+  com brecha no fim, **guarda que apara e contra-ataca** e salto até o herói
 - **Terreno que interfere**: poças de lama no pântano deixam o herói mais
   lento; placas de gelo nos picos fazem o herói escorregar; rios de lava nas
   Terras Vulcânicas queimam (rolar por cima é seguro)
@@ -78,7 +87,7 @@ O **prólogo** e os **Capítulos 1 a 4** estão completos e jogáveis:
   deixam; o herói carrega até 3, e tocar numa Pedra Astral recarrega todas
 - **Equipamentos e inventário** (Tab): cada chefe deixa um item (Lâmina
   Corrompida, Armadura de Pedra, Amuleto do Pântano, Lâmina Glacial, Manto de
-  Brasas) que muda
+  Brasas, Coração de Dragão) que muda
   os atributos e as cores do herói. O inventário tem três colunas (atributos,
   herói com os espaços em volta e mochila em grade), **raridade por cor**,
   **arrastar e soltar** e comparação dos atributos antes de trocar. Também dá
@@ -165,9 +174,10 @@ src/
 │   ├── RuinsScene.ts          Ruínas do Santuário (Capítulo 1)
 │   ├── SwampScene.ts          Pântano Sombrio (Capítulo 2)
 │   ├── PeaksScene.ts          Picos Congelados (Capítulo 3)
-│   └── VolcanoScene.ts        Terras Vulcânicas (Capítulo 4)
+│   ├── VolcanoScene.ts        Terras Vulcânicas (Capítulo 4)
+│   └── GraveyardScene.ts      Cemitério de Dragões (Capítulo 5)
 ├── characters/                Herói, Ancião, inimigos comuns e chefes
-├── world/                     Cenários, geometria, checkpoints, barreira, portal e Fragmento Astral
+├── world/                     Cenários, geometria, escuridão, tochas, selo, portal e Fragmento Astral
 ├── effects/                   Efeitos visuais de combate
 ├── audio/                     Motor de áudio, efeitos sonoros e música gerados por código
 ├── ui/                        Menu, painel de idioma e ícones dos itens
@@ -222,6 +232,7 @@ Algumas decisões do projeto:
 - [x] Capítulo 2: o segundo Fragmento Astral
 - [x] Capítulo 3: o terceiro Fragmento Astral
 - [x] Capítulo 4: o quarto Fragmento Astral
+- [x] Capítulo 5: o quinto Fragmento Astral
 - [x] Poções de cura, equipamentos e inventário
 - [ ] Próximos capítulos: os fragmentos restantes e o caminho até Ignis
 
@@ -234,13 +245,15 @@ Desenvolvido por **Samuel Peixoto**: [github.com/SamuelPeixoto121](https://githu
 ### English summary
 
 **Astra Legacy** is a top-down 2D dark fantasy action RPG built with **Phaser 4**,
-**TypeScript** (strict) and **Vite**. The playable prologue and Chapters 1 to 4 feature
+**TypeScript** (strict) and **Vite**. The playable prologue and Chapters 1 to 5 feature
 8-direction movement, directional melee combat with visual effects, a dodge roll,
 data-driven enemies (including ranged ones with deflectable projectiles and
-shielded knights that block frontal attacks, and living embers that explode),
-**five boss fights** (a telegraphed charge, an area slam, a teleporting sorceress
-with projectile volleys, a two-phase ice colossus, and a fire herald whose
-columns leave burning pools), slippery ice, slowing mud and burning lava,
+shielded knights that block frontal attacks, living embers that explode, and
+spectres that can only be hit inside torchlight), **six boss fights** (a
+telegraphed charge, an area slam, a teleporting sorceress with projectile
+volleys, a two-phase ice colossus, a fire herald whose columns leave burning
+pools, and a dragon knight duel with combos, parries and counters), a dark
+graveyard lit by torches, slippery ice, slowing mud and burning lava,
 healing potions, a
 drag-and-drop inventory with item rarities and stat comparison, multiple areas
 with transitions, a staged quest system, dialogue, **autosave with checkpoints**,
