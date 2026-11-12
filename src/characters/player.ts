@@ -21,8 +21,13 @@ interface PlayerParts {
   swordHandle: Phaser.GameObjects.Rectangle;
 }
 
-export interface PlayerSprite extends CharacterSprite {
+/** O desenho do herói, sem física (usado também na tela de equipamento). */
+export interface PlayerFigure {
+  container: Phaser.GameObjects.Container;
   parts: PlayerParts;
+}
+
+export interface PlayerSprite extends CharacterSprite, PlayerFigure {
   direction: PlayerDirection;
 }
 
@@ -92,6 +97,23 @@ export function createPlayer(
   body.setVisible(false);
   scene.physics.add.existing(body);
 
+  const { container, parts } = createPlayerFigure(scene, x, y);
+
+  container.setDepth(1010);
+
+  const player: PlayerSprite = { container, body, parts, direction: "down" };
+
+  applyPose(player, "down");
+
+  return player;
+}
+
+/** Desenha o herói de frente em (x, y), sem física. */
+export function createPlayerFigure(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+): PlayerFigure {
   const container = scene.add.container(x, y);
 
   const parts: PlayerParts = {
@@ -113,13 +135,12 @@ export function createPlayer(
   };
 
   container.add(Object.values(parts));
-  container.setDepth(1010);
 
-  const player: PlayerSprite = { container, body, parts, direction: "down" };
+  for (const name of POSES.front.layers) {
+    container.bringToTop(parts[name]);
+  }
 
-  applyPose(player, "down");
-
-  return player;
+  return { container, parts };
 }
 
 /**
@@ -220,12 +241,32 @@ export function animateSwordSwing(
   });
 }
 
-/** Muda as cores do herói conforme o equipamento (lâmina, peito e capa). */
-export function setPlayerLook(
-  player: PlayerSprite,
-  look: { blade: number; torso: number; cloak: number },
-): void {
-  player.parts.sword.setFillStyle(look.blade);
-  player.parts.torso.setFillStyle(look.torso);
-  player.parts.cloak.setFillStyle(look.cloak);
+/**
+ * Cores do herói conforme o equipamento.
+ * blade null = sem espada (soco); cloak null = sem capa.
+ */
+export interface PlayerLook {
+  blade: number | null;
+  torso: number;
+  cloak: number | null;
+}
+
+/** Muda as cores do herói (e esconde a espada ou a capa se não houver). */
+export function setPlayerLook(player: PlayerFigure, look: PlayerLook): void {
+  const { sword, swordHandle, torso, cloak } = player.parts;
+
+  sword.setVisible(look.blade !== null);
+  swordHandle.setVisible(look.blade !== null);
+
+  if (look.blade !== null) {
+    sword.setFillStyle(look.blade);
+  }
+
+  torso.setFillStyle(look.torso);
+
+  cloak.setVisible(look.cloak !== null);
+
+  if (look.cloak !== null) {
+    cloak.setFillStyle(look.cloak);
+  }
 }

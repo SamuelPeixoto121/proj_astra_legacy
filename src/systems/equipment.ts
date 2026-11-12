@@ -8,6 +8,8 @@ import {
   ARMOR_STATS,
   PLAYER_STATS,
   POTION_STATS,
+  UNARMED_STATS,
+  UNARMORED_STATS,
   WEAPON_STATS,
 } from "../config";
 import {
@@ -16,12 +18,18 @@ import {
   WEAPON_IDS,
   type AmuletId,
   type ArmorId,
+  type EquippedItems,
   type EquipmentSlot,
   type ItemId,
+  type Rarity,
   type WeaponId,
 } from "../types";
 import { TEXTS, type Localized } from "../i18n/texts";
 import { progress } from "./progress";
+import type { PlayerLook } from "../characters/player";
+
+/** Cor da camisa simples que o herói usa sem armadura. */
+const UNARMORED_TORSO = 0x8a7a66;
 
 /**
  * Cores de cada item:
@@ -39,6 +47,23 @@ export const ITEM_LOOKS: Record<
   travelerTunic: { icon: 0xb6a47b, torso: 0xb6a47b, cloak: 0x762e36 },
   stoneArmor: { icon: 0xa9a6b8, torso: 0x8f8c9c, cloak: 0x4f4d5a },
   swampAmulet: { icon: 0x7fffd4 },
+};
+
+/** Raridade de cada item (cor da borda e do nome no inventário). */
+export const ITEM_RARITY: Record<ItemId, Rarity> = {
+  ironSword: "common",
+  travelerTunic: "common",
+  corruptedBlade: "uncommon",
+  stoneArmor: "uncommon",
+  swampAmulet: "rare",
+  glacialBlade: "veryRare",
+};
+
+export const RARITY_COLORS: Record<Rarity, number> = {
+  common: 0xa8a29a,
+  uncommon: 0x5fcf6a,
+  rare: 0x4fa3ff,
+  veryRare: 0xc27bff,
 };
 
 export function isWeapon(id: ItemId): id is WeaponId {
@@ -94,11 +119,19 @@ export interface HeroStats {
   rollCooldown: number;
 }
 
-export function getHeroStats(): HeroStats {
-  const weapon = WEAPON_STATS[progress.equipped.weapon];
-  const armor = ARMOR_STATS[progress.equipped.armor];
-  const amulet = progress.equipped.amulet
-    ? AMULET_STATS[progress.equipped.amulet]
+/**
+ * Atributos com os equipamentos atuais (ou com outros, para comparar:
+ * a tela de equipamento mostra o que mudaria ao trocar um item).
+ */
+export function getHeroStats(
+  equipped: EquippedItems = progress.equipped,
+): HeroStats {
+  const weapon = equipped.weapon
+    ? WEAPON_STATS[equipped.weapon]
+    : UNARMED_STATS;
+  const armor = equipped.armor ? ARMOR_STATS[equipped.armor] : UNARMORED_STATS;
+  const amulet = equipped.amulet
+    ? AMULET_STATS[equipped.amulet]
     : { potionHeal: 1, rollCooldown: 1 };
 
   return {
@@ -112,20 +145,20 @@ export function getHeroStats(): HeroStats {
 }
 
 /** Cores do herói com os equipamentos atuais. */
-export function getHeroLook(): { blade: number; torso: number; cloak: number } {
-  const weapon = ITEM_LOOKS[progress.equipped.weapon];
-  const armor = ITEM_LOOKS[progress.equipped.armor];
+export function getHeroLook(): PlayerLook {
+  const { weapon, armor } = progress.equipped;
+  const armorLook = armor ? ITEM_LOOKS[armor] : null;
 
   return {
-    blade: weapon.blade ?? 0xd7d8c9,
-    torso: armor.torso ?? 0xb6a47b,
-    cloak: armor.cloak ?? 0x762e36,
+    blade: weapon ? (ITEM_LOOKS[weapon].blade ?? 0xd7d8c9) : null,
+    torso: armorLook ? (armorLook.torso ?? 0xb6a47b) : UNARMORED_TORSO,
+    cloak: armorLook ? (armorLook.cloak ?? 0x762e36) : null,
   };
 }
 
-/** Tira o amuleto (o único espaço que pode ficar vazio). */
-export function unequipAmulet(): void {
-  progress.equipped.amulet = null;
+/** Esvazia um espaço (arma: soco; armadura: sem proteção). */
+export function unequipSlot(slot: EquipmentSlot): void {
+  progress.equipped[slot] = null;
 }
 
 /** Itens que o herói tem para um espaço (na ordem de ITEM_IDS). */
@@ -133,20 +166,34 @@ export function getOwnedItemsForSlot(slot: EquipmentSlot): ItemId[] {
   return progress.ownedItems.filter((id) => getItemSlot(id) === slot);
 }
 
-/** Item em uso num espaço (amuleto: null = nenhum). */
+/** Item em uso num espaço (null = vazio). */
 export function getEquippedItem(slot: EquipmentSlot): ItemId | null {
   return progress.equipped[slot];
 }
 
-/** Os números de um item, em texto (null = nenhum amuleto). */
-export function describeItemStats(id: ItemId | null): Localized {
-  if (id === null) {
-    return TEXTS.equipment.amuletStats(
-      POTION_STATS.heal,
-      PLAYER_STATS.rollCooldown,
-    );
+/** Os números de um espaço vazio (soco, sem armadura, sem amuleto). */
+export function describeEmptySlot(slot: EquipmentSlot): Localized {
+  switch (slot) {
+    case "weapon":
+      return TEXTS.equipment.weaponStats(
+        UNARMED_STATS.attackDamage,
+        UNARMED_STATS.attackCooldown,
+      );
+    case "armor":
+      return TEXTS.equipment.armorStats(
+        UNARMORED_STATS.damageTaken,
+        UNARMORED_STATS.speed,
+      );
+    case "amulet":
+      return TEXTS.equipment.amuletStats(
+        POTION_STATS.heal,
+        PLAYER_STATS.rollCooldown,
+      );
   }
+}
 
+/** Os números de um item, em texto. */
+export function describeItemStats(id: ItemId): Localized {
   if (isWeapon(id)) {
     const weapon = WEAPON_STATS[id];
     return TEXTS.equipment.weaponStats(

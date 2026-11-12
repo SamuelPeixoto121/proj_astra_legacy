@@ -1348,7 +1348,10 @@ export abstract class AreaScene extends Phaser.Scene {
 
   /** Pausa esta área e abre a tela de equipamento (Tab) por cima. */
   private openEquipmentScreen(): void {
-    const data: EquipmentSceneData = { areaKey: this.scene.key };
+    const data: EquipmentSceneData = {
+      areaKey: this.scene.key,
+      health: this.playerHealth,
+    };
 
     this.getPhysicsBody(this.player).setVelocity(0, 0);
     this.scene.launch(EQUIPMENT_SCENE_KEY, data);

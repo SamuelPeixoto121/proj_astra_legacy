@@ -37,8 +37,10 @@ const SAVE_KEY = "astra-legacy:save";
 // Versão 5: Capítulo 3. Antes, "complete" era o fim do Capítulo 2; agora
 // é o fim do Capítulo 3, então saves antigos com "complete" passam para
 // "portal2" (atravessar o portal da clareira do pântano).
-const SAVE_VERSION = 5;
-const COMPATIBLE_VERSIONS: readonly unknown[] = [2, 3, 4, SAVE_VERSION];
+// Versão 6: arma e armadura podem ficar vazias (null = soco / sem armadura).
+// Saves antigos continuam valendo (neles os dois espaços sempre têm item).
+const SAVE_VERSION = 6;
+const COMPATIBLE_VERSIONS: readonly unknown[] = [2, 3, 4, 5, SAVE_VERSION];
 
 export type SaveData = GameProgress;
 
@@ -154,11 +156,22 @@ function parseEquipment(
 
   const isOwned = (id: unknown): boolean => owned.has(id as ItemId);
 
-  if (WEAPON_IDS.includes(saved.weapon as WeaponId) && isOwned(saved.weapon)) {
+  // null salvo de propósito = espaço vazio (soco / sem armadura).
+  if (saved.weapon === null) {
+    equipped.weapon = null;
+  } else if (
+    WEAPON_IDS.includes(saved.weapon as WeaponId) &&
+    isOwned(saved.weapon)
+  ) {
     equipped.weapon = saved.weapon as WeaponId;
   }
 
-  if (ARMOR_IDS.includes(saved.armor as ArmorId) && isOwned(saved.armor)) {
+  if (saved.armor === null) {
+    equipped.armor = null;
+  } else if (
+    ARMOR_IDS.includes(saved.armor as ArmorId) &&
+    isOwned(saved.armor)
+  ) {
     equipped.armor = saved.armor as ArmorId;
   }
 

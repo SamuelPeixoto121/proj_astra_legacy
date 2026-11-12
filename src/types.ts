@@ -43,11 +43,17 @@ export type ArmorId = (typeof ARMOR_IDS)[number];
 export type AmuletId = (typeof AMULET_IDS)[number];
 export type ItemId = (typeof ITEM_IDS)[number];
 
+/** Raridade de um item (só muda a cor no inventário). */
+export type Rarity = "common" | "uncommon" | "rare" | "veryRare";
+
 export type EquipmentSlot = "weapon" | "armor" | "amulet";
 
-/** O que o herói está usando (amuleto: null = nenhum). */
+/**
+ * O que o herói está usando. null = espaço vazio
+ * (arma: luta no soco; armadura: sem proteção; amuleto: nenhum).
+ */
 export interface EquippedItems {
-  weapon: WeaponId;
-  armor: ArmorId;
+  weapon: WeaponId | null;
+  armor: ArmorId | null;
   amulet: AmuletId | null;
 }

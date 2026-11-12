@@ -7,6 +7,7 @@ import type {
   ItemId,
   Language,
   QuestStage,
+  Rarity,
 } from "../types";
 
 export type Localized<T = string> = Record<Language, T>;
@@ -365,14 +366,64 @@ export const TEXTS = {
       armor: { pt: "ARMADURA", en: "ARMOR" },
       amulet: { pt: "AMULETO", en: "AMULET" },
     } satisfies Record<EquipmentSlot, Localized>,
-    noAmulet: {
-      name: { pt: "NENHUM", en: "NONE" },
-      description: {
-        pt: "Nenhum amuleto equipado.",
-        en: "No amulet equipped.",
+    // Espaços vazios: soco, sem armadura, sem amuleto.
+    emptySlot: {
+      weapon: {
+        name: { pt: "PUNHOS", en: "FISTS" },
+        description: {
+          pt: "Sem arma: golpes fracos, mas muito rápidos.",
+          en: "No weapon: weak but very quick strikes.",
+        },
       },
+      armor: {
+        name: { pt: "SEM ARMADURA", en: "NO ARMOR" },
+        description: {
+          pt: "Mais leve e mais rápido, mas recebe mais dano.",
+          en: "Lighter and faster, but takes more damage.",
+        },
+      },
+      amulet: {
+        name: { pt: "NENHUM", en: "NONE" },
+        description: {
+          pt: "Nenhum amuleto equipado.",
+          en: "No amulet equipped.",
+        },
+      },
+    } satisfies Record<EquipmentSlot, { name: Localized; description: Localized }>,
+    equippedTag: { pt: "EM USO", en: "EQUIPPED" },
+    inventory: { pt: "INVENTÁRIO", en: "INVENTORY" },
+    attributes: { pt: "ATRIBUTOS", en: "ATTRIBUTES" },
+    potions: { pt: "POÇÕES", en: "POTIONS" },
+    emptyCell: { pt: "Espaço vazio na mochila.", en: "Empty backpack slot." },
+    rarity: {
+      common: { pt: "COMUM", en: "COMMON" },
+      uncommon: { pt: "INCOMUM", en: "UNCOMMON" },
+      rare: { pt: "RARO", en: "RARE" },
+      veryRare: { pt: "MUITO RARO", en: "VERY RARE" },
+    } satisfies Record<Rarity, Localized>,
+    stats: {
+      health: { pt: "VIDA", en: "HEALTH" },
+      damage: { pt: "DANO", en: "DAMAGE" },
+      attackInterval: { pt: "INTERVALO DO GOLPE", en: "STRIKE INTERVAL" },
+      defense: { pt: "DEFESA", en: "DEFENSE" },
+      speed: { pt: "VELOCIDADE", en: "SPEED" },
+      potionHeal: { pt: "CURA DA POÇÃO", en: "POTION HEALING" },
+      rollCooldown: { pt: "RECARGA DO ROLAMENTO", en: "ROLL RECHARGE" },
     },
-    equippedTag: { pt: "(EM USO)", en: "(EQUIPPED)" },
+    secondsValue: (ms: number): Localized => ({
+      pt: `${seconds(ms, "pt")} s`,
+      en: `${seconds(ms, "en")} s`,
+    }),
+    replaces: (name: Localized): Localized => ({
+      pt: `Substitui: ${name.pt}`,
+      en: `Replaces: ${name.en}`,
+    }),
+    equipAction: { pt: "Enter / clique: equipar", en: "Enter / click: equip" },
+    unequipAction: { pt: "Enter / clique: tirar", en: "Enter / click: remove" },
+    hint: {
+      pt: "Setas / mouse  escolher   •   Enter / clique / arrastar  equipar ou tirar   •   Tab / Esc  fechar",
+      en: "Arrows / mouse  select   •   Enter / click / drag  equip or remove   •   Tab / Esc  close",
+    },
     changed: (name: Localized): Localized => ({
       pt: `EQUIPADO: ${name.pt}`,
       en: `EQUIPPED: ${name.en}`,
@@ -389,23 +440,6 @@ export const TEXTS = {
       pt: `Poções curam ${potionHeal}  •  rolamento recarrega em ${seconds(rollCooldown, "pt")} s`,
       en: `Potions heal ${potionHeal}  •  roll recharges in ${seconds(rollCooldown, "en")} s`,
     }),
-    heroStats: (
-      damage: number,
-      damageTaken: number,
-      speed: number,
-      potionHeal: number,
-    ): Localized => ({
-      pt: `HERÓI  •  dano ${damage}  •  dano recebido ${percent(damageTaken)}%  •  velocidade ${percent(speed)}%  •  poção +${potionHeal}`,
-      en: `HERO  •  damage ${damage}  •  damage taken ${percent(damageTaken)}%  •  speed ${percent(speed)}%  •  potion +${potionHeal}`,
-    }),
-    hintSlots: {
-      pt: "↑ ↓  escolher   •   Enter  trocar   •   Tab / Esc  fechar",
-      en: "↑ ↓  select   •   Enter  change   •   Tab / Esc  close",
-    },
-    hintItems: {
-      pt: "↑ ↓  escolher   •   Enter  equipar   •   Tab / Esc  voltar",
-      en: "↑ ↓  select   •   Enter  equip   •   Tab / Esc  back",
-    },
   },
 
   // Poções de cura.

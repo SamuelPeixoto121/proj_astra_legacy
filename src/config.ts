@@ -72,6 +72,12 @@ export const AMULET_STATS = {
   swampAmulet: { potionHeal: 1.5, rollCooldown: 0.6 },
 } as const satisfies Record<AmuletId, { potionHeal: number; rollCooldown: number }>;
 
+/** Sem arma, o herói luta no soco: fraco, mas muito rápido. */
+export const UNARMED_STATS = { attackDamage: 12, attackCooldown: 260 } as const;
+
+/** Sem armadura: mais leve (mais rápido), mas recebe mais dano. */
+export const UNARMORED_STATS = { damageTaken: 1.15, speed: 1.05 } as const;
+
 /** Itens que o herói tem (e usa) desde o começo de um jogo novo. */
 export const STARTING_ITEMS: readonly ItemId[] = ["ironSword", "travelerTunic"];
 
