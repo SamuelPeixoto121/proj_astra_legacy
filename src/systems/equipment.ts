@@ -20,6 +20,7 @@ import {
   type ItemId,
   type WeaponId,
 } from "../types";
+import { TEXTS, type Localized } from "../i18n/texts";
 import { progress } from "./progress";
 
 /**
@@ -119,4 +120,48 @@ export function getHeroLook(): { blade: number; torso: number; cloak: number } {
     torso: armor.torso ?? 0xb6a47b,
     cloak: armor.cloak ?? 0x762e36,
   };
+}
+
+/** Tira o amuleto (o único espaço que pode ficar vazio). */
+export function unequipAmulet(): void {
+  progress.equipped.amulet = null;
+}
+
+/** Itens que o herói tem para um espaço (na ordem de ITEM_IDS). */
+export function getOwnedItemsForSlot(slot: EquipmentSlot): ItemId[] {
+  return progress.ownedItems.filter((id) => getItemSlot(id) === slot);
+}
+
+/** Item em uso num espaço (amuleto: null = nenhum). */
+export function getEquippedItem(slot: EquipmentSlot): ItemId | null {
+  return progress.equipped[slot];
+}
+
+/** Os números de um item, em texto (null = nenhum amuleto). */
+export function describeItemStats(id: ItemId | null): Localized {
+  if (id === null) {
+    return TEXTS.equipment.amuletStats(
+      POTION_STATS.heal,
+      PLAYER_STATS.rollCooldown,
+    );
+  }
+
+  if (isWeapon(id)) {
+    const weapon = WEAPON_STATS[id];
+    return TEXTS.equipment.weaponStats(
+      weapon.attackDamage,
+      weapon.attackCooldown,
+    );
+  }
+
+  if (isArmor(id)) {
+    const armor = ARMOR_STATS[id];
+    return TEXTS.equipment.armorStats(armor.damageTaken, armor.speed);
+  }
+
+  const amulet = AMULET_STATS[id];
+  return TEXTS.equipment.amuletStats(
+    Math.round(POTION_STATS.heal * amulet.potionHeal),
+    PLAYER_STATS.rollCooldown * amulet.rollCooldown,
+  );
 }

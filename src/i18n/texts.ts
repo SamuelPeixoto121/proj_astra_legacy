@@ -1,9 +1,26 @@
 // Todos os textos do jogo em português (pt) e inglês (en).
 // Para corrigir ou traduzir um texto, altere apenas este arquivo.
 
-import type { EnemyKind, ItemId, Language, QuestStage } from "../types";
+import type {
+  EnemyKind,
+  EquipmentSlot,
+  ItemId,
+  Language,
+  QuestStage,
+} from "../types";
 
 export type Localized<T = string> = Record<Language, T>;
+
+/** Milissegundos → segundos ("0,35" em português, "0.35" em inglês). */
+function seconds(ms: number, language: Language): string {
+  const text = (ms / 1000).toFixed(2);
+  return language === "pt" ? text.replace(".", ",") : text;
+}
+
+/** Fração → porcentagem inteira (0.65 → 65). */
+function percent(fraction: number): number {
+  return Math.round(fraction * 100);
+}
 
 export const TEXTS = {
   hud: {
@@ -106,6 +123,7 @@ export const TEXTS = {
         ["J", "atacar"],
         ["Shift", "rolar"],
         ["Q", "poção"],
+        ["Tab", "equipamento"],
         ["E", "interagir"],
         ["L", "idioma"],
         ["M", "som"],
@@ -116,6 +134,7 @@ export const TEXTS = {
         ["J", "attack"],
         ["Shift", "roll"],
         ["Q", "potion"],
+        ["Tab", "equipment"],
         ["E", "interact"],
         ["L", "language"],
         ["M", "sound"],
@@ -276,9 +295,56 @@ export const TEXTS = {
 
   equipment: {
     obtained: (name: Localized): Localized => ({
-      pt: `ITEM OBTIDO E EQUIPADO: ${name.pt}`,
-      en: `ITEM OBTAINED AND EQUIPPED: ${name.en}`,
+      pt: `ITEM OBTIDO E EQUIPADO: ${name.pt}  (TAB: EQUIPAMENTO)`,
+      en: `ITEM OBTAINED AND EQUIPPED: ${name.en}  (TAB: EQUIPMENT)`,
     }),
+    title: { pt: "EQUIPAMENTO", en: "EQUIPMENT" },
+    slots: {
+      weapon: { pt: "ARMA", en: "WEAPON" },
+      armor: { pt: "ARMADURA", en: "ARMOR" },
+      amulet: { pt: "AMULETO", en: "AMULET" },
+    } satisfies Record<EquipmentSlot, Localized>,
+    noAmulet: {
+      name: { pt: "NENHUM", en: "NONE" },
+      description: {
+        pt: "Nenhum amuleto equipado.",
+        en: "No amulet equipped.",
+      },
+    },
+    equippedTag: { pt: "(EM USO)", en: "(EQUIPPED)" },
+    changed: (name: Localized): Localized => ({
+      pt: `EQUIPADO: ${name.pt}`,
+      en: `EQUIPPED: ${name.en}`,
+    }),
+    weaponStats: (damage: number, cooldownMs: number): Localized => ({
+      pt: `Dano ${damage}  •  um golpe a cada ${seconds(cooldownMs, "pt")} s`,
+      en: `Damage ${damage}  •  one strike every ${seconds(cooldownMs, "en")} s`,
+    }),
+    armorStats: (damageTaken: number, speed: number): Localized => ({
+      pt: `Dano recebido ${percent(damageTaken)}%  •  velocidade ${percent(speed)}%`,
+      en: `Damage taken ${percent(damageTaken)}%  •  speed ${percent(speed)}%`,
+    }),
+    amuletStats: (potionHeal: number, rollCooldown: number): Localized => ({
+      pt: `Poções curam ${potionHeal}  •  rolamento recarrega em ${seconds(rollCooldown, "pt")} s`,
+      en: `Potions heal ${potionHeal}  •  roll recharges in ${seconds(rollCooldown, "en")} s`,
+    }),
+    heroStats: (
+      damage: number,
+      damageTaken: number,
+      speed: number,
+      potionHeal: number,
+    ): Localized => ({
+      pt: `HERÓI  •  dano ${damage}  •  dano recebido ${percent(damageTaken)}%  •  velocidade ${percent(speed)}%  •  poção +${potionHeal}`,
+      en: `HERO  •  damage ${damage}  •  damage taken ${percent(damageTaken)}%  •  speed ${percent(speed)}%  •  potion +${potionHeal}`,
+    }),
+    hintSlots: {
+      pt: "↑ ↓  escolher   •   Enter  trocar   •   Tab / Esc  fechar",
+      en: "↑ ↓  select   •   Enter  change   •   Tab / Esc  close",
+    },
+    hintItems: {
+      pt: "↑ ↓  escolher   •   Enter  equipar   •   Tab / Esc  voltar",
+      en: "↑ ↓  select   •   Enter  equip   •   Tab / Esc  back",
+    },
   },
 
   // Poções de cura.

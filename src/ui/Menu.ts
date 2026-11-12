@@ -61,6 +61,11 @@ export class Menu {
     };
   }
 
+  /** Posição (0, 1, 2...) da opção destacada agora. */
+  get selectedIndex(): number {
+    return this.selected;
+  }
+
   /** Troca as opções do menu. Lista vazia = menu escondido. */
   setOptions(options: MenuOption[], selected = 0): void {
     for (const text of this.texts) {

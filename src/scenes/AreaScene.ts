@@ -76,11 +76,13 @@ import {
 } from "../effects/combatEffects";
 import {
   AREA_SCENE_KEYS,
+  EQUIPMENT_SCENE_KEY,
   PAUSE_SCENE_KEY,
   TITLE_SCENE_KEY,
   startFromSave,
 } from "./areas";
 import type { PauseSceneData } from "./PauseScene";
+import type { EquipmentSceneData } from "./EquipmentScene";
 import { saveLanguagePreference } from "../systems/preferences";
 import { audio } from "../audio/engine";
 import type { MusicTrackId } from "../audio/music";
@@ -145,6 +147,7 @@ export abstract class AreaScene extends Phaser.Scene {
   private muteKey!: Phaser.Input.Keyboard.Key;
   private titleKey!: Phaser.Input.Keyboard.Key;
   private continueKey!: Phaser.Input.Keyboard.Key;
+  private equipmentKey!: Phaser.Input.Keyboard.Key;
   private newGameKey!: Phaser.Input.Keyboard.Key;
 
   private hudGraphics!: Phaser.GameObjects.Graphics;
@@ -376,6 +379,7 @@ export abstract class AreaScene extends Phaser.Scene {
     this.muteKey = keyboard.addKey(KeyCodes.M);
     this.titleKey = keyboard.addKey(KeyCodes.ESC);
     this.continueKey = keyboard.addKey(KeyCodes.ENTER);
+    this.equipmentKey = keyboard.addKey(KeyCodes.TAB);
   }
 
   private setupPhysics(obstacles: Phaser.GameObjects.Rectangle[]): void {
@@ -424,6 +428,10 @@ export abstract class AreaScene extends Phaser.Scene {
     // abriria a pausa de novo aqui).
     this.input.keyboard?.resetKeys();
     this.refreshLanguage();
+
+    // O equipamento pode ter mudado na tela de equipamento.
+    setPlayerLook(this.player, getHeroLook());
+    this.drawHud();
   }
 
   private handleResize(gameSize: Phaser.Structs.Size): void {
@@ -1319,6 +1327,15 @@ export abstract class AreaScene extends Phaser.Scene {
     this.updateQuestDisplay();
   }
 
+  /** Pausa esta área e abre a tela de equipamento (Tab) por cima. */
+  private openEquipmentScreen(): void {
+    const data: EquipmentSceneData = { areaKey: this.scene.key };
+
+    this.getPhysicsBody(this.player).setVelocity(0, 0);
+    this.scene.launch(EQUIPMENT_SCENE_KEY, data);
+    this.scene.pause();
+  }
+
   /** Pausa esta área e abre o menu de pausa por cima. */
   private openPauseMenu(): void {
     const data: PauseSceneData = { areaKey: this.scene.key };
@@ -1399,6 +1416,15 @@ export abstract class AreaScene extends Phaser.Scene {
         this.advanceDialogue();
       }
 
+      return;
+    }
+
+    // Tab: tela de equipamento (não durante o rolamento).
+    if (
+      !this.isRolling() &&
+      Phaser.Input.Keyboard.JustDown(this.equipmentKey)
+    ) {
+      this.openEquipmentScreen();
       return;
     }
 

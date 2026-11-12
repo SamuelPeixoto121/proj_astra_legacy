@@ -40,6 +40,9 @@ O **prólogo** e os **Capítulos 1 e 2** estão completos e jogáveis:
 - **Terreno que interfere**: poças de lama no pântano deixam o herói mais lento
 - **Poções de cura** (Q): inimigos às vezes deixam cair uma, chefes sempre
   deixam; o herói carrega até 3, e tocar numa Pedra Astral recarrega todas
+- **Equipamentos** (Tab): cada chefe deixa um item (Lâmina Corrompida,
+  Armadura de Pedra, Amuleto do Pântano) que muda os atributos e as cores
+  do herói. Na tela de equipamento dá para trocar, comparando os números
 - **Várias áreas** ligadas por passagens, com transição de tela e o nome da área
   aparecendo ao entrar
 - **Tela inicial** com Continuar / Novo jogo (com confirmação antes de apagar o
@@ -65,11 +68,13 @@ O **prólogo** e os **Capítulos 1 e 2** estão completos e jogáveis:
 | `J` | Atacar |
 | `Shift` | Rolar (invencível durante o rolamento) |
 | `Q` | Beber uma poção de cura |
+| `Tab` | Tela de equipamento (trocar arma, armadura e amuleto) |
 | `E` | Conversar / avançar diálogo |
 | `L` | Trocar idioma (PT/EN) |
 | `M` | Ligar/desligar o som |
 | `Esc` | Menu de pausa (Continuar, Som, Idioma, Tela inicial) |
-| `R` | Voltar ao último checkpoint / jogar de novo |
+| `R` | Voltar ao último checkpoint (na tela de derrota) |
+| `Enter` | Continuar explorando (na tela de vitória) |
 | `N` | Começar um novo jogo (na tela de derrota) |
 
 ## Como rodar
@@ -193,4 +198,4 @@ music are generated procedurally in code (Web Audio API) — no image or audio f
 
 **[Play it in your browser](https://samuelpeixoto121.github.io/proj_astra_legacy/)**,
 or run it locally with `npm install` and `npm run dev`, then open http://localhost:5173.
-Controls: WASD/arrows to move, J to attack, Shift to roll, Q to drink a potion, E to interact, L to switch language, M to toggle sound, Esc for the pause menu.
+Controls: WASD/arrows to move, J to attack, Shift to roll, Q to drink a potion, Tab for equipment, E to interact, L to switch language, M to toggle sound, Esc for the pause menu.
