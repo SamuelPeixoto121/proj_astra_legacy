@@ -8,18 +8,25 @@
 // acesas, a escuridão quase some. As tochas ficam acesas enquanto o jogo
 // estiver aberto. De tempos em
 // tempos, a sombra de Ignis cruza o céu, com um rugido distante.
+//
+// Espectros flutuam pelo cemitério: no escuro são intangíveis (os golpes
+// atravessam); só na luz de uma tocha acesa podem ser atingidos. A luz do
+// herói não conta: é preciso atraí-los para perto das tochas.
 
 import Phaser from "phaser";
 import {
   GRAVEYARD_HEIGHT,
   GRAVEYARD_SHRINE_POSITION,
+  GRAVEYARD_SPECTRE_SPAWNS,
   GRAVEYARD_TORCHES,
   GRAVEYARD_WIDTH,
   IGNIS_SHADOW,
+  SPECTRE_REVEAL_FACTOR,
   TORCH_STATS,
 } from "../config";
 import { TEXTS } from "../i18n/texts";
 import { progress, saveProgress } from "../systems/progress";
+import { spawnEnemy } from "../systems/enemies";
 import { createGraveyardWorld } from "../world/graveyard";
 import { createDarkness, type Darkness } from "../world/darkness";
 import { createTorch, lightTorch, type Torch } from "../world/torch";
@@ -106,7 +113,21 @@ export class GraveyardScene extends AreaScene {
   }
 
   protected createActors(): void {
-    // Os inimigos do cemitério chegam na próxima etapa.
+    const spectres = GRAVEYARD_SPECTRE_SPAWNS.map(({ x, y }) =>
+      spawnEnemy(this, "spectre", x, y),
+    );
+
+    this.enemies.push(...spectres);
+  }
+
+  /** Espectros só ficam tangíveis na luz de uma tocha acesa. */
+  protected isRevealed(x: number, y: number): boolean {
+    const range = TORCH_STATS.lightRadius * SPECTRE_REVEAL_FACTOR;
+
+    return this.torches.some(
+      (torch) =>
+        torch.lit && Phaser.Math.Distance.Between(x, y, torch.x, torch.y) <= range,
+    );
   }
 
   protected onAreaEntered(): void {

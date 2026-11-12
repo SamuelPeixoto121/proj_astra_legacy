@@ -38,7 +38,13 @@ export type AreaId =
   | "graveyard";
 
 /** Tipos de inimigos comuns (os chefes são tratados à parte). */
-export type EnemyKind = "wolf" | "spider" | "wisp" | "iceKnight" | "ember";
+export type EnemyKind =
+  | "wolf"
+  | "spider"
+  | "wisp"
+  | "iceKnight"
+  | "ember"
+  | "spectre";
 
 // Equipamentos. Cada espaço (arma, armadura, amuleto) tem os seus itens.
 // Os números de cada item ficam em config.ts; nomes e descrições, em texts.ts.

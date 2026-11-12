@@ -245,6 +245,14 @@ export abstract class AreaScene extends Phaser.Scene {
     return false;
   }
 
+  /**
+   * true se um inimigo intangível (ethereal) neste ponto pode ser visto e
+   * atingido. Por padrão, sempre; o Cemitério só revela perto das tochas.
+   */
+  protected isRevealed(_x: number, _y: number): boolean {
+    return true;
+  }
+
   /** Chamado depois que um inimigo comum é derrotado. */
   protected onEnemyDefeated(enemy: Enemy): void {
     this.statusText.setText(this.t(TEXTS.enemies[enemy.kind].defeated));
@@ -1148,6 +1156,13 @@ export abstract class AreaScene extends Phaser.Scene {
     const { colors, shield } = enemy.definition;
     const damage = getHeroStats().attackDamage;
 
+    // Intangível no escuro: o golpe atravessa.
+    if (enemy.definition.ethereal && !this.isRevealed(x, y)) {
+      createImpactEffect(this, x, y - 8, colors.impact, 5, 14);
+      this.statusText.setText(this.t(TEXTS.chapter5.ethereal));
+      return;
+    }
+
     // Escudo erguido e virado para o herói: o golpe não passa.
     if (shield && this.isBlockedByShield(enemy, shield)) {
       audio.play("block");
@@ -2021,6 +2036,14 @@ export abstract class AreaScene extends Phaser.Scene {
       enemy.facingAngle,
       this.time.now >= enemy.guardDownUntil,
     );
+
+    // Intangível: translúcido e sem barra de vida fora da luz.
+    if (enemy.definition.ethereal) {
+      const revealed = this.isRevealed(body.x, body.y);
+
+      container.setAlpha(revealed ? 1 : 0.3);
+      enemy.healthBar.setVisible(revealed);
+    }
   }
 
   /**

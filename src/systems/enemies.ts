@@ -15,6 +15,7 @@ import {
   ENEMY_WANDER,
   ICE_KNIGHT_SHIELD,
   ICE_KNIGHT_STATS,
+  SPECTRE_STATS,
   SPIDER_STATS,
   WISP_RANGED,
   WISP_STATS,
@@ -27,6 +28,7 @@ import { createSpider } from "../characters/spider";
 import { createWisp } from "../characters/wisp";
 import { createIceKnight, setIceKnightGuard } from "../characters/iceKnight";
 import { createEmber } from "../characters/ember";
+import { createSpectre } from "../characters/spectre";
 
 export interface EnemyStats {
   maxHealth: number;
@@ -79,6 +81,11 @@ interface EnemyDefinition {
   ranged?: RangedAttack;
   /** Presente só em inimigos com escudo (bloqueiam golpes de frente). */
   shield?: ShieldDefense;
+  /**
+   * true = intangível fora da luz: só pode ser atingido onde a área diz que
+   * está revelado (AreaScene.isRevealed; no Cemitério, perto das tochas).
+   */
+  ethereal?: boolean;
   /** Presente só em inimigos que explodem (acendem o pavio perto do herói). */
   explosive?: ExplosiveAttack;
   /** Atualiza o desenho conforme a direção e a guarda (inimigos com escudo). */
@@ -161,6 +168,20 @@ export const ENEMY_TYPES: Record<EnemyKind, EnemyDefinition> = {
       death: 0xff6a2a,
     },
     healthBar: { width: 30, offsetY: 30 },
+  },
+  spectre: {
+    stats: SPECTRE_STATS,
+    create: createSpectre,
+    facesRight: false,
+    flying: true,
+    ethereal: true,
+    colors: {
+      impact: 0xd8d0ff,
+      damageText: "#ece8ff",
+      healthBar: 0x9a90c4,
+      death: 0xb9b0e6,
+    },
+    healthBar: { width: 36, offsetY: 40 },
   },
 };
 

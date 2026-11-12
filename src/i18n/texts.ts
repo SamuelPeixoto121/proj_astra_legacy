@@ -192,6 +192,10 @@ export const TEXTS = {
       en: "AN ANCIENT SEAL BLOCKS THE WAY.",
     },
     lightTorch: { pt: "E  •  Acender tocha", en: "E  •  Light torch" },
+    ethereal: {
+      pt: "O ESPECTRO É INTANGÍVEL NO ESCURO! ATRAIA-O PARA A LUZ DE UMA TOCHA.",
+      en: "THE SPECTRE IS INTANGIBLE IN THE DARK! LURE IT INTO A TORCH'S LIGHT.",
+    },
     torchLit: {
       pt: "TOCHA ACESA. A LUZ AFASTA A ESCURIDÃO.",
       en: "TORCH LIT. THE LIGHT PUSHES BACK THE DARKNESS.",
@@ -420,6 +424,16 @@ export const TEXTS = {
       defeated: {
         pt: "CAVALEIRO DE GELO DERROTADO!",
         en: "ICE KNIGHT DEFEATED!",
+      },
+    },
+    spectre: {
+      hit: (damage: number): Localized => ({
+        pt: `ESPECTRO ATINGIDO! DANO: ${damage}`,
+        en: `SPECTRE HIT! DAMAGE: ${damage}`,
+      }),
+      defeated: {
+        pt: "ESPECTRO DISSIPADO!",
+        en: "SPECTRE DISPELLED!",
       },
     },
     ember: {

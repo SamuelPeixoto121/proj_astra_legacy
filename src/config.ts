@@ -713,6 +713,34 @@ export const TORCH_STATS = {
 
 export const GRAVEYARD_SHRINE_POSITION = { x: 1000, y: 630 } as const;
 
+// Espectro: flutua por cima de túmulos e ossos e persegue devagar. No escuro
+// é intangível (os golpes atravessam); só na luz de uma tocha acesa pode ser
+// atingido. Ataca em qualquer lugar.
+export const SPECTRE_STATS = {
+  maxHealth: 50,
+  speed: 70,
+  damage: 14,
+  hitRange: 80,
+  sightRange: 420,
+  stopDistance: 28,
+  attackReach: 46,
+  attackCooldown: 1300,
+  wanderRadius: 90,
+  wanderSpeed: 30,
+} as const;
+
+/** Até que fração do raio da luz da tocha o Espectro fica visível e tangível. */
+export const SPECTRE_REVEAL_FACTOR = 0.85;
+
+export const GRAVEYARD_SPECTRE_SPAWNS = [
+  { x: 1400, y: 770 },
+  { x: 1180, y: 600 },
+  { x: 1250, y: 420 },
+  { x: 900, y: 790 },
+  { x: 760, y: 560 },
+  { x: 700, y: 880 },
+] as const;
+
 /** A sombra de Ignis passa a cada minDelay–maxDelay ms e dura `duration`. */
 export const IGNIS_SHADOW = {
   firstDelay: 6000,
