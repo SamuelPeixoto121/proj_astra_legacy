@@ -294,6 +294,18 @@ export const TEXTS = {
         "And now a fire portal has opened atop the Peaks. It leads to the Volcanic Lands, where the next fragment calls. The dragon's servants will be waiting for you. Be careful, traveler.",
       ],
     },
+    fourthFragment: {
+      pt: [
+        "Quatro fragmentos! O Arauto caiu... e com ele, a voz de Ignis nestas terras.",
+        "Mas no instante em que o fragmento voltou à luz, eu senti um rugido distante, vindo de onde o céu nunca clareia. Ignis acordou de verdade.",
+        "Descanse, viajante. O caminho até o dragão está se abrindo, e você vai precisar de toda a luz de Astra.",
+      ],
+      en: [
+        "Four fragments! The Herald has fallen... and with him, Ignis's voice in these lands.",
+        "But the moment the fragment returned to the light, I felt a distant roar, from where the sky never clears. Ignis has truly awakened.",
+        "Rest, traveler. The path to the dragon is opening, and you will need all of Astra's light.",
+      ],
+    },
   } satisfies Record<string, Localized<string[]>>,
 
   hints: {
@@ -399,6 +411,13 @@ export const TEXTS = {
       description: {
         pt: "Feita dos restos da Sentinela. Reduz o dano, mas pesa.",
         en: "Made from the Sentinel's remains. Reduces damage, but is heavy.",
+      },
+    },
+    emberMantle: {
+      name: { pt: "MANTO DE BRASAS", en: "EMBER MANTLE" },
+      description: {
+        pt: "O manto do Arauto, quente como brasa. Protege sem pesar.",
+        en: "The Herald's mantle, warm as embers. Protects without weighing you down.",
       },
     },
     swampAmulet: {
@@ -625,6 +644,41 @@ export const TEXTS = {
       defeated: {
         pt: "FEITICEIRA DERROTADA! O SEGUNDO FRAGMENTO FOI LIBERTADO.",
         en: "SORCERESS DEFEATED! THE SECOND FRAGMENT HAS BEEN RELEASED.",
+      },
+    },
+    herald: {
+      name: { pt: "ARAUTO DE IGNIS", en: "HERALD OF IGNIS" },
+      appeared: {
+        pt: "O ARAUTO DE IGNIS DESPERTOU!",
+        en: "THE HERALD OF IGNIS HAS AWAKENED!",
+      },
+      missed: {
+        pt: "APROXIME-SE E VIRE PARA O ARAUTO",
+        en: "GET CLOSER AND FACE THE HERALD",
+      },
+      hit: (damage: number): Localized => ({
+        pt: `ARAUTO ATINGIDO! DANO: ${damage}`,
+        en: `HERALD HIT! DAMAGE: ${damage}`,
+      }),
+      columns: {
+        pt: "COLUNAS DE FOGO! CONTINUE SE MOVENDO!",
+        en: "FIRE COLUMNS! KEEP MOVING!",
+      },
+      nova: {
+        pt: "O ARAUTO VAI EXPLODIR EM CHAMAS! AFASTE-SE!",
+        en: "THE HERALD IS ABOUT TO BURST INTO FLAMES! GET AWAY!",
+      },
+      summon: {
+        pt: "O ARAUTO CHAMOU BRASAS VIVAS!",
+        en: "THE HERALD SUMMONED LIVING EMBERS!",
+      },
+      enraged: {
+        pt: "O ARAUTO ESTÁ FURIOSO! O FOGO FICA MAIS FORTE!",
+        en: "THE HERALD IS ENRAGED! THE FIRE GROWS STRONGER!",
+      },
+      defeated: {
+        pt: "ARAUTO DE IGNIS DERROTADO! O QUARTO FRAGMENTO FOI LIBERTADO.",
+        en: "HERALD OF IGNIS DEFEATED! THE FOURTH FRAGMENT HAS BEEN RELEASED.",
       },
     },
     colossus: {

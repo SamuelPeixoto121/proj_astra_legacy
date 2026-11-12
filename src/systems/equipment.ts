@@ -46,6 +46,7 @@ export const ITEM_LOOKS: Record<
   glacialBlade: { icon: 0x9fe8ff, blade: 0xbfeeff },
   travelerTunic: { icon: 0xb6a47b, torso: 0xb6a47b, cloak: 0x762e36 },
   stoneArmor: { icon: 0xa9a6b8, torso: 0x8f8c9c, cloak: 0x4f4d5a },
+  emberMantle: { icon: 0xff8a3a, torso: 0x8a2a1a, cloak: 0xe0662a },
   swampAmulet: { icon: 0x7fffd4 },
 };
 
@@ -57,6 +58,7 @@ export const ITEM_RARITY: Record<ItemId, Rarity> = {
   stoneArmor: "uncommon",
   swampAmulet: "rare",
   glacialBlade: "veryRare",
+  emberMantle: "veryRare",
 };
 
 export const RARITY_COLORS: Record<Rarity, number> = {

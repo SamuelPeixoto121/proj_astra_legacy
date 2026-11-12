@@ -1,8 +1,10 @@
 // Efeitos visuais de combate: corte da espada, soco, impacto,
-// números de dano, explosão ao derrotar um inimigo e espinhos de gelo.
+// números de dano, explosão ao derrotar um inimigo, espinhos de gelo e
+// colunas de fogo.
 // Todos os efeitos se destroem sozinhos ao terminar a animação.
 
 import Phaser from "phaser";
+import { addTriangle } from "../utils/shapes";
 
 /** Arco de corte na frente do herói, na direção em que ele olha. */
 export function createSlashEffect(
@@ -327,6 +329,44 @@ export function createIceSpike(
         delay: 350,
         duration: 300,
         onComplete: () => spike.destroy(),
+      });
+    },
+  });
+}
+
+/** Coluna de fogo que sobe do chão e se desfaz (ataque do Arauto de Ignis). */
+export function createFireColumn(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  radius: number,
+): void {
+  const column = scene.add.container(x, y).setDepth(y + 40);
+
+  column.add([
+    scene.add.ellipse(0, 2, radius * 2, radius * 0.8, 0xff5a1f, 0.6),
+    addTriangle(scene, [-radius * 0.7, 6, radius * 0.7, 6, 0, -90], 0xc8321e),
+    addTriangle(scene, [-6 - radius * 0.45, 6, -6 + radius * 0.45, 6, -6, -72], 0xff6a2a),
+    addTriangle(scene, [7 - radius * 0.35, 6, 7 + radius * 0.35, 6, 7, -58], 0xffb347),
+    addTriangle(scene, [-radius * 0.2, 6, radius * 0.2, 6, 0, -40], 0xfff0b0),
+  ]);
+
+  column.setScale(0.6, 0);
+
+  scene.tweens.add({
+    targets: column,
+    scaleX: 1,
+    scaleY: 1,
+    duration: 120,
+    ease: "Back.Out",
+    onComplete: () => {
+      scene.tweens.add({
+        targets: column,
+        alpha: 0,
+        scaleY: 1.3,
+        delay: 250,
+        duration: 350,
+        onComplete: () => column.destroy(),
       });
     },
   });

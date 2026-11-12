@@ -23,6 +23,7 @@ export type SfxName =
   | "shatter" // gelo se partindo (espinhos, armadura do Colosso)
   | "fuse" // pavio aceso (Brasa Viva prestes a explodir)
   | "explosion" // explosão
+  | "flame" // coluna de fogo subindo
   | "fragment" // Fragmento Astral
   | "victory"
   | "defeat";
@@ -352,6 +353,19 @@ export function playSfx(
         freq: 2200,
         to: 120,
       });
+      return;
+
+    case "flame":
+      // Labareda: um sopro que sobe e um rugido grave.
+      noise(ctx, out, noiseBuffer, {
+        duration: 0.5,
+        gain: 0.18,
+        filter: "bandpass",
+        freq: 400,
+        to: 1800,
+        q: 0.8,
+      });
+      tone(ctx, out, { freq: 90, to: 140, duration: 0.4, type: "sawtooth", gain: 0.05 });
       return;
 
     case "fragment":

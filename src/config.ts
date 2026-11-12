@@ -68,6 +68,7 @@ export const WEAPON_STATS = {
 export const ARMOR_STATS = {
   travelerTunic: { damageTaken: 1, speed: 1 },
   stoneArmor: { damageTaken: 0.65, speed: 0.9 },
+  emberMantle: { damageTaken: 0.8, speed: 1 },
 } as const satisfies Record<ArmorId, { damageTaken: number; speed: number }>;
 
 export const AMULET_STATS = {
@@ -607,3 +608,46 @@ export const VOLCANO_SPIDER_SPAWNS = [
 ] as const;
 
 export const VOLCANO_WOLF_SPAWNS = [{ x: 1250, y: 420 }] as const;
+
+// Arauto de Ignis, o chefe das Terras Vulcânicas. Flutua mantendo
+// distância (stopDistance) e ataca com:
+// - colunas de fogo (column*): marca o chão onde o herói está, várias vezes
+//   seguidas; cada coluna deixa uma poça de fogo (firePool*) que queima;
+// - explosão de chamas (nova*) quando o herói fica colado nele;
+// - chamado (summon*): invoca Brasas Vivas (no máximo maxSummons vivas).
+// Com enragedAt da vida fica furioso: mais colunas e ataques mais rápidos.
+export const HERALD_STATS = {
+  maxHealth: 450,
+  hitRange: 95,
+  wakeRange: 340,
+  sightRange: 900,
+  speed: 55,
+  stopDistance: 150,
+  columnCooldown: 3200,
+  columnCount: 3,
+  columnInterval: 450,
+  columnWindup: 900,
+  columnRadius: 46,
+  columnDamage: 20,
+  firePoolTime: 6000,
+  maxFirePools: 8,
+  novaTriggerRange: 110,
+  novaCooldown: 4000,
+  novaWindup: 750,
+  novaRadius: 120,
+  novaDamage: 24,
+  summonCooldown: 10000,
+  summonCount: 2,
+  maxSummons: 3,
+  enragedAt: 0.5,
+  enragedColumnCount: 5,
+  enragedCooldownFactor: 0.7,
+} as const;
+
+export const HERALD_POSITION = { x: 1700, y: 480 } as const;
+
+// Quarto Fragmento Astral: surge no centro da cratera.
+export const VOLCANO_FRAGMENT_POSITION = { x: 1640, y: 470 } as const;
+
+// Manto de Brasas (item do chefe): num canto da cratera.
+export const HERALD_ITEM_POSITION = { x: 1790, y: 590 } as const;
