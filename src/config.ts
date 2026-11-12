@@ -886,7 +886,8 @@ export const HOARD_GOLD_PILES = [
 // Ele vira devagar (turnSpeed, radianos por segundo) para encarar o herói.
 export const IGNIS_STATS = {
   maxHealth: 900,
-  hitRange: 150,
+  // Medido até o centro do corpo: alto, porque a cabeça e a cauda ficam longe.
+  hitRange: 210,
   triggerRange: 330,
   sightRange: 1400,
   speed: 45,
@@ -910,6 +911,43 @@ export const IGNIS_STATS = {
   breathDamage: 16,
   breathCooldown: 5000,
   recover: 650,
+} as const;
+
+// Fases 2 e 3 de Ignis:
+// - fase 2 (com phase2At da vida): voa em volta do salão (fly*), sem poder
+//   ser atingido; solta bolas de fogo (barrage*/fireball*) e mergulha
+//   (dive*); depois do mergulho fica pousado groundedTime ms: a brecha;
+// - fase 3 (com phase3At da vida): volta ao chão furioso (ataques da fase 1
+//   com o tempo multiplicado por enragedFactor) e quebra o chão (crack*):
+//   fendas de fogo que ficam para sempre e queimam quem pisa.
+export const IGNIS_PHASES = {
+  phase2At: 0.66,
+  phase3At: 0.33,
+  flyRadiusX: 300,
+  flyRadiusY: 170,
+  flySpeed: 0.7,
+  flyScale: 1.35,
+  takeoffTime: 900,
+  attackDelay: 2200,
+  barrageCount: 4,
+  barrageInterval: 450,
+  barrageWindup: 900,
+  fireballRadius: 60,
+  fireballDamage: 18,
+  diveWindup: 900,
+  diveTime: 600,
+  diveLength: 620,
+  diveDamage: 26,
+  diveHitRange: 85,
+  groundedTime: 2600,
+  enragedFactor: 0.65,
+  enragedSpeed: 1.4,
+  crackInterval: 4500,
+  crackCount: 3,
+  crackWindup: 1100,
+  crackRadius: 50,
+  maxCracks: 10,
+  crackDamage: 10,
 } as const;
 
 /** Tempos (ms) da descida de Ignis: sombra crescendo e o voo até o chão. */

@@ -806,6 +806,34 @@ export const TEXTS = {
         pt: "CUIDADO COM A CAUDA!",
         en: "WATCH OUT FOR THE TAIL!",
       },
+      takeoff: {
+        pt: "IGNIS LEVANTA VOO! ESPERE ELE POUSAR PARA ATACAR.",
+        en: "IGNIS TAKES FLIGHT! WAIT FOR HIM TO LAND TO ATTACK.",
+      },
+      airborne: {
+        pt: "IGNIS ESTÁ NO AR! ESPERE ELE POUSAR.",
+        en: "IGNIS IS IN THE AIR! WAIT FOR HIM TO LAND.",
+      },
+      barrage: {
+        pt: "BOLAS DE FOGO! CONTINUE SE MOVENDO!",
+        en: "FIREBALLS! KEEP MOVING!",
+      },
+      dive: {
+        pt: "IGNIS VAI MERGULHAR! SAIA DO CAMINHO!",
+        en: "IGNIS IS ABOUT TO DIVE! GET OUT OF THE WAY!",
+      },
+      grounded: {
+        pt: "IGNIS POUSOU! ATAQUE AGORA!",
+        en: "IGNIS HAS LANDED! ATTACK NOW!",
+      },
+      enraged: {
+        pt: "IGNIS ESTÁ FURIOSO! O CHÃO COMEÇA A SE QUEBRAR!",
+        en: "IGNIS IS ENRAGED! THE FLOOR STARTS TO BREAK!",
+      },
+      cracks: {
+        pt: "O CHÃO SE QUEBROU! NÃO PISE NAS FENDAS DE FOGO!",
+        en: "THE FLOOR HAS BROKEN! DON'T STEP INTO THE FIRE CRACKS!",
+      },
       defeated: {
         pt: "IGNIS FOI DERROTADO!",
         en: "IGNIS HAS BEEN DEFEATED!",
