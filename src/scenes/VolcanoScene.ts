@@ -2,6 +2,8 @@
 // Chega-se aqui pelo portal de fogo no topo dos Picos Congelados.
 // Missão: atravessar os rios de lava até a cratera, a leste, derrotar o
 // Arauto de Ignis (próxima etapa) e pegar o quarto Fragmento Astral.
+// Brasas Vivas correm até o herói e explodem (a explosão fere também os
+// outros inimigos); aranhas e lobos completam o caminho.
 //
 // Pisar na lava queima (dano a cada pouco tempo); rolar por cima é seguro,
 // porque o herói fica invencível durante o rolamento. Cinzas caem, brasas
@@ -9,6 +11,7 @@
 
 import type Phaser from "phaser";
 import {
+  VOLCANO_EMBER_SPAWNS,
   VOLCANO_HEIGHT,
   VOLCANO_LAVA_DAMAGE,
   VOLCANO_RETURN_PORTAL_POSITION,
@@ -87,7 +90,11 @@ export class VolcanoScene extends AreaScene {
       spawnEnemy(this, "wolf", x, y),
     );
 
-    this.enemies.push(...spiders, ...wolves);
+    const embers = VOLCANO_EMBER_SPAWNS.map(({ x, y }) =>
+      spawnEnemy(this, "ember", x, y),
+    );
+
+    this.enemies.push(...spiders, ...wolves, ...embers);
   }
 
   protected onAreaEntered(): void {

@@ -570,14 +570,40 @@ export const VOLCANO_LAVA_DAMAGE = 10;
 export const VOLCANO_RETURN_PORTAL_POSITION = { x: 110, y: 900 } as const;
 export const VOLCANO_SHRINE_POSITION = { x: 820, y: 780 } as const;
 
-// Inimigos das Terras Vulcânicas (por enquanto, os já conhecidos).
+// Brasa Viva: corre até o herói, acende o pavio quando chega a
+// attackReach e explode depois de fuseTime ms. A explosão (radius) tira
+// `damage` do herói e enemyDamage dos outros inimigos por perto.
+// Matá-la antes de explodir evita a explosão.
+export const EMBER_STATS = {
+  maxHealth: 30,
+  speed: 125,
+  damage: 22,
+  hitRange: 70,
+  sightRange: 360,
+  stopDistance: 0,
+  attackReach: 50,
+  attackCooldown: 0,
+  wanderRadius: 60,
+  wanderSpeed: 35,
+} as const;
+
+export const EMBER_EXPLOSIVE = {
+  fuseTime: 900,
+  radius: 85,
+  enemyDamage: 45,
+} as const;
+
+// Inimigos das Terras Vulcânicas.
+export const VOLCANO_EMBER_SPAWNS = [
+  { x: 330, y: 1000 },
+  { x: 720, y: 880 },
+  { x: 1240, y: 720 },
+  { x: 1200, y: 380 },
+] as const;
+
 export const VOLCANO_SPIDER_SPAWNS = [
   { x: 300, y: 650 },
-  { x: 760, y: 560 },
   { x: 1300, y: 760 },
 ] as const;
 
-export const VOLCANO_WOLF_SPAWNS = [
-  { x: 820, y: 940 },
-  { x: 1250, y: 420 },
-] as const;
+export const VOLCANO_WOLF_SPAWNS = [{ x: 1250, y: 420 }] as const;

@@ -28,7 +28,7 @@ export type QuestStage = (typeof QUEST_STAGES)[number];
 export type AreaId = "forest" | "ruins" | "swamp" | "peaks" | "volcano";
 
 /** Tipos de inimigos comuns (os chefes são tratados à parte). */
-export type EnemyKind = "wolf" | "spider" | "wisp" | "iceKnight";
+export type EnemyKind = "wolf" | "spider" | "wisp" | "iceKnight" | "ember";
 
 // Equipamentos. Cada espaço (arma, armadura, amuleto) tem os seus itens.
 // Os números de cada item ficam em config.ts; nomes e descrições, em texts.ts.

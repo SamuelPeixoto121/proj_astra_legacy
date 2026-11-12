@@ -157,6 +157,10 @@ export const TEXTS = {
 
   // Mensagens das áreas do Capítulo 4.
   chapter4: {
+    fuse: {
+      pt: "A BRASA VAI EXPLODIR! AFASTE-SE OU APAGUE-A ANTES!",
+      en: "THE EMBER IS ABOUT TO EXPLODE! GET AWAY OR PUT IT OUT FIRST!",
+    },
     portalOpened: {
       pt: "FRAGMENTO RECUPERADO! UM PORTAL DE FOGO SE ABRIU NO TOPO DOS PICOS.",
       en: "FRAGMENT RECOVERED! A FIRE PORTAL HAS OPENED ATOP THE PEAKS.",
@@ -343,6 +347,16 @@ export const TEXTS = {
       defeated: {
         pt: "CAVALEIRO DE GELO DERROTADO!",
         en: "ICE KNIGHT DEFEATED!",
+      },
+    },
+    ember: {
+      hit: (damage: number): Localized => ({
+        pt: `BRASA VIVA ATINGIDA! DANO: ${damage}`,
+        en: `LIVING EMBER HIT! DAMAGE: ${damage}`,
+      }),
+      defeated: {
+        pt: "BRASA VIVA APAGADA!",
+        en: "LIVING EMBER EXTINGUISHED!",
       },
     },
   } satisfies Record<

@@ -31,6 +31,7 @@ import {
 import {
   drawEnemyHealthBar,
   type Enemy,
+  type ExplosiveAttack,
   type RangedAttack,
   type ShieldDefense,
 } from "../systems/enemies";
@@ -74,6 +75,8 @@ import {
   createDeathBurst,
   createImpactEffect,
   createPunchEffect,
+  createShockwave,
+  createSlamWarning,
   createSlashEffect,
   showDamageNumber,
 } from "../effects/combatEffects";
@@ -1226,6 +1229,7 @@ export abstract class AreaScene extends Phaser.Scene {
     enemy.defeated = true;
 
     this.disableCharacter(enemy.sprite);
+    this.tweens.killTweensOf(enemy.sprite.container);
     enemy.sprite.container.destroy();
     enemy.healthBar.destroy();
   }
@@ -1611,8 +1615,14 @@ export abstract class AreaScene extends Phaser.Scene {
    * quando o herói chega perto, persegue e ataca ao alcance.
    */
   private updateEnemy(enemy: Enemy): void {
-    const { stats } = enemy.definition;
+    const { stats, explosive } = enemy.definition;
     const { x, y } = enemy.sprite.body;
+
+    // Pavio aceso: nada mais importa, só esperar a explosão.
+    if (explosive && enemy.fuseEndsAt > 0) {
+      this.updateFuse(enemy, explosive);
+      return;
+    }
 
     if (this.distanceToPlayer(x, y) >= stats.sightRange) {
       this.wander(enemy);
@@ -1631,6 +1641,12 @@ export abstract class AreaScene extends Phaser.Scene {
 
     if (enemy.definition.shield) {
       this.updateShieldedEnemy(enemy, enemy.definition.shield);
+      this.animateEnemy(enemy);
+      return;
+    }
+
+    if (explosive) {
+      this.updateExplosiveEnemy(enemy, explosive);
       this.animateEnemy(enemy);
       return;
     }
@@ -1665,6 +1681,105 @@ export abstract class AreaScene extends Phaser.Scene {
     });
 
     this.damagePlayer(stats.damage);
+  }
+
+  /**
+   * Inimigo que explode: corre até o herói e, perto dele, para e acende o
+   * pavio (pisca, cresce e mostra o círculo da explosão no chão).
+   */
+  private updateExplosiveEnemy(enemy: Enemy, explosive: ExplosiveAttack): void {
+    const { stats } = enemy.definition;
+    const distance = this.chasePlayer(
+      enemy.sprite,
+      stats.speed,
+      stats.stopDistance,
+      stats.sightRange,
+      10,
+    );
+
+    if (distance > stats.attackReach) {
+      return;
+    }
+
+    const { x, y } = enemy.sprite.body;
+
+    enemy.fuseEndsAt = this.time.now + explosive.fuseTime;
+    this.getPhysicsBody(enemy.sprite).setVelocity(0, 0);
+
+    createSlamWarning(this, x, y, explosive.radius, explosive.fuseTime);
+    audio.play("fuse");
+    this.statusText.setText(this.t(TEXTS.chapter4.fuse));
+
+    // Pisca e incha cada vez mais rápido até estourar.
+    this.tweens.add({
+      targets: enemy.sprite.container,
+      scale: 1.45,
+      duration: explosive.fuseTime,
+      ease: "Quad.In",
+    });
+    this.tweens.add({
+      targets: enemy.sprite.container,
+      alpha: { from: 1, to: 0.35 },
+      duration: 110,
+      yoyo: true,
+      repeat: -1,
+    });
+  }
+
+  /** Espera o pavio queimar e explode. */
+  private updateFuse(enemy: Enemy, explosive: ExplosiveAttack): void {
+    this.getPhysicsBody(enemy.sprite).setVelocity(0, 0);
+
+    if (this.time.now >= enemy.fuseEndsAt) {
+      this.explodeEnemy(enemy, explosive);
+    }
+  }
+
+  /**
+   * A explosão: machuca o herói e os outros inimigos dentro do raio.
+   * O inimigo que explodiu some (sem deixar poção: ele não foi derrotado).
+   */
+  private explodeEnemy(enemy: Enemy, explosive: ExplosiveAttack): void {
+    const { x, y } = enemy.sprite.body;
+    const { radius } = explosive;
+
+    this.removeEnemy(enemy);
+
+    createDeathBurst(this, x, y, enemy.definition.colors.death);
+    createImpactEffect(this, x, y, 0xffb347, 16, radius);
+    createShockwave(this, x, y, radius);
+    audio.play("explosion");
+    this.cameras.main.shake(180, 0.008);
+
+    if (this.distanceToPlayer(x, y) <= radius) {
+      this.damagePlayer(enemy.definition.stats.damage);
+    }
+
+    // A explosão também fere os outros inimigos (dá para usar a favor).
+    for (const other of this.enemies) {
+      const position = other.sprite.body;
+
+      if (
+        other.defeated ||
+        Phaser.Math.Distance.Between(x, y, position.x, position.y) > radius
+      ) {
+        continue;
+      }
+
+      other.health = Math.max(0, other.health - explosive.enemyDamage);
+      showDamageNumber(
+        this,
+        position.x,
+        position.y,
+        explosive.enemyDamage,
+        other.definition.colors.damageText,
+      );
+      drawEnemyHealthBar(other);
+
+      if (other.health <= 0) {
+        this.defeatEnemy(other);
+      }
+    }
   }
 
   /**

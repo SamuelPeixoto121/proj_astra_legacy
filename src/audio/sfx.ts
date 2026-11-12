@@ -21,6 +21,8 @@ export type SfxName =
   | "pickup" // pegar item do chão
   | "block" // golpe bloqueado por escudo
   | "shatter" // gelo se partindo (espinhos, armadura do Colosso)
+  | "fuse" // pavio aceso (Brasa Viva prestes a explodir)
+  | "explosion" // explosão
   | "fragment" // Fragmento Astral
   | "victory"
   | "defeat";
@@ -324,6 +326,31 @@ export function playSfx(
         filter: "highpass",
         freq: 5000,
         to: 1800,
+      });
+      return;
+
+    case "fuse":
+      // Chiado que sobe, como um pavio queimando.
+      noise(ctx, out, noiseBuffer, {
+        duration: 0.85,
+        gain: 0.08,
+        filter: "bandpass",
+        freq: 900,
+        to: 4200,
+        q: 2,
+      });
+      tone(ctx, out, { freq: 300, to: 900, duration: 0.85, type: "triangle", gain: 0.04 });
+      return;
+
+    case "explosion":
+      // Estrondo grave com um chiado longo de fogo.
+      tone(ctx, out, { freq: 110, to: 28, duration: 0.7, gain: 0.4 });
+      noise(ctx, out, noiseBuffer, {
+        duration: 0.7,
+        gain: 0.32,
+        filter: "lowpass",
+        freq: 2200,
+        to: 120,
       });
       return;
 

@@ -10,6 +10,8 @@
 
 import Phaser from "phaser";
 import {
+  EMBER_EXPLOSIVE,
+  EMBER_STATS,
   ENEMY_WANDER,
   ICE_KNIGHT_SHIELD,
   ICE_KNIGHT_STATS,
@@ -24,6 +26,7 @@ import { createWolf } from "../characters/wolf";
 import { createSpider } from "../characters/spider";
 import { createWisp } from "../characters/wisp";
 import { createIceKnight, setIceKnightGuard } from "../characters/iceKnight";
+import { createEmber } from "../characters/ember";
 
 export interface EnemyStats {
   maxHealth: number;
@@ -55,6 +58,13 @@ export interface ShieldDefense {
   strikeArc: number;
 }
 
+/** Dados de quem explode perto do herói (ver EMBER_EXPLOSIVE em config.ts). */
+export interface ExplosiveAttack {
+  fuseTime: number;
+  radius: number;
+  enemyDamage: number;
+}
+
 interface EnemyDefinition {
   stats: EnemyStats;
   create: (scene: Phaser.Scene, x: number, y: number) => CharacterSprite;
@@ -69,6 +79,8 @@ interface EnemyDefinition {
   ranged?: RangedAttack;
   /** Presente só em inimigos com escudo (bloqueiam golpes de frente). */
   shield?: ShieldDefense;
+  /** Presente só em inimigos que explodem (acendem o pavio perto do herói). */
+  explosive?: ExplosiveAttack;
   /** Atualiza o desenho conforme a direção e a guarda (inimigos com escudo). */
   showGuard?: (sprite: CharacterSprite, angle: number, guarding: boolean) => void;
   colors: {
@@ -136,6 +148,20 @@ export const ENEMY_TYPES: Record<EnemyKind, EnemyDefinition> = {
     },
     healthBar: { width: 44, offsetY: 42 },
   },
+  ember: {
+    stats: EMBER_STATS,
+    create: createEmber,
+    facesRight: false,
+    flying: false,
+    explosive: EMBER_EXPLOSIVE,
+    colors: {
+      impact: 0xffb347,
+      damageText: "#ffe2b0",
+      healthBar: 0xff7a2a,
+      death: 0xff6a2a,
+    },
+    healthBar: { width: 30, offsetY: 30 },
+  },
 };
 
 export interface Enemy {
@@ -163,6 +189,8 @@ export interface Enemy {
   strikeAt: number;
   /** Inimigos com escudo: até quando (ms) fica com a guarda baixa. */
   guardDownUntil: number;
+  /** Inimigos que explodem: quando explode (ms); 0 = pavio apagado. */
+  fuseEndsAt: number;
 }
 
 export function spawnEnemy(
@@ -194,6 +222,7 @@ export function spawnEnemy(
     facingAngle: Math.PI / 2,
     strikeAt: 0,
     guardDownUntil: 0,
+    fuseEndsAt: 0,
   };
 }
 
