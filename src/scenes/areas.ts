@@ -24,6 +24,7 @@ export const AREA_SCENE_KEYS: Record<AreaId, string> = {
   volcano: "VolcanoScene",
   graveyard: "GraveyardScene",
   citadel: "CitadelScene",
+  hoard: "HoardScene",
 };
 
 /**

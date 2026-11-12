@@ -149,8 +149,8 @@ export const TEXTS = {
       en: "NEW OBJECTIVE: THE ASTRAL GATE\nStep through the golden portal in the village.",
     },
     ignis: {
-      pt: "MISSÃO FINAL: IGNIS\nSuba até o topo do castelo e enfrente o dragão.",
-      en: "FINAL QUEST: IGNIS\nClimb to the top of the castle and face the dragon.",
+      pt: "MISSÃO FINAL: IGNIS\nSuba até o castelo, entre pelo portão e enfrente o dragão.",
+      en: "FINAL QUEST: IGNIS\nClimb to the castle, go through the gate and face the dragon.",
     },
     complete: {
       pt: "CAPÍTULO 5 CONCLUÍDO!\nVocê recuperou o quinto Fragmento Astral.",
@@ -167,6 +167,7 @@ export const TEXTS = {
     volcano: { pt: "TERRAS VULCÂNICAS", en: "VOLCANIC LANDS" },
     graveyard: { pt: "CEMITÉRIO DE DRAGÕES", en: "DRAGON GRAVEYARD" },
     citadel: { pt: "CIDADELA EM RUÍNAS", en: "RUINED CITADEL" },
+    hoard: { pt: "SALÃO DO TESOURO", en: "TREASURE HALL" },
     seal: { pt: "SELO ASTRAL", en: "ASTRAL SEAL" },
   },
 
@@ -777,6 +778,37 @@ export const TEXTS = {
       defeated: {
         pt: "FEITICEIRA DERROTADA! O SEGUNDO FRAGMENTO FOI LIBERTADO.",
         en: "SORCERESS DEFEATED! THE SECOND FRAGMENT HAS BEEN RELEASED.",
+      },
+    },
+    ignis: {
+      name: { pt: "IGNIS, O DRAGÃO DAS SOMBRAS", en: "IGNIS, THE SHADOW DRAGON" },
+      descending: {
+        pt: "O CHÃO TREME... ALGO ENORME ESTÁ DESCENDO PELO TETO!",
+        en: "THE GROUND SHAKES... SOMETHING HUGE IS COMING DOWN THROUGH THE ROOF!",
+      },
+      landed: {
+        pt: "IGNIS DESCEU DO CÉU! A BATALHA FINAL COMEÇOU!",
+        en: "IGNIS HAS DESCENDED! THE FINAL BATTLE BEGINS!",
+      },
+      missed: {
+        pt: "APROXIME-SE E VIRE PARA IGNIS",
+        en: "GET CLOSER AND FACE IGNIS",
+      },
+      hit: (damage: number): Localized => ({
+        pt: `IGNIS ATINGIDO! DANO: ${damage}`,
+        en: `IGNIS HIT! DAMAGE: ${damage}`,
+      }),
+      breath: {
+        pt: "IGNIS VAI SOPRAR FOGO! SAIA DA FRENTE DELE!",
+        en: "IGNIS IS ABOUT TO BREATHE FIRE! GET OUT OF HIS WAY!",
+      },
+      tail: {
+        pt: "CUIDADO COM A CAUDA!",
+        en: "WATCH OUT FOR THE TAIL!",
+      },
+      defeated: {
+        pt: "IGNIS FOI DERROTADO!",
+        en: "IGNIS HAS BEEN DEFEATED!",
       },
     },
     dragonKnight: {

@@ -39,7 +39,8 @@ export type AreaId =
   | "peaks"
   | "volcano"
   | "graveyard"
-  | "citadel";
+  | "citadel"
+  | "hoard";
 
 /** Tipos de inimigos comuns (os chefes são tratados à parte). */
 export type EnemyKind =

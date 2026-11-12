@@ -371,3 +371,39 @@ export function createFireColumn(
     },
   });
 }
+
+/**
+ * Aviso de cone (ex.: sopro de fogo): um leque vermelho no chão, saindo de
+ * (x, y) na direção `angle`, com alcance `range` e meia-abertura `arc`
+ * (radianos). Some sozinho depois de `duration` milissegundos.
+ */
+export function createConeWarning(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  angle: number,
+  range: number,
+  arc: number,
+  duration: number,
+): void {
+  const cone = scene.add.graphics().setDepth(y - 5);
+
+  cone.fillStyle(0xff3b5c, 0.16);
+  cone.lineStyle(3, 0xff3b5c, 0.8);
+  cone.beginPath();
+  cone.moveTo(x, y);
+  cone.arc(x, y, range, angle - arc, angle + arc);
+  cone.closePath();
+  cone.fillPath();
+  cone.strokePath();
+
+  scene.tweens.add({
+    targets: cone,
+    alpha: { from: 0.5, to: 1 },
+    duration: duration / 4,
+    yoyo: true,
+    repeat: 1,
+  });
+
+  scene.time.delayedCall(duration, () => cone.destroy());
+}

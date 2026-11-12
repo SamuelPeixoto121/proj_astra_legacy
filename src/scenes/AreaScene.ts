@@ -142,6 +142,11 @@ export abstract class AreaScene extends Phaser.Scene {
 
   protected statusText!: Phaser.GameObjects.Text;
   protected gameOver = false;
+  /**
+   * true = o herói não se mexe nem ataca (ex.: durante a descida de Ignis).
+   * A área continua sendo atualizada (updateArea) normalmente.
+   */
+  protected playerFrozen = false;
 
   private facingX = 0;
   private facingY = 1;
@@ -336,6 +341,7 @@ export abstract class AreaScene extends Phaser.Scene {
 
   /** Volta o estado da cena ao inicial (a cena é reaproveitada ao reabrir). */
   private resetSceneState(): void {
+    this.playerFrozen = false;
     this.lastBurnEffectAt = 0;
     this.burnHintShown = false;
     this.enemies = [];
@@ -1485,6 +1491,15 @@ export abstract class AreaScene extends Phaser.Scene {
         this.advanceDialogue();
       }
 
+      return;
+    }
+
+    // Cena acontecendo: o herói fica parado, mas a área continua.
+    if (this.playerFrozen) {
+      this.getPhysicsBody(this.player).setVelocity(0, 0);
+      animatePlayerWalk(this.player, false, this.time.now);
+      this.updateArea();
+      this.drawHud();
       return;
     }
 

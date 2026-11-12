@@ -2,8 +2,8 @@
 // Chega-se aqui pelo Portal Astral dourado da vila, aberto pelo Ancião com
 // os cinco fragmentos. A antiga capital de Astra ainda arde desde a noite
 // em que Ignis destruiu o Fragmento Central.
-// Missão: subir as ruas até o pátio do castelo e enfrentar Ignis (próximas
-// etapas).
+// Missão: subir as ruas até o pátio do castelo e entrar pelo portão: lá
+// dentro, no Salão do Tesouro, Ignis espera.
 //
 // Fogo nos escombros queima ao pisar (rolar por cima é seguro). Brasas
 // Vivas, Espíritos e lobos guardam as ruínas. A sombra de Ignis cruza o céu
@@ -11,6 +11,7 @@
 
 import type Phaser from "phaser";
 import {
+  CITADEL_CASTLE_GATE,
   CITADEL_EMBER_SPAWNS,
   CITADEL_FIRE_DAMAGE,
   CITADEL_HEIGHT,
@@ -21,7 +22,7 @@ import {
   CITADEL_WOLF_SPAWNS,
 } from "../config";
 import { TEXTS } from "../i18n/texts";
-import { progress, saveProgress } from "../systems/progress";
+import { progress, reachedStage, saveProgress } from "../systems/progress";
 import { spawnEnemy } from "../systems/enemies";
 import { createCitadelWorld, isOnCitadelFire } from "../world/citadel";
 import { PORTAL_COLORS, createPortal, openPortal } from "../world/portal";
@@ -63,6 +64,18 @@ export class CitadelScene extends AreaScene {
       CITADEL_SHRINE_POSITION.y,
       "citadelShrine",
     );
+
+    // Portão do castelo: entra no Salão do Tesouro, onde Ignis espera.
+    const gate = CITADEL_CASTLE_GATE;
+
+    this.addExit({
+      x: gate.x - gate.width / 2,
+      y: gate.y - 15,
+      width: gate.width,
+      height: 30,
+      target: "hoardEntrance",
+      isOpen: () => reachedStage("ignis"),
+    });
 
     // Portal Astral de volta para a vila (sempre aberto).
     const { x, y } = CITADEL_RETURN_PORTAL_POSITION;

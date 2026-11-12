@@ -32,6 +32,8 @@ export const GRAVEYARD_WIDTH = 1800;
 export const GRAVEYARD_HEIGHT = 1200;
 export const CITADEL_WIDTH = 1600;
 export const CITADEL_HEIGHT = 1600;
+export const HOARD_WIDTH = 1400;
+export const HOARD_HEIGHT = 1100;
 
 // Barreira de corrupção que fecha a trilha ao norte até Kael ser derrotado.
 export const NORTH_BARRIER = { x: 850, y: 240, width: 200 } as const;
@@ -420,6 +422,8 @@ export const CHECKPOINTS = {
   villageGate: { area: "forest", x: 1000, y: 990 },
   citadelEntrance: { area: "citadel", x: 800, y: 1460 },
   citadelShrine: { area: "citadel", x: 895, y: 1070 },
+  citadelGate: { area: "citadel", x: 800, y: 190 },
+  hoardEntrance: { area: "hoard", x: 700, y: 960 },
 } as const satisfies Record<string, { area: AreaId; x: number; y: number }>;
 
 export type CheckpointId = keyof typeof CHECKPOINTS;
@@ -847,6 +851,69 @@ export const CITADEL_WISP_SPAWNS = [
   { x: 1200, y: 920 },
   { x: 430, y: 640 },
 ] as const;
+
+/** Portão do castelo (no topo do pátio): entrada do Salão do Tesouro. */
+export const CITADEL_CASTLE_GATE = { x: 800, y: 125, width: 120 } as const;
+
+// Salão do Tesouro (Capítulo 6): o interior do castelo, coberto de ouro. Só
+// Ignis está aqui. Quando o herói chega perto do centro, Ignis desce do céu
+// pelo buraco no teto e pousa no meio do salão.
+/** Arena: elipse sem montanhas de ouro. */
+export const HOARD_ARENA = { x: 700, y: 520, rx: 420, ry: 300 } as const;
+
+/** Onde Ignis pousa (embaixo do buraco no teto). */
+export const IGNIS_LANDING = { x: 700, y: 470 } as const;
+
+/** Montanhas de ouro (elipses) encostadas nas paredes. */
+export const HOARD_GOLD_PILES = [
+  { x: 160, y: 250, rx: 130, ry: 90 },
+  { x: 140, y: 540, rx: 120, ry: 100 },
+  { x: 170, y: 820, rx: 130, ry: 90 },
+  { x: 1240, y: 250, rx: 130, ry: 90 },
+  { x: 1260, y: 540, rx: 120, ry: 100 },
+  { x: 1230, y: 820, rx: 130, ry: 90 },
+  { x: 430, y: 130, rx: 160, ry: 70 },
+  { x: 970, y: 130, rx: 160, ry: 70 },
+  { x: 700, y: 110, rx: 120, ry: 60 },
+  { x: 370, y: 970, rx: 110, ry: 55 },
+  { x: 1030, y: 970, rx: 110, ry: 55 },
+] as const;
+
+// Ignis, o Dragão das Sombras: o chefe final. Fase 1 (no chão):
+// - garras (claw*): golpe à frente quando o herói está perto;
+// - cauda (tail*): giro que acerta em volta quando o herói está atrás/do lado;
+// - sopro (breath*): cone de fogo à frente, com aviso no chão.
+// Ele vira devagar (turnSpeed, radianos por segundo) para encarar o herói.
+export const IGNIS_STATS = {
+  maxHealth: 900,
+  hitRange: 150,
+  triggerRange: 330,
+  sightRange: 1400,
+  speed: 45,
+  stopDistance: 120,
+  turnSpeed: 2.2,
+  clawRange: 135,
+  clawArc: 0.9,
+  clawWindup: 450,
+  clawDamage: 22,
+  clawCooldown: 1500,
+  tailRange: 170,
+  tailWindup: 550,
+  tailRadius: 170,
+  tailDamage: 18,
+  tailCooldown: 2600,
+  breathMinRange: 170,
+  breathRange: 380,
+  breathArc: 0.42,
+  breathWindup: 800,
+  breathTime: 1000,
+  breathDamage: 16,
+  breathCooldown: 5000,
+  recover: 650,
+} as const;
+
+/** Tempos (ms) da descida de Ignis: sombra crescendo e o voo até o chão. */
+export const IGNIS_DESCENT = { shadowTime: 1600, flightTime: 1800 } as const;
 
 export const CITADEL_WOLF_SPAWNS = [
   { x: 1180, y: 1240 },
