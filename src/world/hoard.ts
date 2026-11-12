@@ -271,7 +271,9 @@ function createGoldPiles(scene: Phaser.Scene): Phaser.GameObjects.Rectangle[] {
       scene.add.ellipse(-cx, -cy + 2, 24, 8, GOLD_LIGHT),
     ]);
 
-    container.setDepth(pile.y + ry * 0.5);
+    // As montanhas são baixas e ficam nas paredes: a profundidade vem da
+    // borda de cima. Assim Ignis (enorme) passa por cima delas, e não por baixo.
+    container.setDepth(pile.y - ry);
 
     addSparkles(scene, pile, random);
 
@@ -295,7 +297,7 @@ function addSparkles(
         [0, -6, 1.5, -1.5, 6, 0, 1.5, 1.5, 0, 6, -1.5, 1.5, -6, 0, -1.5, -1.5],
         0xffffff,
       )
-      .setDepth(pile.y + pile.ry)
+      .setDepth(pile.y - pile.ry + 1)
       .setAlpha(0);
 
     scene.tweens.add({

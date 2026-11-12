@@ -13,6 +13,7 @@ import { CitadelScene } from "./scenes/CitadelScene";
 import { HoardScene } from "./scenes/HoardScene";
 import { PauseScene } from "./scenes/PauseScene";
 import { EquipmentScene } from "./scenes/EquipmentScene";
+import { EndingScene } from "./scenes/EndingScene";
 import { LANGUAGE_CHANGED_EVENT, updatePageLanguage } from "./i18n/page";
 import { audio } from "./audio/engine";
 
@@ -36,7 +37,7 @@ const game = new Phaser.Game({
   },
   // A tela inicial abre primeiro; dela se continua o save ou começa um jogo novo.
   // A pausa vem por último para ser desenhada por cima das áreas.
-  scene: [TitleScene, ForestScene, RuinsScene, SwampScene, PeaksScene, VolcanoScene, GraveyardScene, CitadelScene, HoardScene, PauseScene, EquipmentScene],
+  scene: [TitleScene, ForestScene, RuinsScene, SwampScene, PeaksScene, VolcanoScene, GraveyardScene, CitadelScene, HoardScene, PauseScene, EquipmentScene, EndingScene],
 });
 
 // A cena avisa quando o idioma muda; aqui traduzimos a página ao redor do jogo.

@@ -54,12 +54,12 @@ export const TEXTS = {
       en: "ASTRA LEGACY  •  CHAPTER 6",
     },
     chapterComplete: {
-      pt: "CAPÍTULO 5 CONCLUÍDO",
-      en: "CHAPTER 5 COMPLETE",
+      pt: "JORNADA CONCLUÍDA • ASTRA ESTÁ EM PAZ",
+      en: "JOURNEY COMPLETE • ASTRA IS AT PEACE",
     },
     victory: {
-      pt: "QUINTO FRAGMENTO RECUPERADO • VITÓRIA",
-      en: "FIFTH FRAGMENT RECOVERED • VICTORY",
+      pt: "FRAGMENTO CENTRAL RESTAURADO • VITÓRIA",
+      en: "CENTRAL FRAGMENT RESTORED • VICTORY",
     },
   },
 
@@ -153,8 +153,8 @@ export const TEXTS = {
       en: "FINAL QUEST: IGNIS\nClimb to the castle, go through the gate and face the dragon.",
     },
     complete: {
-      pt: "CAPÍTULO 5 CONCLUÍDO!\nVocê recuperou o quinto Fragmento Astral.",
-      en: "CHAPTER 5 COMPLETE!\nYou recovered the fifth Astral Fragment.",
+      pt: "JORNADA CONCLUÍDA!\nIgnis foi derrotado e a luz de Astra voltou.",
+      en: "JOURNEY COMPLETE!\nIgnis has been defeated and Astra's light has returned.",
     },
   } satisfies Record<QuestStage, Localized>,
 
@@ -389,6 +389,18 @@ export const TEXTS = {
         "You're back! Four fragments... The Herald has fallen, and with him, Ignis's voice in these lands.",
         "But the moment the fragment returned to the light, I felt a distant roar. Ignis has truly awakened, and the fifth fragment lies where dragons go to die: the Dragon Graveyard.",
         "The path lies west of the village, beyond an Astral Seal no one has crossed in centuries. With the light of four fragments, I can break it. Go, traveler. And bring light with you: there, the dead do not rest.",
+      ],
+    },
+    finale: {
+      pt: [
+        "Você conseguiu, viajante. Ignis se foi, e o Fragmento Central voltou a brilhar.",
+        "Olhe para o céu: pela primeira vez em muitos anos, ele está limpo. A floresta respira, os rios correm, e Astra está em paz.",
+        "Esta vila sempre terá um lugar para você. Que a luz de Astra guie seus passos, aonde quer que você vá.",
+      ],
+      en: [
+        "You did it, traveler. Ignis is gone, and the Central Fragment shines again.",
+        "Look at the sky: for the first time in many years, it is clear. The forest breathes, the rivers flow, and Astra is at peace.",
+        "This village will always have a place for you. May Astra's light guide your steps, wherever you go.",
       ],
     },
     fifthFragment: {
@@ -951,6 +963,66 @@ export const TEXTS = {
     },
   },
 
+  // Final do jogo (EndingScene): desfecho, créditos e despedida.
+  ending: {
+    epilogue: {
+      pt: [
+        "Com o último rugido de Ignis, o fogo que queimava a Cidadela se apagou.",
+        "Os cinco Fragmentos Astrais se uniram no lugar onde tudo começou, e o Fragmento Central voltou a brilhar.",
+        "A luz de Astra se espalhou pelas terras: a corrupção deixou a floresta, a névoa deixou o pântano, a nevasca se acalmou nos picos e o fogo adormeceu nas terras vulcânicas.",
+        "Na Vila da Alvorada, o Ancião olhou para o céu limpo e sorriu. A longa noite de Astra tinha chegado ao fim.",
+      ],
+      en: [
+        "With Ignis's last roar, the fire burning the Citadel went out.",
+        "The five Astral Fragments came together where it all began, and the Central Fragment shone once more.",
+        "Astra's light spread across the land: the corruption left the forest, the mist left the swamp, the blizzard calmed over the peaks and the fire fell asleep in the volcanic lands.",
+        "In Dawnvale, the Elder looked up at the clear sky and smiled. Astra's long night had come to an end.",
+      ],
+    },
+    credits: {
+      pt: [
+        "ASTRA LEGACY",
+        "",
+        "Criado por",
+        "Samuel Peixoto",
+        "",
+        "Programação, design, história e arte",
+        "Samuel Peixoto",
+        "",
+        "Feito com",
+        "Phaser 4  •  TypeScript  •  Vite",
+        "",
+        "Todos os gráficos, sons e músicas",
+        "foram criados por código",
+        "",
+        "Obrigado por jogar!",
+      ],
+      en: [
+        "ASTRA LEGACY",
+        "",
+        "Created by",
+        "Samuel Peixoto",
+        "",
+        "Programming, design, story and art",
+        "Samuel Peixoto",
+        "",
+        "Made with",
+        "Phaser 4  •  TypeScript  •  Vite",
+        "",
+        "All graphics, sounds and music",
+        "were created in code",
+        "",
+        "Thank you for playing!",
+      ],
+    },
+    thanks: { pt: "FIM", en: "THE END" },
+    skip: { pt: "Enter  •  Pular", en: "Enter  •  Skip" },
+    options: {
+      pt: "Enter  •  Continuar explorando        Esc  •  Tela inicial",
+      en: "Enter  •  Keep exploring        Esc  •  Title screen",
+    },
+  },
+
   // Tela inicial.
   title: {
     continue: { pt: "Continuar", en: "Continue" },
@@ -1009,8 +1081,8 @@ export const TEXTS = {
 
   endScreen: {
     victory: {
-      pt: "CAPÍTULO 5 CONCLUÍDO!\n\nVocê recuperou o quinto Fragmento Astral.\nOs mortos do Cemitério de Dragões enfim descansam.\n\nEnter  •  Continuar explorando\nEsc  •  Tela inicial",
-      en: "CHAPTER 5 COMPLETE!\n\nYou recovered the fifth Astral Fragment.\nThe dead of the Dragon Graveyard finally rest.\n\nEnter  •  Keep exploring\nEsc  •  Title screen",
+      pt: "VITÓRIA!\n\nIgnis foi derrotado e o Fragmento Central voltou a brilhar.\n\nEnter  •  Continuar explorando\nEsc  •  Tela inicial",
+      en: "VICTORY!\n\nIgnis has been defeated and the Central Fragment shines again.\n\nEnter  •  Keep exploring\nEsc  •  Title screen",
     },
     defeat: {
       pt: "VOCÊ FOI DERROTADO\n\nR  •  Voltar ao último checkpoint\nN  •  Começar um novo jogo\nEsc  •  Tela inicial",

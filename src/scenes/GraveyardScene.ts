@@ -156,7 +156,8 @@ export class GraveyardScene extends AreaScene {
     this.sign = sign;
     this.shadowHintShown = false;
     this.arenaLit = false;
-    this.ignisShadow = scheduleIgnisShadow(this);
+    // Depois que Ignis é derrotado, a sombra dele não passa mais.
+    this.ignisShadow = scheduleIgnisShadow(this, () => !reachedStage("complete"));
 
     this.addShrine(
       GRAVEYARD_SHRINE_POSITION.x,

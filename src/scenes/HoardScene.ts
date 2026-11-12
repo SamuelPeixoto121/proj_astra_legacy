@@ -14,6 +14,10 @@
 //
 // Fase 3 (furioso, com 1/3 da vida): volta ao chão de vez, ataca mais rápido
 // e quebra o chão: fendas de fogo que ficam para sempre e queimam quem pisa.
+//
+// O final: Ignis se desfaz, os cinco fragmentos se unem no centro do salão e
+// o Fragmento Central volta a brilhar (e fica ali). Depois, a cena do final
+// (EndingScene): desfecho, créditos e "continuar explorando".
 
 import Phaser from "phaser";
 import {
@@ -35,6 +39,8 @@ import {
   type Boss,
 } from "../systems/bosses";
 import { HOARD_DOOR, createCoinBurst, createHoardWorld } from "../world/hoard";
+import { createAstralFragment, revealAstralFragment } from "../world/astralFragment";
+import { playFragmentCeremony } from "../world/fragmentCeremony";
 import {
   createIgnis,
   setIgnisFacing,
@@ -51,7 +57,8 @@ import {
   createSlashEffect,
 } from "../effects/combatEffects";
 import { audio } from "../audio/engine";
-import { AREA_SCENE_KEYS } from "./areas";
+import { AREA_SCENE_KEYS, ENDING_SCENE_KEY } from "./areas";
+import type { EndingSceneData } from "./EndingScene";
 import { AreaScene } from "./AreaScene";
 
 /**
@@ -92,6 +99,8 @@ const FIRE_COLORS = [0xff6a2a, 0xffb347, 0xffe0a0, 0xff4a2a];
 const HEAD_OFFSET = 140;
 /** Profundidade de Ignis no ar (por cima de tudo, menos o HUD). */
 const FLYING_DEPTH = 2500;
+/** Tamanho do Fragmento Central (em relação a um fragmento comum). */
+const CENTRAL_FRAGMENT_SCALE = 2.4;
 
 export class HoardScene extends AreaScene {
   protected readonly areaId = "hoard";
@@ -177,10 +186,11 @@ export class HoardScene extends AreaScene {
     this.physics.add.collider(this.player.body, this.ignis.sprite.body);
   }
 
-  /** Ignis já derrotado: o salão fica em paz. */
+  /** Ignis já derrotado: o salão fica em paz, com o Fragmento Central. */
   protected restoreAreaState(): void {
     if (reachedStage("complete")) {
       this.removeIgnis();
+      this.placeCentralFragment(false);
     }
   }
 
@@ -986,6 +996,11 @@ export class HoardScene extends AreaScene {
 
   /** Fase 3: de tempos em tempos o chão racha; e as fendas queimam. */
   private updateCracks(): void {
+    // Depois da vitória, o fogo das fendas se apaga.
+    if (this.ignisState === "defeated") {
+      return;
+    }
+
     const { x, y } = this.player.body;
 
     if (this.isOnCrack(x, y)) {
@@ -994,7 +1009,6 @@ export class HoardScene extends AreaScene {
 
     if (
       this.phase !== 3 ||
-      this.ignisState === "defeated" ||
       this.ignisState === "phaseShift" ||
       this.time.now < this.nextCrackAt
     ) {
@@ -1144,26 +1158,116 @@ export class HoardScene extends AreaScene {
   }
 
   /**
-   * Ignis derrotado. (O final de verdade, com o Fragmento Central e os
-   * créditos, chega na próxima etapa; por enquanto, a tela de vitória.)
+   * Ignis derrotado: ele se desfaz em explosões, os cinco fragmentos se unem
+   * no centro do salão, o Fragmento Central volta a brilhar e o final começa.
    */
   private defeatIgnis(): void {
     progress.questStage = "complete";
-
-    const { x, y } = this.ignis.sprite.body;
-
-    createDeathBurst(this, x, y, this.ignis.style.deathColor);
-    createCoinBurst(this, x, y, 60, 300);
-    this.cameras.main.shake(800, 0.012);
-    audio.play("roar");
-    audio.play("explosion");
-    this.removeIgnis();
-
-    this.updateQuestDisplay();
-    this.statusText.setText(this.t(TEXTS.bosses.ignis.defeated));
     saveProgress();
 
-    this.time.delayedCall(1500, () => this.showGameOver(true));
+    // A partir daqui é uma cena: o herói fica parado e nada mais machuca.
+    this.ignisState = "defeated";
+    this.playerFrozen = true;
+    this.hideBossUi();
+    audio.setDrums(false);
+    this.updateQuestDisplay();
+    this.statusText.setText(this.t(TEXTS.bosses.ignis.defeated));
+
+    const { container, rig } = this.ignisSprite;
+    const { x, y } = container;
+    const camera = this.cameras.main;
+
+    // A câmera vai até o centro do salão para mostrar o final.
+    camera.stopFollow();
+    camera.pan(IGNIS_LANDING.x, IGNIS_LANDING.y + 40, 900, "Sine.easeInOut");
+
+    audio.play("roar");
+    camera.shake(1800, 0.01);
+
+    // Cambaleia e se desfaz em várias explosões, com ouro voando.
+    this.tweens.add({
+      targets: rig,
+      rotation: rig.rotation + 0.4,
+      duration: 160,
+      yoyo: true,
+      repeat: 4,
+    });
+
+    for (let i = 0; i < 5; i++) {
+      this.time.delayedCall(i * 320, () => {
+        const bx = x + Phaser.Math.Between(-90, 90);
+        const by = y + Phaser.Math.Between(-60, 60);
+
+        createDeathBurst(this, bx, by, this.ignis.style.deathColor);
+        createCoinBurst(this, bx, by, 14, 200);
+        audio.play("explosion");
+      });
+    }
+
+    this.tweens.add({
+      targets: container,
+      alpha: 0,
+      scale: 1.2,
+      delay: 800,
+      duration: 1000,
+      onComplete: () => this.removeIgnis(),
+    });
+
+    // Os cinco fragmentos se unem onde Ignis caiu.
+    this.time.delayedCall(2300, () => {
+      playFragmentCeremony(this, IGNIS_LANDING.x, IGNIS_LANDING.y, IGNIS_LANDING, () => {
+        this.placeCentralFragment(true);
+        audio.play("fragment");
+        audio.play("victory");
+        this.cameras.main.flash(1200, 255, 245, 210);
+
+        this.time.delayedCall(3000, () => this.startEnding());
+      });
+    });
+  }
+
+  /** O Fragmento Central, grande e brilhante, no centro do salão. */
+  private placeCentralFragment(animate: boolean): void {
+    const fragment = createAstralFragment(
+      this,
+      IGNIS_LANDING.x,
+      IGNIS_LANDING.y - 10,
+    );
+
+    revealAstralFragment(this, fragment, false);
+
+    if (!animate) {
+      fragment.container.setScale(CENTRAL_FRAGMENT_SCALE);
+      return;
+    }
+
+    fragment.container.setScale(0);
+    this.tweens.add({
+      targets: fragment.container,
+      scale: CENTRAL_FRAGMENT_SCALE,
+      duration: 1200,
+      ease: "Back.Out",
+    });
+  }
+
+  /** Abre a cena do final por cima do salão (que fica pausado). */
+  private startEnding(): void {
+    const data: EndingSceneData = {
+      areaKey: this.scene.key,
+      musicTrack: this.musicTrack,
+    };
+
+    // Ao voltar do final, o herói pode andar de novo (e a câmera o segue).
+    this.playerFrozen = false;
+    this.cameras.main.startFollow(this.player.body, true, 0.08, 0.08);
+    this.scene.launch(ENDING_SCENE_KEY, data);
+    this.scene.pause();
+  }
+
+  /** Esconde a barra e o nome de Ignis (antes de ele se desfazer). */
+  private hideBossUi(): void {
+    this.ignis.healthBar.setVisible(false);
+    this.ignis.nameText.setVisible(false);
   }
 
   /** Tira Ignis do salão (ao derrotá-lo ou ao carregar um save). */

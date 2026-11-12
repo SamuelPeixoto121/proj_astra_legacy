@@ -57,7 +57,8 @@ export class CitadelScene extends AreaScene {
 
     this.sign = sign;
     this.shadowHintShown = false;
-    this.ignisShadow = scheduleIgnisShadow(this);
+    // Depois que Ignis é derrotado, a sombra dele não passa mais.
+    this.ignisShadow = scheduleIgnisShadow(this, () => !reachedStage("complete"));
 
     this.addShrine(
       CITADEL_SHRINE_POSITION.x,

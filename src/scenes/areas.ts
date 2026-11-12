@@ -15,6 +15,9 @@ export const PAUSE_SCENE_KEY = "PauseScene";
 /** Nome (chave) da cena da tela de equipamento (Tab). */
 export const EQUIPMENT_SCENE_KEY = "EquipmentScene";
 
+/** Nome (chave) da cena do final do jogo (desfecho e créditos). */
+export const ENDING_SCENE_KEY = "EndingScene";
+
 /** Nome (chave) da cena de cada área. */
 export const AREA_SCENE_KEYS: Record<AreaId, string> = {
   forest: "ForestScene",

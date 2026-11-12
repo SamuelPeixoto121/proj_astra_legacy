@@ -13,13 +13,23 @@ export interface IgnisShadowSchedule {
   update: () => boolean;
 }
 
-/** A sombra passa a cada IGNIS_SHADOW.minDelay–maxDelay ms, com rugido. */
-export function scheduleIgnisShadow(scene: Phaser.Scene): IgnisShadowSchedule {
+/**
+ * A sombra passa a cada IGNIS_SHADOW.minDelay–maxDelay ms, com rugido,
+ * enquanto `isActive()` for true (ex.: só até Ignis ser derrotado).
+ */
+export function scheduleIgnisShadow(
+  scene: Phaser.Scene,
+  isActive: () => boolean,
+): IgnisShadowSchedule {
   // O relógio da cena só vale no primeiro quadro (não na criação).
   let nextAt = 0;
 
   return {
     update: () => {
+      if (!isActive()) {
+        return false;
+      }
+
       const now = scene.time.now;
 
       if (nextAt === 0) {
