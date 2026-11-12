@@ -24,6 +24,7 @@ export type SfxName =
   | "fuse" // pavio aceso (Brasa Viva prestes a explodir)
   | "explosion" // explosão
   | "flame" // coluna de fogo subindo
+  | "roar" // rugido distante de Ignis
   | "fragment" // Fragmento Astral
   | "victory"
   | "defeat";
@@ -366,6 +367,19 @@ export function playSfx(
         q: 0.8,
       });
       tone(ctx, out, { freq: 90, to: 140, duration: 0.4, type: "sawtooth", gain: 0.05 });
+      return;
+
+    case "roar":
+      // Rugido longe: grave, áspero e abafado.
+      tone(ctx, out, { freq: 70, to: 45, duration: 1.6, type: "sawtooth", gain: 0.09, attack: 0.25 });
+      tone(ctx, out, { freq: 105, to: 60, duration: 1.4, type: "square", gain: 0.03, attack: 0.3 });
+      noise(ctx, out, noiseBuffer, {
+        duration: 1.6,
+        gain: 0.12,
+        filter: "lowpass",
+        freq: 500,
+        to: 150,
+      });
       return;
 
     case "fragment":

@@ -601,6 +601,8 @@ export abstract class AreaScene extends Phaser.Scene {
       this.statusText.setText(this.t(TEXTS.hud.victory));
     } else if (stage === "complete") {
       this.statusText.setText(this.t(TEXTS.hud.chapterComplete));
+    } else if (reachedStage("return")) {
+      this.statusText.setText(this.t(TEXTS.hud.chapter5Title));
     } else if (reachedStage("portal3")) {
       this.statusText.setText(this.t(TEXTS.hud.chapter4Title));
     } else if (reachedStage("portal2")) {

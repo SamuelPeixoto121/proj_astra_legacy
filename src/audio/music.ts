@@ -3,7 +3,13 @@
 // escala — por isso a música nunca se repete exatamente igual.
 // Nas lutas contra chefes, uma batida de tambor entra por cima.
 
-export type MusicTrackId = "forest" | "ruins" | "swamp" | "peaks" | "volcano";
+export type MusicTrackId =
+  | "forest"
+  | "ruins"
+  | "swamp"
+  | "peaks"
+  | "volcano"
+  | "graveyard";
 
 interface MusicTrack {
   /** Duração de um compasso (s). */
@@ -92,6 +98,24 @@ export const MUSIC_TRACKS: Record<MusicTrackId, MusicTrack> = {
     padGain: 0.035,
     bassGain: 0.06,
     melodyGain: 0.03,
+  },
+  // Cemitério de Dragões: dó menor com acorde diminuto (Cm – Ab – Fm – Bdim),
+  // bem lenta e espaçada, com notas soltas como sinos distantes.
+  graveyard: {
+    barSeconds: 5.6,
+    chords: [
+      [48, 51, 55],
+      [44, 48, 51],
+      [41, 44, 48],
+      [47, 50, 53],
+    ],
+    melodyScale: [72, 75, 77, 79, 80, 84],
+    melodyChance: 0.25,
+    padType: "triangle",
+    padFilter: 800,
+    padGain: 0.04,
+    bassGain: 0.05,
+    melodyGain: 0.035,
   },
   // Ruínas: ré menor (Dm – Sib – Gm – Lá), mais grave e lenta.
   ruins: {

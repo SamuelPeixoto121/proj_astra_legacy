@@ -28,6 +28,8 @@ export const PEAKS_WIDTH = 1600;
 export const PEAKS_HEIGHT = 1400;
 export const VOLCANO_WIDTH = 2000;
 export const VOLCANO_HEIGHT = 1200;
+export const GRAVEYARD_WIDTH = 1800;
+export const GRAVEYARD_HEIGHT = 1200;
 
 // Barreira de corrupção que fecha a trilha ao norte até Kael ser derrotado.
 export const NORTH_BARRIER = { x: 850, y: 240, width: 200 } as const;
@@ -406,6 +408,11 @@ export const CHECKPOINTS = {
   peaksPortal: { area: "peaks", x: 800, y: 190 },
   volcanoEntrance: { area: "volcano", x: 230, y: 900 },
   volcanoShrine: { area: "volcano", x: 875, y: 790 },
+  volcanoCrater: { area: "volcano", x: 1640, y: 440 },
+  villagePortal: { area: "forest", x: 560, y: 1030 },
+  forestWest: { area: "forest", x: 110, y: 905 },
+  graveyardEntrance: { area: "graveyard", x: 1680, y: 700 },
+  graveyardShrine: { area: "graveyard", x: 1055, y: 640 },
 } as const satisfies Record<string, { area: AreaId; x: number; y: number }>;
 
 export type CheckpointId = keyof typeof CHECKPOINTS;
@@ -651,3 +658,65 @@ export const VOLCANO_FRAGMENT_POSITION = { x: 1640, y: 470 } as const;
 
 // Manto de Brasas (item do chefe): num canto da cratera.
 export const HERALD_ITEM_POSITION = { x: 1790, y: 590 } as const;
+
+// Portal de luz na cratera (abre ao pegar o quarto fragmento): leva de
+// volta à vila, ao lado do Ancião. Na vila, outro portal faz o caminho de
+// volta até a cratera.
+export const VOLCANO_HOME_PORTAL_POSITION = { x: 1640, y: 350 } as const;
+export const VILLAGE_PORTAL_POSITION = { x: 560, y: 1100 } as const;
+
+// Trilha a oeste da vila, até o Selo Astral na borda da Floresta. O Ancião
+// rompe o selo com a luz dos quatro fragmentos (Capítulo 5).
+export const FOREST_WEST_TRAIL = [
+  { x: 760, y: 930 },
+  { x: 600, y: 960 },
+  { x: 450, y: 930 },
+  { x: 250, y: 890 },
+  { x: 0, y: 905 },
+] as const;
+
+export const ASTRAL_SEAL = { x: 130, y: 900, height: 170 } as const;
+
+// Cemitério de Dragões (Capítulo 5).
+// Trilha da direita (vindo da Floresta) para a esquerda, até a arena do
+// guardião. Está escuro: o herói enxerga só ao redor de si e das tochas
+// que acende (E). De tempos em tempos, a sombra de Ignis cruza o céu.
+export const GRAVEYARD_PATH = [
+  { x: 1800, y: 700 },
+  { x: 1500, y: 650 },
+  { x: 1250, y: 780 },
+  { x: 950, y: 600 },
+  { x: 650, y: 700 },
+  { x: 380, y: 600 },
+] as const;
+
+/** Arena do guardião: elipse sem ossos nem túmulos. */
+export const GRAVEYARD_ARENA = { x: 330, y: 560, rx: 260, ry: 190 } as const;
+
+/** Tochas apagadas ao longo da trilha (o herói acende com E). */
+export const GRAVEYARD_TORCHES = [
+  { x: 1560, y: 590 },
+  { x: 1290, y: 860 },
+  { x: 1010, y: 520 },
+  { x: 760, y: 770 },
+  { x: 560, y: 610 },
+  { x: 330, y: 360 },
+  { x: 330, y: 760 },
+] as const;
+
+export const TORCH_STATS = {
+  /** Distância para acender uma tocha com E. */
+  lightRange: 60,
+  /** Raio da luz de uma tocha acesa. */
+  lightRadius: 160,
+} as const;
+
+export const GRAVEYARD_SHRINE_POSITION = { x: 1000, y: 630 } as const;
+
+/** A sombra de Ignis passa a cada minDelay–maxDelay ms e dura `duration`. */
+export const IGNIS_SHADOW = {
+  firstDelay: 6000,
+  minDelay: 22000,
+  maxDelay: 38000,
+  duration: 4500,
+} as const;

@@ -45,13 +45,17 @@ export const TEXTS = {
       pt: "ASTRA LEGACY  •  CAPÍTULO 4",
       en: "ASTRA LEGACY  •  CHAPTER 4",
     },
+    chapter5Title: {
+      pt: "ASTRA LEGACY  •  CAPÍTULO 5",
+      en: "ASTRA LEGACY  •  CHAPTER 5",
+    },
     chapterComplete: {
-      pt: "CAPÍTULO 4 CONCLUÍDO",
-      en: "CHAPTER 4 COMPLETE",
+      pt: "CAPÍTULO 5 CONCLUÍDO",
+      en: "CHAPTER 5 COMPLETE",
     },
     victory: {
-      pt: "QUARTO FRAGMENTO RECUPERADO • VITÓRIA",
-      en: "FOURTH FRAGMENT RECOVERED • VICTORY",
+      pt: "QUINTO FRAGMENTO RECUPERADO • VITÓRIA",
+      en: "FIFTH FRAGMENT RECOVERED • VICTORY",
     },
   },
 
@@ -116,9 +120,25 @@ export const TEXTS = {
       pt: "MISSÃO: O QUARTO FRAGMENTO\nPegue o Fragmento Astral.",
       en: "QUEST: THE FOURTH FRAGMENT\nTake the Astral Fragment.",
     },
+    return: {
+      pt: "NOVO OBJETIVO: DE VOLTA À VILA\nAtravesse o portal de luz e fale com o Ancião.",
+      en: "NEW OBJECTIVE: BACK TO THE VILLAGE\nStep through the portal of light and talk to the Elder.",
+    },
+    passage: {
+      pt: "MISSÃO: O QUINTO FRAGMENTO\nSiga a trilha a oeste da vila, além do Selo Astral.",
+      en: "QUEST: THE FIFTH FRAGMENT\nFollow the trail west of the village, past the Astral Seal.",
+    },
+    knight: {
+      pt: "MISSÃO: O QUINTO FRAGMENTO\nEncontre o guardião no fundo do Cemitério de Dragões.",
+      en: "QUEST: THE FIFTH FRAGMENT\nFind the guardian deep in the Dragon Graveyard.",
+    },
+    fragment5: {
+      pt: "MISSÃO: O QUINTO FRAGMENTO\nPegue o Fragmento Astral.",
+      en: "QUEST: THE FIFTH FRAGMENT\nTake the Astral Fragment.",
+    },
     complete: {
-      pt: "CAPÍTULO 4 CONCLUÍDO!\nVocê recuperou o quarto Fragmento Astral.",
-      en: "CHAPTER 4 COMPLETE!\nYou recovered the fourth Astral Fragment.",
+      pt: "CAPÍTULO 5 CONCLUÍDO!\nVocê recuperou o quinto Fragmento Astral.",
+      en: "CHAPTER 5 COMPLETE!\nYou recovered the fifth Astral Fragment.",
     },
   } satisfies Record<QuestStage, Localized>,
 
@@ -129,6 +149,8 @@ export const TEXTS = {
     swamp: { pt: "PÂNTANO SOMBRIO", en: "SHADOW SWAMP" },
     peaks: { pt: "PICOS CONGELADOS", en: "FROZEN PEAKS" },
     volcano: { pt: "TERRAS VULCÂNICAS", en: "VOLCANIC LANDS" },
+    graveyard: { pt: "CEMITÉRIO DE DRAGÕES", en: "DRAGON GRAVEYARD" },
+    seal: { pt: "SELO ASTRAL", en: "ASTRAL SEAL" },
   },
 
   // Mensagens das áreas do Capítulo 2.
@@ -152,6 +174,35 @@ export const TEXTS = {
     ice: {
       pt: "GELO! VOCÊ ESCORREGA AO ANDAR (ROLAR AINDA FUNCIONA).",
       en: "ICE! YOU SLIDE AS YOU WALK (ROLLING STILL WORKS).",
+    },
+  },
+
+  // Mensagens das áreas do Capítulo 5.
+  chapter5: {
+    portalHome: {
+      pt: "FRAGMENTO RECUPERADO! UM PORTAL DE LUZ SE ABRIU. VOLTE AO ANCIÃO.",
+      en: "FRAGMENT RECOVERED! A PORTAL OF LIGHT HAS OPENED. RETURN TO THE ELDER.",
+    },
+    sealOpened: {
+      pt: "O SELO ASTRAL SE ROMPEU! A TRILHA A OESTE ESTÁ ABERTA.",
+      en: "THE ASTRAL SEAL HAS BROKEN! THE TRAIL TO THE WEST IS OPEN.",
+    },
+    sealClosed: {
+      pt: "UM SELO ANTIGO BLOQUEIA O CAMINHO.",
+      en: "AN ANCIENT SEAL BLOCKS THE WAY.",
+    },
+    lightTorch: { pt: "E  •  Acender tocha", en: "E  •  Light torch" },
+    torchLit: {
+      pt: "TOCHA ACESA. A LUZ AFASTA A ESCURIDÃO.",
+      en: "TORCH LIT. THE LIGHT PUSHES BACK THE DARKNESS.",
+    },
+    allTorchesLit: {
+      pt: "TODAS AS TOCHAS ACESAS! O CEMITÉRIO SE ILUMINA.",
+      en: "ALL TORCHES LIT! THE GRAVEYARD LIGHTS UP.",
+    },
+    ignisShadow: {
+      pt: "UMA SOMBRA ENORME CRUZA O CÉU... IGNIS ESTÁ OBSERVANDO.",
+      en: "A HUGE SHADOW CROSSES THE SKY... IGNIS IS WATCHING.",
     },
   },
 
@@ -296,14 +347,24 @@ export const TEXTS = {
     },
     fourthFragment: {
       pt: [
-        "Quatro fragmentos! O Arauto caiu... e com ele, a voz de Ignis nestas terras.",
-        "Mas no instante em que o fragmento voltou à luz, eu senti um rugido distante, vindo de onde o céu nunca clareia. Ignis acordou de verdade.",
-        "Descanse, viajante. O caminho até o dragão está se abrindo, e você vai precisar de toda a luz de Astra.",
+        "Você voltou! Quatro fragmentos... O Arauto caiu, e com ele a voz de Ignis nestas terras.",
+        "Mas no instante em que o fragmento voltou à luz, senti um rugido distante. Ignis acordou de verdade, e o quinto fragmento está onde os dragões vão morrer: o Cemitério de Dragões.",
+        "O caminho fica a oeste da vila, além de um Selo Astral que ninguém atravessa há séculos. Com a luz dos quatro fragmentos, eu posso rompê-lo. Vá, viajante. E leve luz com você: lá, os mortos não descansam.",
       ],
       en: [
-        "Four fragments! The Herald has fallen... and with him, Ignis's voice in these lands.",
-        "But the moment the fragment returned to the light, I felt a distant roar, from where the sky never clears. Ignis has truly awakened.",
-        "Rest, traveler. The path to the dragon is opening, and you will need all of Astra's light.",
+        "You're back! Four fragments... The Herald has fallen, and with him, Ignis's voice in these lands.",
+        "But the moment the fragment returned to the light, I felt a distant roar. Ignis has truly awakened, and the fifth fragment lies where dragons go to die: the Dragon Graveyard.",
+        "The path lies west of the village, beyond an Astral Seal no one has crossed in centuries. With the light of four fragments, I can break it. Go, traveler. And bring light with you: there, the dead do not rest.",
+      ],
+    },
+    sealOpen: {
+      pt: [
+        "O selo está aberto. Siga a trilha a oeste até o Cemitério de Dragões.",
+        "Lá é escuro como a noite mais funda. Acenda as tochas pelo caminho: a luz é sua melhor aliada.",
+      ],
+      en: [
+        "The seal is open. Follow the trail west to the Dragon Graveyard.",
+        "It is as dark as the deepest night there. Light the torches along the way: light is your best ally.",
       ],
     },
   } satisfies Record<string, Localized<string[]>>,
@@ -777,8 +838,8 @@ export const TEXTS = {
 
   endScreen: {
     victory: {
-      pt: "CAPÍTULO 4 CONCLUÍDO!\n\nVocê recuperou o quarto Fragmento Astral.\nO fogo das Terras Vulcânicas começa a se apagar.\n\nEnter  •  Continuar explorando\nEsc  •  Tela inicial",
-      en: "CHAPTER 4 COMPLETE!\n\nYou recovered the fourth Astral Fragment.\nThe fires of the Volcanic Lands begin to fade.\n\nEnter  •  Keep exploring\nEsc  •  Title screen",
+      pt: "CAPÍTULO 5 CONCLUÍDO!\n\nVocê recuperou o quinto Fragmento Astral.\nOs mortos do Cemitério de Dragões enfim descansam.\n\nEnter  •  Continuar explorando\nEsc  •  Tela inicial",
+      en: "CHAPTER 5 COMPLETE!\n\nYou recovered the fifth Astral Fragment.\nThe dead of the Dragon Graveyard finally rest.\n\nEnter  •  Keep exploring\nEsc  •  Title screen",
     },
     defeat: {
       pt: "VOCÊ FOI DERROTADO\n\nR  •  Voltar ao último checkpoint\nN  •  Começar um novo jogo\nEsc  •  Tela inicial",

@@ -2,16 +2,22 @@
 // Missão: falar com o Ancião → derrotar o Lobo Corrompido → derrotar Kael.
 // Derrotar Kael desfaz a barreira ao norte, que leva às Ruínas do Santuário.
 //
+// Capítulo 5: o herói volta pelo portal de luz da vila e o Ancião rompe o
+// Selo Astral a oeste, abrindo a trilha para o Cemitério de Dragões. O
+// portal da vila leva de volta à cratera das Terras Vulcânicas.
+//
 // Herói, HUD, combate, checkpoints e saídas ficam na cena-base (AreaScene).
 
 import type Phaser from "phaser";
 import {
+  ASTRAL_SEAL,
   ELDER_TALK_RANGE,
   KAEL_POSITION,
   KAEL_STATS,
   NORTH_BARRIER,
   SHRINE_POSITION,
   SPIDER_SPAWNS,
+  VILLAGE_PORTAL_POSITION,
   WORLD_HEIGHT,
   WORLD_WIDTH,
 } from "../config";
@@ -31,6 +37,12 @@ import {
   openCorruptionBarrier,
   type CorruptionBarrier,
 } from "../world/corruptionBarrier";
+import {
+  createAstralSeal,
+  openAstralSeal,
+  type AstralSeal,
+} from "../world/astralSeal";
+import { createPortal, openPortal, type AstralPortal } from "../world/portal";
 import { createElder, type ElderSprite } from "../characters/elder";
 import { createKael } from "../characters/kael";
 import {
@@ -65,6 +77,9 @@ export class ForestScene extends AreaScene {
 
   private signs!: ForestWorld["signs"];
   private northBarrier!: CorruptionBarrier;
+  private astralSeal!: AstralSeal;
+  private sealSign!: Phaser.GameObjects.Text;
+  private villagePortal!: AstralPortal;
   private elder!: ElderSprite;
   /** O lobo da missão: derrotá-lo avança a história. */
   private wolf!: Enemy;
@@ -108,7 +123,49 @@ export class ForestScene extends AreaScene {
       isOpen: () => progress.kaelDefeated,
     });
 
-    return [...treeColliders, this.northBarrier.collider];
+    // Selo Astral a oeste: leva ao Cemitério de Dragões depois de rompido.
+    const seal = ASTRAL_SEAL;
+
+    this.astralSeal = createAstralSeal(this, seal.x, seal.y, seal.height);
+    this.sealSign = this.add
+      .text(seal.x + 70, seal.y - seal.height / 2 - 20, "", {
+        fontFamily: "Georgia, serif",
+        fontSize: "15px",
+        color: "#dbe6ff",
+        stroke: "#15251a",
+        strokeThickness: 4,
+      })
+      .setOrigin(0.5)
+      .setDepth(2000);
+
+    this.addExit({
+      x: 0,
+      y: seal.y - seal.height / 2,
+      width: 40,
+      height: seal.height,
+      target: "graveyardEntrance",
+      isOpen: () => reachedStage("passage"),
+    });
+
+    // Portal de luz da vila: volta para a cratera das Terras Vulcânicas.
+    const portal = VILLAGE_PORTAL_POSITION;
+
+    this.villagePortal = createPortal(this, portal.x, portal.y);
+
+    this.addExit({
+      x: portal.x - 40,
+      y: portal.y - 30,
+      width: 80,
+      height: 60,
+      target: "volcanoCrater",
+      isOpen: () => reachedStage("return"),
+    });
+
+    return [
+      ...treeColliders,
+      this.northBarrier.collider,
+      this.astralSeal.collider,
+    ];
   }
 
   protected createActors(): void {
@@ -179,12 +236,21 @@ export class ForestScene extends AreaScene {
     } else if (progress.kaelUnlocked) {
       this.revealKael();
     }
+
+    if (reachedStage("return")) {
+      openPortal(this, this.villagePortal, false);
+    }
+
+    if (reachedStage("passage")) {
+      openAstralSeal(this, this.astralSeal, false);
+    }
   }
 
   protected applyAreaLanguage(): void {
     this.signs.trail.setText(this.t(TEXTS.places.trail));
     this.signs.forest.setText(this.t(TEXTS.places.forest));
     this.elder.label.setText(this.t(TEXTS.elder.label));
+    this.sealSign.setText(this.t(TEXTS.places.seal));
 
     if (!progress.kaelDefeated) {
       this.kael.nameText.setText(this.t(TEXTS.bosses.kael.name));
@@ -238,7 +304,8 @@ export class ForestScene extends AreaScene {
     const dialogue = TEXTS.elderDialogue;
 
     if (!progress.elderTalked) return this.t(dialogue.intro);
-    if (reachedStage("complete")) return this.t(dialogue.fourthFragment);
+    if (reachedStage("passage")) return this.t(dialogue.sealOpen);
+    if (reachedStage("return")) return this.t(dialogue.fourthFragment);
     if (reachedStage("portal3")) return this.t(dialogue.thirdFragment);
     if (reachedStage("portal2")) return this.t(dialogue.secondFragment);
     if (reachedStage("portal")) return this.t(dialogue.firstFragment);
@@ -257,7 +324,24 @@ export class ForestScene extends AreaScene {
 
     this.unlockKaelIfReady();
     this.updateQuestDisplay();
+    this.breakSealIfReady();
     saveProgress();
+  }
+
+  /** Depois da conversa da volta (Capítulo 5), o Ancião rompe o selo. */
+  private breakSealIfReady(): void {
+    if (progress.questStage !== "return") {
+      return;
+    }
+
+    progress.questStage = "passage";
+
+    openAstralSeal(this, this.astralSeal, true);
+    this.cameras.main.flash(500, 220, 235, 255);
+    audio.play("shrine");
+
+    this.updateQuestDisplay();
+    this.statusText.setText(this.t(TEXTS.chapter5.sealOpened));
   }
 
   protected onEnemyDefeated(enemy: Enemy): void {

@@ -1,7 +1,14 @@
 // Cenário da Floresta Sussurrante: chão, trilha, árvores e placas.
 
 import Phaser from "phaser";
-import { TILE_SIZE, WORLD_HEIGHT, WORLD_WIDTH } from "../config";
+import {
+  FOREST_WEST_TRAIL,
+  TILE_SIZE,
+  VILLAGE_PORTAL_POSITION,
+  WORLD_HEIGHT,
+  WORLD_WIDTH,
+} from "../config";
+import { createSeededRandom, distanceToLine } from "./geometry";
 
 export interface ForestWorld {
   /** Obstáculos das árvores, usados pela cena para criar as colisões. */
@@ -67,18 +74,30 @@ function drawPath(scene: Phaser.Scene): void {
   drawTrail(90, 0x554a35, 1);
   drawTrail(72, 0x817050, 0.9);
   drawTrail(2, 0xc5b58b, 0.25);
+
+  // Trilha a oeste da vila, até o Selo Astral (Capítulo 5): mais estreita
+  // e coberta de folhas, porque ninguém passa por ali há séculos.
+  const drawWestTrail = (width: number, color: number, alpha: number): void => {
+    graphics.lineStyle(width, color, alpha);
+    graphics.beginPath();
+    graphics.moveTo(FOREST_WEST_TRAIL[0].x, FOREST_WEST_TRAIL[0].y);
+
+    for (const point of FOREST_WEST_TRAIL.slice(1)) {
+      graphics.lineTo(point.x, point.y);
+    }
+
+    graphics.strokePath();
+  };
+
+  drawWestTrail(70, 0x4a412f, 1);
+  drawWestTrail(52, 0x6e5f44, 0.85);
 }
 
 function createTrees(scene: Phaser.Scene): Phaser.GameObjects.Rectangle[] {
   const colliders: Phaser.GameObjects.Rectangle[] = [];
 
   // Gerador "aleatório" com semente fixa: a floresta é sempre igual.
-  let seed = 7351;
-
-  const random = (max: number): number => {
-    seed = (seed * 16807) % 2147483647;
-    return ((seed % 10000) / 10000) * max;
-  };
+  const random = createSeededRandom(7351);
 
   for (let i = 0; i < 105; i++) {
     const x = 35 + random(WORLD_WIDTH - 70);
@@ -100,6 +119,19 @@ function createTrees(scene: Phaser.Scene): Phaser.GameObjects.Rectangle[] {
 
     // Mantém livre a trilha ao norte (rumo às Ruínas).
     if (Math.abs(x - 855) < 80 && y < 380) {
+      continue;
+    }
+
+    // Mantém livres a trilha a oeste (rumo ao Selo Astral) e o portal da vila.
+    if (
+      distanceToLine(x, y, FOREST_WEST_TRAIL) < 80 ||
+      Phaser.Math.Distance.Between(
+        x,
+        y,
+        VILLAGE_PORTAL_POSITION.x,
+        VILLAGE_PORTAL_POSITION.y,
+      ) < 80
+    ) {
       continue;
     }
 

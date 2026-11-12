@@ -41,8 +41,10 @@ const SAVE_KEY = "astra-legacy:save";
 // Saves antigos continuam valendo (neles os dois espaços sempre têm item).
 // Versão 7: Capítulo 4. "complete" agora é o fim do Capítulo 4, então saves
 // antigos com "complete" passam para "portal3" (atravessar o portal de fogo).
-const SAVE_VERSION = 7;
-const COMPATIBLE_VERSIONS: readonly unknown[] = [2, 3, 4, 5, 6, SAVE_VERSION];
+// Versão 8: Capítulo 5. "complete" agora é o fim do Capítulo 5, então saves
+// antigos com "complete" passam para "return" (voltar ao Ancião).
+const SAVE_VERSION = 8;
+const COMPATIBLE_VERSIONS: readonly unknown[] = [2, 3, 4, 5, 6, 7, SAVE_VERSION];
 
 export type SaveData = GameProgress;
 
@@ -193,5 +195,6 @@ function migrateQuestStage(stage: QuestStage, version: number): QuestStage {
   // Cada versão nova de capítulo mudou o que "complete" significa.
   if (version < 5) return "portal2";
   if (version < 7) return "portal3";
+  if (version < 8) return "return";
   return stage;
 }

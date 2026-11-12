@@ -1,8 +1,9 @@
 // Terras Vulcânicas: Capítulo 4.
 // Chega-se aqui pelo portal de fogo no topo dos Picos Congelados.
 // Missão: atravessar os rios de lava até a cratera, a leste, derrotar o
-// Arauto de Ignis e pegar o quarto Fragmento Astral, o que conclui o
-// Capítulo 4. Brasas Vivas correm até o herói e explodem (a explosão fere
+// Arauto de Ignis e pegar o quarto Fragmento Astral, o que abre um portal
+// de luz na cratera: ele leva de volta à vila (Capítulo 5 começa com o
+// Ancião). Brasas Vivas correm até o herói e explodem (a explosão fere
 // também os outros inimigos); aranhas e lobos completam o caminho.
 //
 // Pisar na lava ou numa poça de fogo queima (dano a cada pouco tempo);
@@ -24,6 +25,7 @@ import {
   VOLCANO_EMBER_SPAWNS,
   VOLCANO_FRAGMENT_POSITION,
   VOLCANO_HEIGHT,
+  VOLCANO_HOME_PORTAL_POSITION,
   VOLCANO_LAVA_DAMAGE,
   VOLCANO_RETURN_PORTAL_POSITION,
   VOLCANO_SHRINE_POSITION,
@@ -42,7 +44,12 @@ import {
   type Boss,
 } from "../systems/bosses";
 import { createVolcanoWorld, isOnLava } from "../world/volcano";
-import { PORTAL_COLORS, createPortal, openPortal } from "../world/portal";
+import {
+  PORTAL_COLORS,
+  createPortal,
+  openPortal,
+  type AstralPortal,
+} from "../world/portal";
 import {
   createAstralFragment,
   revealAstralFragment,
@@ -103,6 +110,7 @@ export class VolcanoScene extends AreaScene {
   private lavaHintShown = false;
   private lastBurnEffectAt = 0;
   private fragment!: AstralFragment;
+  private homePortal!: AstralPortal;
   private firePools: FirePool[] = [];
 
   private heraldSprite!: HeraldSprite;
@@ -141,6 +149,22 @@ export class VolcanoScene extends AreaScene {
       VOLCANO_FRAGMENT_POSITION.x,
       VOLCANO_FRAGMENT_POSITION.y,
     );
+
+    // Portal de luz na cratera: volta para a vila depois do fragmento.
+    this.homePortal = createPortal(
+      this,
+      VOLCANO_HOME_PORTAL_POSITION.x,
+      VOLCANO_HOME_PORTAL_POSITION.y,
+    );
+
+    this.addExit({
+      x: VOLCANO_HOME_PORTAL_POSITION.x - 40,
+      y: VOLCANO_HOME_PORTAL_POSITION.y - 30,
+      width: 80,
+      height: 60,
+      target: "villagePortal",
+      isOpen: () => reachedStage("return"),
+    });
 
     // Portal de fogo de volta para os Picos (sempre aberto).
     const { x, y } = VOLCANO_RETURN_PORTAL_POSITION;
@@ -210,6 +234,9 @@ export class VolcanoScene extends AreaScene {
 
     if (progress.questStage === "fragment4") {
       revealAstralFragment(this, this.fragment, false);
+    } else {
+      // Fragmento já recuperado: o portal de luz está aberto.
+      openPortal(this, this.homePortal, false);
     }
   }
 
@@ -672,12 +699,9 @@ export class VolcanoScene extends AreaScene {
     }
   }
 
-  /**
-   * Pegar o quarto fragmento conclui o Capítulo 4. O save é mantido:
-   * na tela de vitória, Enter volta ao jogo para continuar explorando.
-   */
+  /** Pegar o quarto fragmento abre o portal de luz de volta à vila. */
   private collectFragment(): void {
-    progress.questStage = "complete";
+    progress.questStage = "return";
 
     const { x, y } = this.fragment.container;
 
@@ -688,9 +712,12 @@ export class VolcanoScene extends AreaScene {
 
     this.cameras.main.flash(500, 255, 240, 200);
 
-    this.updateQuestDisplay();
-    saveProgress();
+    openPortal(this, this.homePortal, true);
+    audio.play("shrine");
 
-    this.showGameOver(true);
+    this.updateQuestDisplay();
+    this.statusText.setText(this.t(TEXTS.chapter5.portalHome));
+
+    saveProgress();
   }
 }
