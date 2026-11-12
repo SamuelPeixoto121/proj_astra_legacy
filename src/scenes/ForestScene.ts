@@ -270,7 +270,7 @@ export class ForestScene extends AreaScene {
     this.unlockKaelIfReady();
 
     if (!progress.kaelUnlocked) {
-      this.statusText.setText(this.t(TEXTS.enemies.wolf.defeated));
+      this.statusText.setText(this.t(TEXTS.hints.wolfQuestDone));
     }
 
     saveProgress();

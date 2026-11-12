@@ -253,6 +253,11 @@ export const TEXTS = {
   hints: {
     talk: { pt: "E  •  Conversar", en: "E  •  Talk" },
     continue: { pt: "E  •  Continuar", en: "E  •  Continue" },
+    /** Depois de derrotar o lobo da missão (o comum só diz "derrotado"). */
+    wolfQuestDone: {
+      pt: "LOBO DERROTADO! VOLTE AO ANCIÃO.",
+      en: "WOLF DEFEATED! RETURN TO THE ELDER.",
+    },
   },
 
   // Textos de cada inimigo comum (separados para respeitar o gênero:
@@ -264,8 +269,8 @@ export const TEXTS = {
         en: `WOLF HIT! DAMAGE: ${damage}`,
       }),
       defeated: {
-        pt: "LOBO DERROTADO! VOLTE AO ANCIÃO.",
-        en: "WOLF DEFEATED! RETURN TO THE ELDER.",
+        pt: "LOBO CORROMPIDO DERROTADO!",
+        en: "CORRUPTED WOLF DEFEATED!",
       },
     },
     spider: {
@@ -286,6 +291,16 @@ export const TEXTS = {
       defeated: {
         pt: "ESPÍRITO DO PÂNTANO DISSIPADO!",
         en: "SWAMP SPIRIT DISPELLED!",
+      },
+    },
+    iceKnight: {
+      hit: (damage: number): Localized => ({
+        pt: `CAVALEIRO ATINGIDO! DANO: ${damage}`,
+        en: `KNIGHT HIT! DAMAGE: ${damage}`,
+      }),
+      defeated: {
+        pt: "CAVALEIRO DE GELO DERROTADO!",
+        en: "ICE KNIGHT DEFEATED!",
       },
     },
   } satisfies Record<
@@ -419,6 +434,10 @@ export const TEXTS = {
   },
 
   combat: {
+    blocked: {
+      pt: "BLOQUEADO! ATAQUE PELAS COSTAS OU LOGO DEPOIS DO GOLPE DELE",
+      en: "BLOCKED! STRIKE FROM BEHIND OR RIGHT AFTER HIS ATTACK",
+    },
     deflected: {
       pt: "PROJÉTIL REBATIDO!",
       en: "PROJECTILE DEFLECTED!",

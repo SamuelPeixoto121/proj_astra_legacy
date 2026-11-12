@@ -32,6 +32,7 @@ import {
   drawEnemyHealthBar,
   type Enemy,
   type RangedAttack,
+  type ShieldDefense,
 } from "../systems/enemies";
 import {
   createProjectile,
@@ -1124,8 +1125,16 @@ export abstract class AreaScene extends Phaser.Scene {
 
   private hitEnemy(enemy: Enemy): void {
     const { x, y } = enemy.sprite.body;
-    const { colors } = enemy.definition;
+    const { colors, shield } = enemy.definition;
     const damage = getHeroStats().attackDamage;
+
+    // Escudo erguido e virado para o herói: o golpe não passa.
+    if (shield && this.isBlockedByShield(enemy, shield)) {
+      audio.play("block");
+      createImpactEffect(this, x, y - 4, 0xd8f2ff, 6, 18);
+      this.statusText.setText(this.t(TEXTS.combat.blocked));
+      return;
+    }
 
     enemy.health = Math.max(0, enemy.health - damage);
     audio.play("hit");
@@ -1601,6 +1610,12 @@ export abstract class AreaScene extends Phaser.Scene {
       return;
     }
 
+    if (enemy.definition.shield) {
+      this.updateShieldedEnemy(enemy, enemy.definition.shield);
+      this.animateEnemy(enemy);
+      return;
+    }
+
     const distance = this.chasePlayer(
       enemy.sprite,
       stats.speed,
@@ -1631,6 +1646,113 @@ export abstract class AreaScene extends Phaser.Scene {
     });
 
     this.damagePlayer(stats.damage);
+  }
+
+  /**
+   * Inimigo com escudo: persegue o herói com o escudo virado para ele.
+   * Ao atacar, trava a direção, ergue a espada (aviso) e golpeia à frente;
+   * depois fica parado um tempo com a guarda baixa.
+   */
+  private updateShieldedEnemy(enemy: Enemy, shield: ShieldDefense): void {
+    const now = this.time.now;
+    const { stats } = enemy.definition;
+    const body = this.getPhysicsBody(enemy.sprite);
+
+    // Preparando o golpe: parado e com a direção travada.
+    if (enemy.strikeAt > 0) {
+      body.setVelocity(0, 0);
+
+      if (now >= enemy.strikeAt) {
+        this.shieldedStrike(enemy, shield);
+      }
+      return;
+    }
+
+    // Guarda baixa depois do golpe: parado e vulnerável.
+    if (now < enemy.guardDownUntil) {
+      body.setVelocity(0, 0);
+      return;
+    }
+
+    const { x, y } = enemy.sprite.body;
+
+    enemy.facingAngle = Math.atan2(
+      this.player.body.y - y,
+      this.player.body.x - x,
+    );
+
+    const distance = this.chasePlayer(
+      enemy.sprite,
+      stats.speed,
+      stats.stopDistance,
+      stats.sightRange,
+      10,
+    );
+
+    if (
+      distance <= stats.attackReach &&
+      now - enemy.lastAttackAt >= stats.attackCooldown
+    ) {
+      enemy.strikeAt = now + shield.windup;
+      body.setVelocity(0, 0);
+      audio.play("warning");
+
+      // Cresce enquanto ergue a espada: o aviso do golpe.
+      this.tweens.add({
+        targets: enemy.sprite.container,
+        scaleX: 1.15,
+        scaleY: 1.15,
+        duration: shield.windup / 2,
+        yoyo: true,
+        ease: "Sine.InOut",
+      });
+    }
+  }
+
+  /** O golpe do inimigo com escudo: só acerta quem está à frente dele. */
+  private shieldedStrike(enemy: Enemy, shield: ShieldDefense): void {
+    const now = this.time.now;
+    const { stats } = enemy.definition;
+    const { x, y } = enemy.sprite.body;
+    const facingX = Math.cos(enemy.facingAngle);
+    const facingY = Math.sin(enemy.facingAngle);
+
+    enemy.strikeAt = 0;
+    enemy.lastAttackAt = now;
+    enemy.guardDownUntil = now + shield.recovery;
+
+    audio.play("swing");
+    createSlashEffect(this, x, y, facingX, facingY);
+
+    const angleToPlayer = Math.atan2(
+      this.player.body.y - y,
+      this.player.body.x - x,
+    );
+    const inFront =
+      Math.abs(Phaser.Math.Angle.Wrap(angleToPlayer - enemy.facingAngle)) <=
+      shield.strikeArc;
+
+    if (inFront && this.distanceToPlayer(x, y) <= stats.attackReach + 22) {
+      this.damagePlayer(stats.damage);
+    }
+  }
+
+  /** true se o escudo está erguido e virado para o herói. */
+  private isBlockedByShield(enemy: Enemy, shield: ShieldDefense): boolean {
+    if (this.time.now < enemy.guardDownUntil) {
+      return false;
+    }
+
+    const { x, y } = enemy.sprite.body;
+    const angleToPlayer = Math.atan2(
+      this.player.body.y - y,
+      this.player.body.x - x,
+    );
+
+    return (
+      Math.abs(Phaser.Math.Angle.Wrap(angleToPlayer - enemy.facingAngle)) <=
+      shield.blockArc
+    );
   }
 
   /**
@@ -1738,6 +1860,7 @@ export abstract class AreaScene extends Phaser.Scene {
       (dx / distance) * stats.wanderSpeed,
       (dy / distance) * stats.wanderSpeed,
     );
+    enemy.facingAngle = Math.atan2(dy, dx);
   }
 
   /**
@@ -1756,6 +1879,12 @@ export abstract class AreaScene extends Phaser.Scene {
     if (enemy.definition.facesRight && Math.abs(velocity.x) > 1) {
       container.scaleX = velocity.x < 0 ? -1 : 1;
     }
+
+    enemy.definition.showGuard?.(
+      enemy.sprite,
+      enemy.facingAngle,
+      this.time.now >= enemy.guardDownUntil,
+    );
   }
 
   /**

@@ -1,5 +1,6 @@
 // Picos Congelados: Capítulo 3.
 // Chega-se aqui pelo portal gelado na clareira do Pântano Sombrio.
+// Lobos e Cavaleiros de Gelo (bloqueiam golpes de frente com o escudo).
 // Missão: subir até o platô do topo, derrotar o chefe (próxima etapa) e
 // pegar o terceiro Fragmento Astral.
 //
@@ -10,6 +11,7 @@ import type Phaser from "phaser";
 import {
   PEAKS_HEIGHT,
   PEAKS_ICE_TRACTION,
+  PEAKS_KNIGHT_SPAWNS,
   PEAKS_RETURN_PORTAL_POSITION,
   PEAKS_SHRINE_POSITION,
   PEAKS_WIDTH,
@@ -76,7 +78,11 @@ export class PeaksScene extends AreaScene {
       spawnEnemy(this, "wolf", x, y),
     );
 
-    this.enemies.push(...wolves);
+    const knights = PEAKS_KNIGHT_SPAWNS.map(({ x, y }) =>
+      spawnEnemy(this, "iceKnight", x, y),
+    );
+
+    this.enemies.push(...wolves, ...knights);
   }
 
   protected onAreaEntered(): void {

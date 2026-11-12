@@ -162,6 +162,33 @@ export const WISP_RANGED = {
   projectileRange: 520,
 } as const;
 
+// Cavaleiro de Gelo (bloqueia com escudo).
+export const ICE_KNIGHT_STATS = {
+  maxHealth: 75,
+  speed: 75,
+  damage: 18,
+  hitRange: 85,
+  sightRange: 380,
+  stopDistance: 44,
+  attackReach: 62,
+  attackCooldown: 1800,
+  wanderRadius: 70,
+  wanderSpeed: 30,
+} as const;
+
+// Escudo do Cavaleiro:
+// - blockArc: metade do ângulo (radianos) protegido pelo escudo, à frente
+//   dele (1.2 ≈ 70° para cada lado);
+// - windup: tempo (ms) erguendo a espada antes do golpe (a direção trava);
+// - recovery: tempo (ms) com o escudo baixado depois do golpe;
+// - strikeArc: metade do ângulo à frente dele que o golpe acerta.
+export const ICE_KNIGHT_SHIELD = {
+  blockArc: 1.2,
+  windup: 650,
+  recovery: 1100,
+  strikeArc: 1.2,
+} as const;
+
 // Passeio dos inimigos comuns (vale para todos):
 // - pauseMin/pauseMax: pausa (ms) entre um passeio e outro;
 // - giveUpTime: se não chegar ao destino nesse tempo (ex.: preso numa árvore),
@@ -404,10 +431,14 @@ export const PEAKS_ICE_TRACTION = 0.04;
 export const PEAKS_RETURN_PORTAL_POSITION = { x: 800, y: 1350 } as const;
 export const PEAKS_SHRINE_POSITION = { x: 690, y: 790 } as const;
 
-// Lobos dos Picos (o Cavaleiro de Gelo entra na próxima etapa).
+// Lobos e Cavaleiros de Gelo dos Picos.
 export const PEAKS_WOLF_SPAWNS = [
   { x: 520, y: 1100 },
+  { x: 1050, y: 470 },
+] as const;
+
+export const PEAKS_KNIGHT_SPAWNS = [
   { x: 1100, y: 920 },
   { x: 560, y: 560 },
-  { x: 1050, y: 470 },
+  { x: 880, y: 640 },
 ] as const;

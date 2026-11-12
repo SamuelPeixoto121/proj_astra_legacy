@@ -18,6 +18,7 @@ export type SfxName =
   | "teleport" // chefe some e reaparece
   | "potion" // beber poção
   | "pickup" // pegar item do chão
+  | "block" // golpe bloqueado por escudo
   | "fragment" // Fragmento Astral
   | "victory"
   | "defeat";
@@ -277,6 +278,18 @@ export function playSfx(
 
     case "pickup":
       chime(ctx, out, [988, 1319], 0.06, { gain: 0.08, duration: 0.35 });
+      return;
+
+    case "block":
+      // Batida metálica: dois tons agudos e um chiado curto.
+      tone(ctx, out, { freq: 1900, to: 1500, duration: 0.12, type: "square", gain: 0.06 });
+      tone(ctx, out, { freq: 2850, duration: 0.18, type: "triangle", gain: 0.05 });
+      noise(ctx, out, noiseBuffer, {
+        duration: 0.08,
+        gain: 0.12,
+        filter: "highpass",
+        freq: 3500,
+      });
       return;
 
     case "fragment":

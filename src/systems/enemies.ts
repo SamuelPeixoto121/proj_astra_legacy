@@ -11,6 +11,8 @@
 import Phaser from "phaser";
 import {
   ENEMY_WANDER,
+  ICE_KNIGHT_SHIELD,
+  ICE_KNIGHT_STATS,
   SPIDER_STATS,
   WISP_RANGED,
   WISP_STATS,
@@ -21,6 +23,7 @@ import type { CharacterSprite } from "../characters/types";
 import { createWolf } from "../characters/wolf";
 import { createSpider } from "../characters/spider";
 import { createWisp } from "../characters/wisp";
+import { createIceKnight, setIceKnightGuard } from "../characters/iceKnight";
 
 export interface EnemyStats {
   maxHealth: number;
@@ -44,6 +47,14 @@ export interface RangedAttack {
   projectileColor: number;
 }
 
+/** Dados de quem se defende com escudo (ver ICE_KNIGHT_SHIELD em config.ts). */
+export interface ShieldDefense {
+  blockArc: number;
+  windup: number;
+  recovery: number;
+  strikeArc: number;
+}
+
 interface EnemyDefinition {
   stats: EnemyStats;
   create: (scene: Phaser.Scene, x: number, y: number) => CharacterSprite;
@@ -56,6 +67,10 @@ interface EnemyDefinition {
   flying: boolean;
   /** Presente só em inimigos que atiram de longe. */
   ranged?: RangedAttack;
+  /** Presente só em inimigos com escudo (bloqueiam golpes de frente). */
+  shield?: ShieldDefense;
+  /** Atualiza o desenho conforme a direção e a guarda (inimigos com escudo). */
+  showGuard?: (sprite: CharacterSprite, angle: number, guarding: boolean) => void;
   colors: {
     impact: number;
     damageText: string;
@@ -106,6 +121,21 @@ export const ENEMY_TYPES: Record<EnemyKind, EnemyDefinition> = {
     },
     healthBar: { width: 36, offsetY: 34 },
   },
+  iceKnight: {
+    stats: ICE_KNIGHT_STATS,
+    create: createIceKnight,
+    facesRight: false,
+    flying: false,
+    shield: ICE_KNIGHT_SHIELD,
+    showGuard: setIceKnightGuard,
+    colors: {
+      impact: 0xd8f2ff,
+      damageText: "#e8f7ff",
+      healthBar: 0x6fb8e8,
+      death: 0x9fd8ff,
+    },
+    healthBar: { width: 44, offsetY: 42 },
+  },
 };
 
 export interface Enemy {
@@ -127,6 +157,12 @@ export interface Enemy {
   wanderGiveUpAt: number;
   /** Inimigos que atiram: quando o tiro sai (ms); 0 = não está mirando. */
   shotReadyAt: number;
+  /** Para onde está olhando (radianos; 0 = direita). */
+  facingAngle: number;
+  /** Inimigos com escudo: quando o golpe sai (ms); 0 = não está golpeando. */
+  strikeAt: number;
+  /** Inimigos com escudo: até quando (ms) fica com a guarda baixa. */
+  guardDownUntil: number;
 }
 
 export function spawnEnemy(
@@ -155,6 +191,9 @@ export function spawnEnemy(
       scene.time.now + Phaser.Math.Between(0, ENEMY_WANDER.pauseMax),
     wanderGiveUpAt: 0,
     shotReadyAt: 0,
+    facingAngle: Math.PI / 2,
+    strikeAt: 0,
+    guardDownUntil: 0,
   };
 }
 
