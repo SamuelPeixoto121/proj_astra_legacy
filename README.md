@@ -25,6 +25,15 @@ O **prólogo** e os **Capítulos 1, 2 e 3** estão completos e jogáveis:
   de Gelo e vença o Colosso de Gelo, um chefe de duas fases, para recuperar o
   terceiro Fragmento Astral.
 
+## Capturas
+
+| | |
+|---|---|
+| ![Picos Congelados com gelo, nevasca e Cavaleiros de Gelo](docs/peaks.png) | ![Colosso de Gelo soltando uma linha de espinhos](docs/boss-spikes.png) |
+| **Picos Congelados:** gelo escorregadio, nevasca e Cavaleiros de Gelo | **Colosso de Gelo:** a linha de espinhos brota em direção ao herói |
+| ![Espírito do Inverno lançando estilhaços em círculo](docs/boss-spirit.png) | ![Inventário com atributos, herói e mochila](docs/inventory.png) |
+| **Segunda fase:** a armadura se parte e surge o Espírito do Inverno | **Inventário (Tab):** raridades, arrastar e soltar e comparação de atributos |
+
 ## Funcionalidades
 
 - **Movimentação em 8 direções** com colisão no cenário e câmera que acompanha o herói
