@@ -10,7 +10,7 @@
 > Central de Astra. Você chega ao Vilarejo da Alvorada no momento em que uma
 > corrupção antiga começa a consumir a Floresta Sussurrante.
 
-O **prólogo** e os **Capítulos 1, 2 e 3** estão completos e jogáveis:
+O **prólogo** e os **Capítulos 1 a 4** estão completos e jogáveis:
 
 - **Prólogo — A Floresta Sussurrante:** converse com o Ancião da Alvorada,
   derrote o Lobo Corrompido e enfrente Kael, o Senhor da Corrupção.
@@ -24,6 +24,9 @@ O **prólogo** e os **Capítulos 1, 2 e 3** estão completos e jogáveis:
   Congelados, escorregue pelo gelo em meio à nevasca, passe pelos Cavaleiros
   de Gelo e vença o Colosso de Gelo, um chefe de duas fases, para recuperar o
   terceiro Fragmento Astral.
+- **Capítulo 4 — O Quarto Fragmento:** atravesse o portal de fogo até as Terras
+  Vulcânicas, cruze os rios de lava rolando, cuidado com as Brasas Vivas que
+  explodem, e derrote o Arauto de Ignis para recuperar o quarto Fragmento Astral.
 
 ## Capturas
 
@@ -49,19 +52,27 @@ O **prólogo** e os **Capítulos 1, 2 e 3** estão completos e jogáveis:
 - **Inimigos com escudo**: os Cavaleiros de Gelo bloqueiam golpes de frente;
   é preciso atacar pelas costas ou logo depois do golpe deles, quando baixam
   a guarda
-- **Quatro chefes com estilos diferentes**: Kael faz **investidas** com aviso; a
+- **Inimigos que explodem**: as Brasas Vivas correm até o herói, acendem o
+  pavio e explodem; dá para apagá-las antes ou usar a explosão contra os
+  outros inimigos
+- **Cinco chefes com estilos diferentes**: Kael faz **investidas** com aviso; a
   Sentinela de Pedra **golpeia o chão em área**; a Feiticeira do Pântano ataca
   de longe com **rajadas em leque**, **teleporta** quando o herói se aproxima,
   lança **marcas sombrias** no chão e fica furiosa com metade da vida; o
   **Colosso de Gelo tem duas fases**: solta linhas de espinhos de gelo e, com
   metade da vida, a armadura se parte e vira o Espírito do Inverno, rápido,
-  que lança estilhaços em círculo e avança em linha reta
+  que lança estilhaços em círculo e avança em linha reta; o **Arauto de
+  Ignis** ergue **colunas de fogo** que deixam poças queimando (a arena vai
+  ficando perigosa), explode em chamas quando o herói chega perto e invoca
+  Brasas Vivas
 - **Terreno que interfere**: poças de lama no pântano deixam o herói mais
-  lento; placas de gelo nos picos fazem o herói escorregar
+  lento; placas de gelo nos picos fazem o herói escorregar; rios de lava nas
+  Terras Vulcânicas queimam (rolar por cima é seguro)
 - **Poções de cura** (Q): inimigos às vezes deixam cair uma, chefes sempre
   deixam; o herói carrega até 3, e tocar numa Pedra Astral recarrega todas
 - **Equipamentos e inventário** (Tab): cada chefe deixa um item (Lâmina
-  Corrompida, Armadura de Pedra, Amuleto do Pântano, Lâmina Glacial) que muda
+  Corrompida, Armadura de Pedra, Amuleto do Pântano, Lâmina Glacial, Manto de
+  Brasas) que muda
   os atributos e as cores do herói. O inventário tem três colunas (atributos,
   herói com os espaços em volta e mochila em grade), **raridade por cor**,
   **arrastar e soltar** e comparação dos atributos antes de trocar. Também dá
@@ -147,12 +158,14 @@ src/
 │   ├── ForestScene.ts         Floresta Sussurrante (prólogo)
 │   ├── RuinsScene.ts          Ruínas do Santuário (Capítulo 1)
 │   ├── SwampScene.ts          Pântano Sombrio (Capítulo 2)
-│   └── PeaksScene.ts          Picos Congelados (Capítulo 3)
+│   ├── PeaksScene.ts          Picos Congelados (Capítulo 3)
+│   └── VolcanoScene.ts        Terras Vulcânicas (Capítulo 4)
 ├── characters/                Herói, Ancião, inimigos comuns e chefes
-├── world/                     Cenários, checkpoints, barreira, portal e Fragmento Astral
+├── world/                     Cenários, geometria, checkpoints, barreira, portal e Fragmento Astral
 ├── effects/                   Efeitos visuais de combate
 ├── audio/                     Motor de áudio, efeitos sonoros e música gerados por código
 ├── ui/                        Menu, painel de idioma e ícones dos itens
+├── utils/                     Formas auxiliares de desenho
 └── systems/
     ├── progress.ts            Progresso do jogador, compartilhado entre as áreas
     ├── preferences.ts         Preferências (idioma) guardadas fora do save
@@ -202,6 +215,7 @@ Algumas decisões do projeto:
 - [x] Capítulo 1: o primeiro Fragmento Astral
 - [x] Capítulo 2: o segundo Fragmento Astral
 - [x] Capítulo 3: o terceiro Fragmento Astral
+- [x] Capítulo 4: o quarto Fragmento Astral
 - [x] Poções de cura, equipamentos e inventário
 - [ ] Próximos capítulos: os fragmentos restantes e o caminho até Ignis
 
@@ -214,12 +228,14 @@ Desenvolvido por **Samuel Peixoto**: [github.com/SamuelPeixoto121](https://githu
 ### English summary
 
 **Astra Legacy** is a top-down 2D dark fantasy action RPG built with **Phaser 4**,
-**TypeScript** (strict) and **Vite**. The playable prologue and Chapters 1, 2 and 3 feature
+**TypeScript** (strict) and **Vite**. The playable prologue and Chapters 1 to 4 feature
 8-direction movement, directional melee combat with visual effects, a dodge roll,
 data-driven enemies (including ranged ones with deflectable projectiles and
-shielded knights that block frontal attacks), **four boss fights** (a telegraphed
-charge, an area slam, a teleporting sorceress with projectile volleys, and a
-two-phase ice colossus), slippery ice and slowing mud, healing potions, a
+shielded knights that block frontal attacks, and living embers that explode),
+**five boss fights** (a telegraphed charge, an area slam, a teleporting sorceress
+with projectile volleys, a two-phase ice colossus, and a fire herald whose
+columns leave burning pools), slippery ice, slowing mud and burning lava,
+healing potions, a
 drag-and-drop inventory with item rarities and stat comparison, multiple areas
 with transitions, a staged quest system, dialogue, **autosave with checkpoints**,
 and full **Portuguese/English** localization. All graphics, sound effects and
