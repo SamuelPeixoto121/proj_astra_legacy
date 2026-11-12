@@ -41,6 +41,10 @@ A história está **completa**: prólogo, **seis capítulos** e um final com cr�
 
 | | |
 |---|---|
+| ![Cidadela em Ruínas com fogo nos escombros e inimigos](docs/citadel.png) | ![Ignis descendo do céu pelo teto do Salão do Tesouro](docs/ignis-descent.png) |
+| **Cidadela em Ruínas:** a antiga capital de Astra ainda arde | **A descida de Ignis:** o dragão desce do céu pelo teto do Salão do Tesouro |
+| ![Ignis voando e lançando bolas de fogo](docs/ignis-flight.png) | ![O Fragmento Central restaurado no Salão do Tesouro](docs/central-fragment.png) |
+| **Segunda fase:** Ignis voa e faz chover bolas de fogo | **O final:** o Fragmento Central volta a brilhar |
 | ![Cemitério de Dragões no escuro, com tochas acesas e Espectros](docs/graveyard-torches.png) | ![Espectros sólidos na luz de uma tocha](docs/spectres.png) |
 | **Cemitério de Dragões:** o herói enxerga só perto de si e das tochas que acende | **Espectros:** intangíveis no escuro, só podem ser atingidos na luz das tochas |
 | ![Cavaleiro Dracônico erguendo a espada enquanto a sombra de Ignis passa](docs/dragon-knight.png) | ![Terras Vulcânicas com rios de lava e o portal de fogo](docs/volcano-lava.png) |
